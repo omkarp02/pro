@@ -20,6 +20,7 @@ type JWTTokenGenerator struct {
 }
 
 func NewJWTTokenGenerator(publicKey string, privateKey string) *JWTTokenGenerator {
+
 	return &JWTTokenGenerator{
 		publicKey:  publicKey,
 		privateKey: privateKey,
@@ -49,16 +50,21 @@ func (gen *JWTTokenGenerator) GenerateToken(payload interface{}, expiry time.Dur
 }
 
 func (gen *JWTTokenGenerator) ValidateToken(token string) (interface{}, error) {
+	publicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(gen.publicKey))
+	if err != nil {
+		return nil, err
+	}
 
 	tok, err := jwt.Parse(token, func(jwtToken *jwt.Token) (interface{}, error) {
 		if _, ok := jwtToken.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method")
 		}
 
-		return gen.publicKey, nil
+		return publicKey, nil
 	})
 
 	if err != nil {
+
 		return nil, err
 	}
 

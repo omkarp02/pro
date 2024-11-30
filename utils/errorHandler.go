@@ -75,6 +75,10 @@ func InvalidCredentails() error {
 	return fiber.NewError(fiber.StatusUnauthorized, "Invalid Credentials")
 }
 
+func UnAuthorized(msg string) error {
+	return fiber.NewError(fiber.StatusUnauthorized, msg)
+}
+
 func InternalServerError() error {
 	return fiber.NewError(fiber.StatusInternalServerError, "Internal Server Error")
 }

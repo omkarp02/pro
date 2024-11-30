@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/omkarp02/pro/config"
+	"github.com/omkarp02/pro/services/middleware"
 	"github.com/omkarp02/pro/utils"
 )
 
@@ -25,6 +26,7 @@ func NewHandler(store UserStore, cfg *config.Config) *Handler {
 
 func (h *Handler) RegisterRoutes(router fiber.Router, link string) {
 	routeGrp := router.Group(link)
+	routeGrp.Use(middleware.VerifyToken(h.cfg))
 
 	routeGrp.Post("/", h.create)
 	routeGrp.Get("/", h.get)
@@ -52,7 +54,11 @@ func (h *Handler) create(c *fiber.Ctx) error {
 }
 
 func (h *Handler) get(c *fiber.Ctx) error {
-	res, err := h.store.GetUser("6747fc459bb5530f8ed389d4")
+
+	user := c.Locals("user")
+	fmt.Println(user)
+
+	res, err := h.store.GetUser("skldfjlskdjf")
 	if err != nil {
 		slog.Error("error", "err", err)
 		return err

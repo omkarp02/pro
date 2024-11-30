@@ -1,8 +1,6 @@
 package config
 
 import (
-	"flag"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -34,23 +32,7 @@ type Config struct {
 	Secret     `yaml:"secrets"`
 }
 
-func MustLoad() *Config {
-	var configPath string
-
-	configPath = os.Getenv("CONFIG_PATH")
-
-	if configPath == "" {
-		flags := flag.String("config", "", "path to the configuration file")
-		flag.Parse()
-
-		fmt.Println(*flags)
-
-		configPath = *flags
-
-		if configPath == "" {
-			log.Fatal("Config path is not set")
-		}
-	}
+func MustLoad(configPath string) *Config {
 
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		log.Fatalf("config file does not exist: %s", configPath)

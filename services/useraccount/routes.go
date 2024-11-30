@@ -75,7 +75,15 @@ func (h *Handler) login(c *fiber.Ctx) error {
 		return utils.InvalidCredentails()
 	}
 
-	accessToken, refreshToken, err := utils.GenerateRefreshAndAccessToken(userAccount, userAccount, h.cfg)
+	accessTokenPayload := services.ACCESS_TOKEN_PAYLOAD{
+		ID: userAccount.ID.Hex(),
+	}
+
+	refreshTokenPayload := services.ACCESS_TOKEN_PAYLOAD{
+		ID: userAccount.ID.Hex(),
+	}
+
+	accessToken, refreshToken, err := utils.GenerateRefreshAndAccessToken(accessTokenPayload, refreshTokenPayload, h.cfg)
 	if err != nil {
 		return err
 	}

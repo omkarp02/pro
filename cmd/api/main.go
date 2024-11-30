@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
-	"log/slog"
+	"os"
 	"time"
 
 	"github.com/omkarp02/pro/api"
@@ -13,13 +14,22 @@ import (
 
 func main() {
 
-	cfg := config.MustLoad()
-	config.SetUpLogger()
+	var configPath string
 
-	// mongoClient, err := db.ConnectToDB(cfg)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	configPath = os.Getenv("CONFIG_PATH")
+
+	if configPath == "" {
+		flags := flag.String("config", "", "path to the configuration file")
+		flag.Parse()
+
+		configPath = *flags
+		if configPath == "" {
+			log.Fatal("Config path is not set")
+		}
+	}
+
+	cfg := config.MustLoad(configPath)
+	config.SetUpLogger()
 
 	DB, err := db.NewDatabase(cfg)
 	if err != nil {
@@ -34,8 +44,6 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
-
-	slog.Info("here it reached")
 
 	server := api.NewAPIServer(cfg.Addr, DB, cfg)
 	if err := server.Run(); err != nil {
