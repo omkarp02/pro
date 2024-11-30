@@ -34,14 +34,11 @@ Thumbs.db
 *.test
 *.coverprofile
 *.cov
-*.sum
 
 # Coverage files
 coverage.out
 
-# Go workspace and cache files
-*.mod
-*.sum
+
 /go.work
 /go.work.sum
 
