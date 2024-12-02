@@ -81,9 +81,9 @@ func TokenFactory(tokenType string, cfg *config.Config) (TokenGenerator, error) 
 	secrets := cfg.Secret
 
 	switch tokenType {
-	case "access":
+	case types.ACCESS_TOKEN:
 		return NewJWTTokenGenerator(secrets.AccessTokenPublicKey, secrets.AccessTokenPrivateKey), nil
-	case "refresh":
+	case types.REFRESH_TOKEN:
 		return NewJWTTokenGenerator(secrets.RefreshTokenPublicKey, secrets.RefreshTokenPrivateKey), nil
 	default:
 		return nil, fmt.Errorf("unsupported token type: %s", tokenType)
@@ -112,4 +112,25 @@ func GenerateRefreshAndAccessToken(accessPayload interface{}, refreshPayload int
 	}
 
 	return accessToken, refreshToken, nil
+}
+
+func ValidateRefreshToken(refreshToken string, cfg *config.Config) (types.REFRESH_TOKEN_PAYLOAD, error) {
+	refreshTokenPayload := types.REFRESH_TOKEN_PAYLOAD{}
+
+	refreshTokenGenerator, err := TokenFactory(types.REFRESH_TOKEN, cfg)
+	if err != nil {
+		return refreshTokenPayload, err
+	}
+
+	claimsMap, err := refreshTokenGenerator.ValidateToken(refreshToken)
+	if err != nil {
+		return refreshTokenPayload, err
+	}
+
+	decodedUserData, err := GetUserDataFromRefreshClaimsData(claimsMap)
+	if err != nil {
+		return refreshTokenPayload, err
+	}
+
+	return decodedUserData, nil
 }

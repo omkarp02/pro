@@ -6,7 +6,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/omkarp02/pro/config"
-	services "github.com/omkarp02/pro/services/utils"
 	"github.com/omkarp02/pro/types"
 	"github.com/omkarp02/pro/utils"
 )
@@ -38,7 +37,7 @@ func VerifyToken(cfg *config.Config) fiber.Handler {
 			return utils.UnAuthorized("Invalid token claims format")
 		}
 
-		asdf := services.ACCESS_TOKEN_PAYLOAD{
+		asdf := types.ACCESS_TOKEN_PAYLOAD{
 			ID: claimsMap["ID"].(string),
 		}
 

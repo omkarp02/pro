@@ -10,5 +10,5 @@ type UserAccount struct {
 	Email        string              `json:"fullname,omitempty"`
 	Password     string              `json:"age,omitempty"`
 	Timestamps   services.Timestamps `bson:",inline"`
-	RefreshToken string              `json:"refresh_token,omitempty" bson:"refresh_token,omitempty"`
+	RefreshToken []string            `json:"refresh_token,omitempty" bson:"refresh_token,omitempty"`
 }

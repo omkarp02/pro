@@ -2,7 +2,7 @@ env: "dev"
 http_server:
   address: "localhost:8080"
 storage:
-  db_url: "mongodb+srv://opwebdev:Omkar^100@omkar.iuqcpfi.mongodb.net/testdb?retryWrites=true&w=majority"
+  db_url: "mongodb://localhost:27017/test_db"
   db_name: "test_db"
 secrets:
   cookie_encryption_key: "fe8d78c1e948d78f4d5ef256e4d08c57"
