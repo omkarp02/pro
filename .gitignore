@@ -44,3 +44,7 @@ coverage.out
 
 # Debug files
 debug/
+
+
+#env
+/config/local.yaml

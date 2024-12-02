@@ -4,6 +4,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/encryptcookie"
+	"github.com/omkarp02/pro/auth"
 	"github.com/omkarp02/pro/config"
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/services/useraccount"
@@ -48,6 +49,8 @@ func (s *APIServer) Run() error {
 	userAccountStore := useraccount.NewStore(s.db, "user_account")
 	userAccountHandler := useraccount.NewHandler(userAccountStore, s.config)
 	userAccountHandler.RegisterRoutes(api, "user-account")
+
+	auth.NewAuth(s.config, app)
 
 	return app.Listen(s.addr)
 }

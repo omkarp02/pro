@@ -8,6 +8,11 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
+type Google struct {
+	ClientSecret string `yaml:"client_secret" env:"client_secret" env-required:"true"`
+	ClientId     string `yaml:"client_id" env:"client_id" env-required:"true"`
+}
+
 type HTTPServer struct {
 	Addr string `yaml:"address" env:"address" env-required:"true"`
 }
@@ -23,6 +28,7 @@ type Secret struct {
 	RefreshTokenPrivateKey string `yaml:"refresh_token_private_key" env:"refresh_token_private_key" env-required:"true"`
 	RefreshTokenPublicKey  string `yaml:"refresh_token_public_key" env:"refresh_token_public_key" env-required:"true"`
 	CookieEncryptionKey    string `yaml:"cookie_encryption_key" env:"cookie_encryption_key" env-required:"true"`
+	Google                 `yaml:"google"`
 }
 
 type Config struct {
