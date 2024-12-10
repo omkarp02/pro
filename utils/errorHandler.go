@@ -106,3 +106,10 @@ func HandleValidationError(errs error) error {
 
 	return fiber.NewError(fiber.StatusUnprocessableEntity, strings.Join(errMsgs, ","))
 }
+
+func StatusBadRequest(msg string) error {
+	return fiber.NewError(fiber.StatusBadRequest, msg)
+}
+
+var ErrDocumentNotFound = errors.New("Document Not found")
+var ErrDocumentAlreadyExist = errors.New("Document Already Exist")

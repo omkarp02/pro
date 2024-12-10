@@ -47,4 +47,4 @@ debug/
 
 
 #env
-/config/local.yaml
+*.env

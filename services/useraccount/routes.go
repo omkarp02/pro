@@ -2,9 +2,7 @@ package useraccount
 
 import (
 	"errors"
-	"fmt"
 	"log/slog"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/omkarp02/pro/config"
@@ -12,16 +10,18 @@ import (
 	services "github.com/omkarp02/pro/services/utils"
 	"github.com/omkarp02/pro/types"
 	"github.com/omkarp02/pro/utils"
+	"github.com/shareed2k/goth_fiber"
 )
 
 type UserAccountStore interface {
-	CreateUserAccount(CreateUserAccountType) (interface{}, error)
-	GetUserAccountByEmail(string) (*UserAccount, error)
+	CreateUserAccount(CreateUserAccountModal) (string, error)
+	GetUserAccountByEmail(string) (UserAccount, error)
 	GetUserAccount(query map[string]interface{}, project map[string]interface{}) (*UserAccount, error)
 	GetUserFromRefreshToken(refreshToken string) (UserAccount, error)
 	UpdateUserAccountById(id string, userAccount UserAccount) (bool, error)
 	UpdateUserRefreshToken(userId string, action string, refreshToken string) error
 	PullUserRefreshToken(refreshToken string) error
+	HandleRefreshTokenForLogin(userId string, refreshToken string, oldRefreshToken string) error
 }
 
 type Handler struct {
@@ -34,7 +34,6 @@ func NewHandler(store UserAccountStore, cfg *config.Config) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(router fiber.Router, link string) {
-
 	routeGrp := router.Group(link)
 
 	routeGrp.Get("/handle-refresh-token", h.handleRefreshToken)
@@ -43,35 +42,40 @@ func (h *Handler) RegisterRoutes(router fiber.Router, link string) {
 
 	routeGrp.Use(middleware.VerifyToken(h.cfg))
 	routeGrp.Get("/logout", h.logout)
-
 }
 
 func (h *Handler) registerUser(c *fiber.Ctx) error {
 
-	var user CreateUserAccountType
+	var user CreateUserAccountBody
 
 	if err := services.ValidateBody(c, &user); err != nil {
 		return err
 	}
 
-	hashedPassword, err := services.HashPassword(user.Password)
-	if err != nil {
-		utils.GenerateError(fiber.StatusInternalServerError, "error occured while generating password")
+	createUserAccountModal := CreateUserAccountModal{
+		Email:        user.Email,
+		PasswordHash: user.Password,
+		AuthProvider: []AuthProviderType{
+			{
+				Provider:   h.cfg.AuthConfig.JWT.ProviderName,
+				ProviderID: h.cfg.AuthConfig.JWT.ProviderId,
+			},
+		},
 	}
 
-	user.Password = hashedPassword
-
-	id, err := h.store.CreateUserAccount(user)
-	if err != nil {
+	id, err := h.store.CreateUserAccount(createUserAccountModal)
+	if errors.Is(err, utils.ErrDocumentAlreadyExist) {
+		return utils.StatusBadRequest("User already exist")
+	} else if err != nil {
 		return err
 	}
 
-	slog.Debug("UserId", "id", fmt.Sprintf("%v", id))
 	return utils.SendResponse(c, "User registered successfully", fiber.Map{"id": id}, 201)
 }
 
 func (h *Handler) login(c *fiber.Ctx) error {
 	oldRefreshToken := c.Cookies(types.REFRESH_TOKEN_COOKIE)
+	jwtProviderId := h.cfg.AuthConfig.JWT.ProviderId
 	var userCred LoginUserAccountType
 
 	if err := services.ValidateBody(c, &userCred); err != nil {
@@ -79,50 +83,44 @@ func (h *Handler) login(c *fiber.Ctx) error {
 	}
 
 	userAccount, err := h.store.GetUserAccountByEmail(userCred.Email)
-	if err != nil {
+	if errors.Is(err, utils.ErrDocumentNotFound) {
+		return utils.StatusBadRequest("Invalid Credentials")
+	} else if err != nil {
 		return err
 	}
 
-	if ok := services.CheckPasswordHash(userCred.Password, userAccount.Password); !ok {
+	userId := userAccount.ID
+
+	userHasJWTProvider := false
+	for _, auth := range userAccount.AuthProvider {
+		if auth.ProviderID == jwtProviderId {
+			userHasJWTProvider = true
+		}
+	}
+
+	if !userHasJWTProvider {
 		return utils.InvalidCredentails()
 	}
 
-	accessTokenPayload := types.ACCESS_TOKEN_PAYLOAD{
-		ID: userAccount.ID.Hex(),
+	if ok := services.CheckPasswordHash(userCred.Password, userAccount.PasswordHash); !ok {
+		return utils.InvalidCredentails()
 	}
 
-	refreshTokenPayload := types.ACCESS_TOKEN_PAYLOAD{
-		ID: userAccount.ID.Hex(),
-	}
+	accessTokenPayload := services.CreateAccessTokenPayload(userId.Hex(), jwtProviderId)
+	refreshTokenPayload := services.CreateRefreshTokenPayload(userId.Hex(), jwtProviderId)
 
 	accessToken, newRefreshToken, err := utils.GenerateRefreshAndAccessToken(accessTokenPayload, refreshTokenPayload, h.cfg)
 	if err != nil {
 		return err
 	}
 
-	var action string
+	h.store.HandleRefreshTokenForLogin(userId.Hex(), newRefreshToken, oldRefreshToken)
 
-	if len(oldRefreshToken) == 0 {
-		action = "push"
-	} else {
-		if err := h.store.PullUserRefreshToken(oldRefreshToken); err != nil {
-			if errors.Is(err, services.ErrDocumentNotFound) {
-				action = "reinitialize"
-			} else {
-				return err
-			}
-		} else {
-			action = "push"
-		}
-
-		clearCookie(c, types.REFRESH_TOKEN_COOKIE)
+	if len(oldRefreshToken) != 0 {
+		services.ClearCookie(c, types.REFRESH_TOKEN_COOKIE)
 	}
 
-	if err := h.store.UpdateUserRefreshToken(userAccount.ID.Hex(), action, newRefreshToken); err != nil {
-		return err
-	}
-
-	updateRefreshTokenCookie(c, newRefreshToken)
+	services.UpdateRefreshTokenCookie(c, types.REFRESH_TOKEN_COOKIE, newRefreshToken)
 
 	return utils.SendResponse(c, "User Logged In Succesfully", fiber.Map{"accessToken": accessToken}, 200)
 }
@@ -133,10 +131,10 @@ func (h *Handler) handleRefreshToken(c *fiber.Ctx) error {
 		return utils.UnAuthorized("UnAuthorized")
 	}
 
-	clearCookie(c, types.REFRESH_TOKEN_COOKIE)
+	services.ClearCookie(c, types.REFRESH_TOKEN_COOKIE)
 
 	_, err := h.store.GetUserFromRefreshToken(refreshToken)
-	if errors.Is(err, services.ErrDocumentNotFound) {
+	if errors.Is(err, utils.ErrDocumentNotFound) {
 		decodedUserData, err := utils.ValidateRefreshToken(refreshToken, h.cfg)
 		if err != nil {
 			return err
@@ -158,13 +156,8 @@ func (h *Handler) handleRefreshToken(c *fiber.Ctx) error {
 		return utils.UnAuthorized("UnAuthorized")
 	}
 
-	accessTokenPayload := types.ACCESS_TOKEN_PAYLOAD{
-		ID: decodedUserData.ID,
-	}
-
-	refreshTokenPayload := types.REFRESH_TOKEN_PAYLOAD{
-		ID: decodedUserData.ID,
-	}
+	accessTokenPayload := services.CreateAccessTokenPayload(decodedUserData.ID, decodedUserData.ProviderId)
+	refreshTokenPayload := services.CreateRefreshTokenPayload(decodedUserData.ID, decodedUserData.ProviderId)
 
 	accessToken, refreshToken, err := utils.GenerateRefreshAndAccessToken(accessTokenPayload, refreshTokenPayload, h.cfg)
 	if err != nil {
@@ -175,42 +168,31 @@ func (h *Handler) handleRefreshToken(c *fiber.Ctx) error {
 		return err
 	}
 
-	updateRefreshTokenCookie(c, refreshToken)
+	services.UpdateRefreshTokenCookie(c, types.REFRESH_TOKEN_COOKIE, refreshToken)
 
 	return utils.SendResponse(c, "token generated successfully", fiber.Map{"accessToken": accessToken}, 200)
 
 }
 
 func (h *Handler) logout(c *fiber.Ctx) error {
+	user := services.ValidateDataForAccessToken(c.Locals("user"))
+
+	if user.ProviderId != h.cfg.AuthConfig.JWT.ProviderId {
+		if err := goth_fiber.Logout(c); err != nil {
+			return utils.InternalServerError()
+		}
+	}
+
 	refreshToken := c.Cookies(types.REFRESH_TOKEN_COOKIE)
 	if len(refreshToken) == 0 {
 		return utils.UnAuthorized("UnAuthorized")
 	}
 
 	if err := h.store.PullUserRefreshToken(refreshToken); err != nil {
-		clearCookie(c, types.REFRESH_TOKEN_COOKIE)
+		services.ClearCookie(c, types.REFRESH_TOKEN_COOKIE)
 		return err
 	}
 
-	clearCookie(c, types.REFRESH_TOKEN_COOKIE)
+	services.ClearCookie(c, types.REFRESH_TOKEN_COOKIE)
 	return utils.SendResponse(c, "User logged out successfully", fiber.Map{}, 200)
-}
-
-func updateRefreshTokenCookie(c *fiber.Ctx, refreshToken string) {
-	c.Cookie(&fiber.Cookie{
-		Name:    types.REFRESH_TOKEN_COOKIE,
-		Value:   refreshToken,
-		Expires: types.REFRESH_TOKEN_COOKIE_EXPIRY,
-		// HTTPOnly: true,
-		// Secure:   true,
-		// SameSite: fiber.CookieSameSiteStrictMode,
-	})
-}
-
-func clearCookie(c *fiber.Ctx, name string) {
-	c.Cookie(&fiber.Cookie{
-		Name:    name,
-		Value:   "",
-		Expires: time.Now().Add(-time.Hour),
-	})
 }

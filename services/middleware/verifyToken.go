@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"log/slog"
 
 	"github.com/gofiber/fiber/v2"
@@ -32,18 +31,12 @@ func VerifyToken(cfg *config.Config) fiber.Handler {
 			return utils.UnAuthorized("Invalid Token")
 		}
 
-		claimsMap, ok := data.(map[string]interface{})
-		if !ok {
-			return utils.UnAuthorized("Invalid token claims format")
+		userData, err := utils.GetUserDataFromAccessClaimsData(data)
+		if err != nil {
+			return err
 		}
 
-		asdf := types.ACCESS_TOKEN_PAYLOAD{
-			ID: claimsMap["ID"].(string),
-		}
-
-		fmt.Println(asdf)
-
-		c.Locals("user", "lskdfjlsdkfj")
+		c.Locals("user", userData)
 		return c.Next()
 
 	}

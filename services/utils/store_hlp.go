@@ -64,5 +64,3 @@ func CreateBsonFromStruct(input interface{}) bson.D {
 
 	return updates
 }
-
-var ErrDocumentNotFound = errors.New("Document Not found")

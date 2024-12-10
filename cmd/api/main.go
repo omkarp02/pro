@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"flag"
 	"log"
-	"os"
 	"time"
 
 	"github.com/omkarp02/pro/api"
@@ -13,20 +11,7 @@ import (
 )
 
 func main() {
-
-	var configPath string
-
-	configPath = os.Getenv("CONFIG_PATH")
-
-	if configPath == "" {
-		flags := flag.String("config", "", "path to the configuration file")
-		flag.Parse()
-
-		configPath = *flags
-		if configPath == "" {
-			log.Fatal("Config path is not set")
-		}
-	}
+	var configPath string = ""
 
 	cfg := config.MustLoad(configPath)
 	config.SetUpLogger()

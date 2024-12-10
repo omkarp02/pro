@@ -10,6 +10,7 @@ import (
 
 	"github.com/omkarp02/pro/db"
 	services "github.com/omkarp02/pro/services/utils"
+	"github.com/omkarp02/pro/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -53,27 +54,37 @@ func (s *Store) createIndexes() error {
 	return err
 }
 
-func (s *Store) CreateUserAccount(user CreateUserAccountType) (interface{}, error) {
+func (s *Store) CreateUserAccount(user CreateUserAccountModal) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	newUserAccount := UserAccount{
-		Email:        user.Email,
-		Password:     user.Password,
-		RefreshToken: []string{},
-		Timestamps:   services.GetCurrentTimestamps(),
+
+	if len(user.PasswordHash) != 0 {
+		hashedPassword, err := services.HashPassword(user.PasswordHash)
+		if err != nil {
+			return "", errors.New("error occured while generating password")
+		}
+		user.PasswordHash = hashedPassword
 	}
 
-	fmt.Println(newUserAccount)
+	newUserAccount := s.createUserAccountModalFromData(user)
 
 	result, err := s.getColl().InsertOne(ctx, newUserAccount)
-	if err != nil {
-		return nil, err
+
+	if mongo.IsDuplicateKeyError(err) {
+		return "", utils.ErrDocumentAlreadyExist
+	} else if err != nil {
+		return "", err
 	}
 
-	return result.InsertedID, nil
+	if id, ok := result.InsertedID.(bson.ObjectID); ok {
+		fmt.Println("final", id.Hex(), id)
+		return id.Hex(), nil
+	}
+
+	return "", errors.New("database error")
 }
 
-func (s *Store) GetUserAccountByEmail(email string) (*UserAccount, error) {
+func (s *Store) GetUserAccountByEmail(email string) (UserAccount, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -82,12 +93,14 @@ func (s *Store) GetUserAccountByEmail(email string) (*UserAccount, error) {
 	filter := bson.D{{Key: "email", Value: email}}
 	err := s.getColl().FindOne(ctx, filter).Decode(&userAccount)
 
-	if err != nil {
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return UserAccount{}, utils.ErrDocumentNotFound
+	} else if err != nil {
 		slog.Error("error will getting user account", "err", err)
-		return nil, err
+		return UserAccount{}, err
 	}
 
-	return &userAccount, nil
+	return userAccount, nil
 }
 
 func (s *Store) GetUserFromRefreshToken(refreshToken string) (UserAccount, error) {
@@ -102,7 +115,7 @@ func (s *Store) GetUserFromRefreshToken(refreshToken string) (UserAccount, error
 	err := s.getColl().FindOne(ctx, filter, findOptions).Decode(&userAccount)
 
 	if errors.Is(err, mongo.ErrNoDocuments) {
-		return UserAccount{}, services.ErrDocumentNotFound
+		return UserAccount{}, utils.ErrDocumentNotFound
 	} else if err != nil {
 		slog.Error("error will getting user account", "err", err)
 		return UserAccount{}, err
@@ -146,9 +159,30 @@ func (s *Store) UpdateUserAccountById(id string, userAccount UserAccount) (bool,
 	return result.Acknowledged, nil
 }
 
-// func (s *Store) UpdateUserByRefreshToken(refreshToken string) (bool, error) {
+func (s *Store) HandleRefreshTokenForLogin(userId string, refreshToken string, oldRefreshToken string) error {
+	var action string
 
-// }
+	if len(oldRefreshToken) == 0 {
+		action = "push"
+	} else {
+		if err := s.PullUserRefreshToken(oldRefreshToken); err != nil {
+			if errors.Is(err, utils.ErrDocumentNotFound) {
+				action = "reinitialize"
+			} else {
+				return err
+			}
+		} else {
+			action = "push"
+		}
+
+	}
+
+	if err := s.UpdateUserRefreshToken(userId, action, refreshToken); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func (s *Store) UpdateUserRefreshToken(userId string, action string, refreshToken string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -179,7 +213,7 @@ func (s *Store) UpdateUserRefreshToken(userId string, action string, refreshToke
 
 	result, err := s.getColl().UpdateByID(ctx, objectId, update)
 	if result.MatchedCount == 0 {
-		return services.ErrDocumentNotFound
+		return utils.ErrDocumentNotFound
 	}
 	if err != nil {
 		return err
@@ -196,7 +230,7 @@ func (s *Store) PullUserRefreshToken(refreshToken string) error {
 	update := bson.M{"$pull": bson.M{"refresh_token": refreshToken}}
 	result, err := s.getColl().UpdateOne(ctx, query, update)
 	if result.MatchedCount == 0 {
-		return services.ErrDocumentNotFound
+		return utils.ErrDocumentNotFound
 	}
 	if err != nil {
 		return err
@@ -204,4 +238,24 @@ func (s *Store) PullUserRefreshToken(refreshToken string) error {
 
 	return nil
 
+}
+
+func (s *Store) createUserAccountModalFromData(userAccountData CreateUserAccountModal) UserAccount {
+
+	authProviderSlice := []AuthProvider{}
+	for _, auth := range userAccountData.AuthProvider {
+		authProviderSlice = append(authProviderSlice, AuthProvider{
+			Provider:   auth.Provider,
+			ProviderID: auth.ProviderID,
+		})
+	}
+
+	newUserAccount := UserAccount{
+		Email:        userAccountData.Email,
+		PasswordHash: userAccountData.PasswordHash,
+		Timestamps:   services.GetCurrentTimestamps(),
+		AuthProvider: authProviderSlice,
+	}
+
+	return newUserAccount
 }

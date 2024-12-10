@@ -13,9 +13,11 @@ const (
 var REFRESH_TOKEN_COOKIE_EXPIRY = time.Now().Add(24 * time.Hour)
 
 type ACCESS_TOKEN_PAYLOAD struct {
-	ID string
+	ID         string
+	ProviderId string
 }
 
 type REFRESH_TOKEN_PAYLOAD struct {
-	ID string
+	ID         string
+	ProviderId string
 }

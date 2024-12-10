@@ -1,0 +1,1 @@
+_gothic_session remove after logout

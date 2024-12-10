@@ -2,12 +2,14 @@ env: "dev"
 http_server:
   address: "localhost:8080"
 storage:
-  db_url: "mongodb://localhost:27017/test_db"
   db_name: "test_db"
-secrets:
-  cookie_encryption_key: "fe8d78c1e948d78f4d5ef256e4d08c57"
-  access_token_private_key: "-----BEGIN RSA PRIVATE KEY-----\nMIICWwIBAAKBgQCIlihcFQA1VMg/U7s1ObN5vzLKXtU+cA6eKbcWLnOS5hUAwmR2\n0Mz51UUqnNOnJ3mtdCNz19Gc1lldJCsWLZtY+bUHIKWj79klktLWQiSK0xopD5yN\nW1njLCaM5FKLmStUyaQcUI6EZyMt2r/tfwC0vm/qbg4XpAa/ClNOlGmgtQIDAQAB\nAoGAWBoLRIIjVUMvu3FmAwoKE5DZ0SFkiVa8hxa/SyaBVBLnH0tEhENgxBHmAHuS\nJnLXEKQmLhXa1kCI+gRXaoHWfo7Bp/C8I3Lw2U73RYIiagOR0qF4QkiH8OfhvT54\n9ieIqmamMi+Nzm/Kgohuv36QRYWgEj5WLvGYsaarzoyVZS0CQQD1QuHFu1+0BsW6\ni7gEkVc7ZWwyXQtCmnB9Eo+2dh3K2iWbptwknBaXk+oA8jy0gnBa9O8lu8GYQymf\nOeXgTn6PAkEAjpEl1Mh2JtrCoR+ZxZizCeDfK0Q+0TJCOEUgJonK76yJnb2ie/go\nabM8J3TNitp8SPIuHn25igyiWfuKQ0kOewJAeSpekaodALprytolwhPvjYdwqXzw\nCCp2MkQOPa0i0Mlu1PPdRDTcsGvBqlACD4d1bGofD3wvi0J6+I/I8kS1HwJAbgch\nblYDsbr1qMotsC1ISCBvvAGghW1HZAwdYwDHSTAcyUu4ofqEngcBLuZbV4WFk/qs\nk0WusxdLGS0jqQgyDwJARczaC7TRE1EAJq39CCIBNqt2q1g9cEP4trp64c/deq+T\nQJ3PzvicDpyyOWs1/6F/iIFynbRe5E7bk+Ik/2LEkw==\n-----END RSA PRIVATE KEY-----"
-  access_token_public_key: "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCIlihcFQA1VMg/U7s1ObN5vzLK\nXtU+cA6eKbcWLnOS5hUAwmR20Mz51UUqnNOnJ3mtdCNz19Gc1lldJCsWLZtY+bUH\nIKWj79klktLWQiSK0xopD5yNW1njLCaM5FKLmStUyaQcUI6EZyMt2r/tfwC0vm/q\nbg4XpAa/ClNOlGmgtQIDAQAB\n-----END PUBLIC KEY-----"
-  refresh_token_private_key: "-----BEGIN RSA PRIVATE KEY-----\nMIICXQIBAAKBgQCG0NEnc840BZcGot1NtGKlHEFSYP2ji4GRR8E43RPznK6txxHe\nQRbCSVuU6fljWOl51U8r9V4TLXGP3ffDmBUWYcN3Scbf/+lafrAjo1WAK64o0wjk\n2lctc0CVuOxBSRlt27L2OjMaK8ZlBAOb9RXJcho+2Hbg8WGdofJtFOwcrQIDAQAB\nAoGAHpMXDBqAZl3qLXAcPnYtdQKecd9bRo7p+JfMY2gIEVS0bObbz4r1bWSTp4cU\nrwpIEQBmbzK7fh/tRFJz0WEZTuC14o/16Iz/hia438X/LwEsVKxhjY3GTYzLi5WA\nSMzoOB9wgQsTIqZzaR4Abnadxijh3uWNLbDwWp0CjDfvnOECQQDGOze/rGMWmwHT\nSAQTp7JZLy0QshFZOqzQcTu4cTinM+tWaYd08/jT51VK+GlYEHfAKx8ntpR43/9j\n0Ga+utXJAkEArhqPqwcRVP0zndVz240hTPy4m5k5yrqlwIChpx/3ISoGvOADfVVa\nmlZuWCHW19qStEsRtuqCsJY5yUPzuflRxQJAGinyv7+3DGLFKOfWcemuZosNfaij\nFY3jBVgMs9ltytPVegBPuqYA76cW4OBMtyzlQV3vrMQycInQIZJ+HSp30QJBAJr1\nNQ3J2plESx6djuLIN+1nuX9z30Ya3c/6LOaswq4X06tjzndM8rkPWGLEq42vEoe5\nkOi2zN8Sthf2jQTnbOkCQQDDbsxKIFE5tsImW1JAvTOnr6ECi67y/QXZB/uS0mbv\nO1EN3t/jJjjcVKFm74qnsTbzqfMeTvwOzAM9ExtQ3UEy\n-----END RSA PRIVATE KEY-----"
-  refresh_token_public_key: "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCG0NEnc840BZcGot1NtGKlHEFS\nYP2ji4GRR8E43RPznK6txxHeQRbCSVuU6fljWOl51U8r9V4TLXGP3ffDmBUWYcN3\nScbf/+lafrAjo1WAK64o0wjk2lctc0CVuOxBSRlt27L2OjMaK8ZlBAOb9RXJcho+\n2Hbg8WGdofJtFOwcrQIDAQAB\n-----END PUBLIC KEY-----"
+auth_config_provider:
+  google:
+    redirect_url: "http://localhost:8080/api/v1/auth/google/callback"
+    provider_id: "B80E81BI66XN6MU"
+    provider_name: "google"
+  jwt:
+    provider_id: "4S4UXF650DBR6NR"
+    provider_name: "jwt"
+
 
