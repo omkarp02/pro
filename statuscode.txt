@@ -1,0 +1,9 @@
+-1 success
+1 unhandled
+2 already exist 
+3 not found
+4 invalid cred
+5 unauthorize
+6 internal server error
+7 validation error
+8 database error

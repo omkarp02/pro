@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/omkarp02/pro/config"
+	"github.com/omkarp02/pro/router"
 	"github.com/omkarp02/pro/services/middleware"
 	"github.com/omkarp02/pro/utils"
+	"github.com/omkarp02/pro/utils/validation"
 )
 
 type UserStore interface {
@@ -16,15 +17,16 @@ type UserStore interface {
 }
 
 type Handler struct {
-	store UserStore
-	cfg   *config.Config
+	store     UserStore
+	cfg       *config.Config
+	validator *validation.Validator
 }
 
-func NewHandler(store UserStore, cfg *config.Config) *Handler {
-	return &Handler{store: store, cfg: cfg}
+func NewHandler(store UserStore, cfg *config.Config, validator *validation.Validator) *Handler {
+	return &Handler{store: store, cfg: cfg, validator: validator}
 }
 
-func (h *Handler) RegisterRoutes(router fiber.Router, link string) {
+func (h *Handler) RegisterRoutes(router router.Router, link string) {
 	routeGrp := router.Group(link)
 	routeGrp.Use(middleware.VerifyToken(h.cfg))
 
@@ -32,14 +34,12 @@ func (h *Handler) RegisterRoutes(router fiber.Router, link string) {
 	routeGrp.Get("/", h.get)
 }
 
-func (h *Handler) create(c *fiber.Ctx) error {
+func (h *Handler) create(c router.Context) error {
 
 	var user CreateUser
 	// Parse the JSON body into the struct
-	if err := c.BodyParser(&user); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
-		})
+	if err := h.validator.ValidateBody(c, &user); err != nil {
+		return err
 	}
 
 	slog.Debug("created User data routes", "user", user)
@@ -53,10 +53,7 @@ func (h *Handler) create(c *fiber.Ctx) error {
 	return utils.SendResponse(c, "User created successfully", nil, 201)
 }
 
-func (h *Handler) get(c *fiber.Ctx) error {
-
-	user := c.Locals("user")
-	fmt.Println(user)
+func (h *Handler) get(c router.Context) error {
 
 	res, err := h.store.GetUser("skldfjlskdjf")
 	if err != nil {

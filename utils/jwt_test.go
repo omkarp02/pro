@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/omkarp02/pro/config"
-	"github.com/omkarp02/pro/types"
+	"github.com/omkarp02/pro/utils/constant"
 )
 
 func generateConfig() *config.Config {
@@ -16,7 +16,7 @@ func generateConfig() *config.Config {
 
 func TestJwt(t *testing.T) {
 	cfg := generateConfig()
-	tokenGenerator, err := TokenFactory(types.ACCESS_TOKEN, cfg)
+	tokenGenerator, err := TokenFactory(constant.ACCESS_TOKEN, cfg)
 	if err != nil {
 		t.Error(err)
 	}

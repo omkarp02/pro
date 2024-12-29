@@ -8,10 +8,12 @@ import (
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/providers/google"
 	"github.com/omkarp02/pro/config"
+	"github.com/omkarp02/pro/router"
 	"github.com/omkarp02/pro/services/useraccount"
-	services "github.com/omkarp02/pro/services/utils"
-	"github.com/omkarp02/pro/types"
+	"github.com/omkarp02/pro/services/utils/helper"
 	"github.com/omkarp02/pro/utils"
+	"github.com/omkarp02/pro/utils/constant"
+	"github.com/omkarp02/pro/utils/errutil"
 	"github.com/shareed2k/goth_fiber"
 )
 
@@ -30,11 +32,11 @@ func NewHandler(cfg *config.Config, userAccountStore UserAccountStore) *Handler 
 	return &Handler{cfg: cfg, UserAccountStore: userAccountStore}
 }
 
-func (h *Handler) RegisterRoutes(router fiber.Router, link string) {
+func (h *Handler) RegisterRoutes(router router.Router, link string) {
 	h.RegisterProviders()
 	routeGrp := router.Group(link)
 
-	routeGrp.Get("/:provider", goth_fiber.BeginAuthHandler)
+	routeGrp.Get("/:provider", h.authHandler)
 	router.Get("/auth/:provider/callback", h.redirectUrlHandler)
 }
 
@@ -47,16 +49,20 @@ func (h *Handler) RegisterProviders() {
 	)
 }
 
-func (h *Handler) redirectUrlHandler(c *fiber.Ctx) error {
+func (h *Handler) authHandler(c router.Context) error {
+	return goth_fiber.BeginAuthHandler(c.GetContext())
+}
+
+func (h *Handler) redirectUrlHandler(c router.Context) error {
 
 	provider := c.Params("provider")
 	providerId := h.cfg.GetProviderIdByName(provider)
 
-	oldRefreshToken := c.Cookies(types.REFRESH_TOKEN_COOKIE)
-	user, err := goth_fiber.CompleteUserAuth(c)
+	oldRefreshToken := c.GetCookie(constant.REFRESH_TOKEN_COOKIE)
+	user, err := goth_fiber.CompleteUserAuth(c.GetContext())
 	if err != nil {
 		slog.Error("err while handling the redirect url", "err", err)
-		return utils.InternalServerError()
+		return errutil.InternalServerError()
 	}
 
 	slog.Info("Info about user", "user", user)
@@ -64,7 +70,7 @@ func (h *Handler) redirectUrlHandler(c *fiber.Ctx) error {
 	var id string
 	userAccount, err := h.GetUserAccountByEmail(user.Email)
 	id = userAccount.ID.Hex()
-	if errors.Is(err, utils.ErrDocumentNotFound) {
+	if errors.Is(err, errutil.ErrDocumentNotFound) {
 		createUserAccountModal := useraccount.CreateUserAccountModal{
 			Email: user.Email,
 			AuthProvider: []useraccount.AuthProviderType{
@@ -84,8 +90,8 @@ func (h *Handler) redirectUrlHandler(c *fiber.Ctx) error {
 		return err
 	}
 
-	accessTokenPayload := services.CreateAccessTokenPayload(id, providerId)
-	refreshTokenPayload := services.CreateRefreshTokenPayload(id, providerId)
+	accessTokenPayload := helper.CreateAccessTokenPayload(id, providerId)
+	refreshTokenPayload := helper.CreateRefreshTokenPayload(id, providerId)
 
 	_, newRefreshToken, err := utils.GenerateRefreshAndAccessToken(accessTokenPayload, refreshTokenPayload, h.cfg)
 	if err != nil {
@@ -95,10 +101,10 @@ func (h *Handler) redirectUrlHandler(c *fiber.Ctx) error {
 	h.HandleRefreshTokenForLogin(id, newRefreshToken, oldRefreshToken)
 
 	if len(oldRefreshToken) != 0 {
-		services.ClearCookie(c, types.REFRESH_TOKEN_COOKIE)
+		helper.ClearCookie(c, constant.REFRESH_TOKEN_COOKIE)
 	}
 
-	services.UpdateRefreshTokenCookie(c, types.REFRESH_TOKEN_COOKIE, newRefreshToken)
+	helper.UpdateCookie(c, constant.REFRESH_TOKEN_COOKIE, newRefreshToken, constant.REFRESH_TOKEN_COOKIE_EXPIRY)
 
 	return c.Redirect("http://localhost:5173/success", fiber.StatusFound)
 }

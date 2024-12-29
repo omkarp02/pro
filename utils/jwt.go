@@ -7,6 +7,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/omkarp02/pro/config"
 	"github.com/omkarp02/pro/types"
+	"github.com/omkarp02/pro/utils/constant"
 )
 
 type TokenGenerator interface {
@@ -81,9 +82,9 @@ func TokenFactory(tokenType string, cfg *config.Config) (TokenGenerator, error) 
 	secrets := cfg.Secret
 
 	switch tokenType {
-	case types.ACCESS_TOKEN:
+	case constant.ACCESS_TOKEN:
 		return NewJWTTokenGenerator(secrets.AccessTokenPublicKey, secrets.AccessTokenPrivateKey), nil
-	case types.REFRESH_TOKEN:
+	case constant.REFRESH_TOKEN:
 		return NewJWTTokenGenerator(secrets.RefreshTokenPublicKey, secrets.RefreshTokenPrivateKey), nil
 	default:
 		return nil, fmt.Errorf("unsupported token type: %s", tokenType)
@@ -91,7 +92,7 @@ func TokenFactory(tokenType string, cfg *config.Config) (TokenGenerator, error) 
 }
 
 func GenerateRefreshAndAccessToken(accessPayload interface{}, refreshPayload interface{}, cfg *config.Config) (string, string, error) {
-	accessTokenGenerator, err := TokenFactory(types.ACCESS_TOKEN, cfg)
+	accessTokenGenerator, err := TokenFactory(constant.ACCESS_TOKEN, cfg)
 	if err != nil {
 		return "", "", err
 	}
@@ -101,7 +102,7 @@ func GenerateRefreshAndAccessToken(accessPayload interface{}, refreshPayload int
 		return "", "", err
 	}
 
-	refreshTokenGenerator, err := TokenFactory(types.REFRESH_TOKEN, cfg)
+	refreshTokenGenerator, err := TokenFactory(constant.REFRESH_TOKEN, cfg)
 	if err != nil {
 		return "", "", err
 	}
@@ -117,7 +118,7 @@ func GenerateRefreshAndAccessToken(accessPayload interface{}, refreshPayload int
 func ValidateRefreshToken(refreshToken string, cfg *config.Config) (types.REFRESH_TOKEN_PAYLOAD, error) {
 	refreshTokenPayload := types.REFRESH_TOKEN_PAYLOAD{}
 
-	refreshTokenGenerator, err := TokenFactory(types.REFRESH_TOKEN, cfg)
+	refreshTokenGenerator, err := TokenFactory(constant.REFRESH_TOKEN, cfg)
 	if err != nil {
 		return refreshTokenPayload, err
 	}

@@ -4,6 +4,7 @@ import (
 	"log/slog"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/omkarp02/pro/router"
 )
 
 type Response struct {
@@ -12,11 +13,11 @@ type Response struct {
 	Data    interface{} `json:"data"`
 }
 
-func SendResponse(c *fiber.Ctx, msg string, data interface{}, status int) error {
+func SendResponse(c router.Context, msg string, data interface{}, status int) error {
 	//Validating that the status code is in the range 2xx
 	if status < 200 || status > 299 {
 		slog.Error("Invalid success status code provided", "status", status)
-		return c.Status(fiber.StatusInternalServerError).JSON(Response{
+		return c.JSON(fiber.StatusInternalServerError, Response{
 			Status:  fiber.StatusInternalServerError,
 			Message: "Invalid success status code",
 		})
@@ -28,5 +29,5 @@ func SendResponse(c *fiber.Ctx, msg string, data interface{}, status int) error 
 		Data:    data,
 	}
 
-	return c.Status(status).JSON(response)
+	return c.JSON(status, response)
 }

@@ -1,7 +1,7 @@
 package useraccount
 
 import (
-	services "github.com/omkarp02/pro/services/utils"
+	"github.com/omkarp02/pro/services/utils/store"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -11,10 +11,10 @@ type AuthProvider struct {
 }
 
 type UserAccount struct {
-	ID           bson.ObjectID       `json:"_id,omitempty" bson:"_id,omitempty"`
-	Email        string              `json:"fullname,omitempty"`
-	PasswordHash string              `json:"age,omitempty"`
-	AuthProvider []AuthProvider      `bson:"auth_providers" json:"auth_providers"`
-	Timestamps   services.Timestamps `bson:",inline"`
-	UserProfile  bson.ObjectID       `bson:"userProfileId"`
+	ID           bson.ObjectID    `json:"_id,omitempty" bson:"_id,omitempty"`
+	Email        string           `json:"fullname,omitempty"`
+	PasswordHash string           `json:"age,omitempty"`
+	AuthProvider []AuthProvider   `bson:"auth_providers" json:"auth_providers"`
+	UserProfile  bson.ObjectID    `bson:"userProfileId"`
+	Timestamps   store.Timestamps `bson:",inline"`
 }

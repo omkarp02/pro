@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/omkarp02/pro/db"
-	services "github.com/omkarp02/pro/services/utils"
+	"github.com/omkarp02/pro/services/utils/store"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -34,7 +34,7 @@ func (s *Store) CreateUser(user CreateUser) (interface{}, error) {
 		FullName:   user.FullName,
 		Gender:     user.Gender,
 		Age:        user.Age,
-		Timestamps: services.GetCurrentTimestamps(),
+		Timestamps: store.GetCurrentTimestamps(),
 	}
 
 	result, err := s.getColl().InsertOne(ctx, newUser)

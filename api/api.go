@@ -1,16 +1,17 @@
 package api
 
 import (
-	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/encryptcookie"
 	"github.com/omkarp02/pro/config"
 	"github.com/omkarp02/pro/db"
+	"github.com/omkarp02/pro/router"
 	"github.com/omkarp02/pro/services/auth"
+	"github.com/omkarp02/pro/services/owner"
 	"github.com/omkarp02/pro/services/useraccount"
-	"github.com/omkarp02/pro/services/userprofile"
-	"github.com/omkarp02/pro/utils"
+	"github.com/omkarp02/pro/utils/errutil"
+	"github.com/omkarp02/pro/utils/validation"
 )
 
 type APIServer struct {
@@ -30,34 +31,44 @@ func NewAPIServer(addr string, curDb *db.Database, config *config.Config) *APISe
 func (s *APIServer) Run() error {
 
 	fiberConfig := fiber.Config{
-		ErrorHandler: utils.ErrorHandler,
+		ErrorHandler: errutil.ErrorHandler,
 	}
 
-	validate := validator.New(validator.WithRequiredStructEnabled())
 	app := fiber.New(fiberConfig)
-	api := app.Group("/api/v1")
 
-	api.Use(cors.New(cors.Config{
+	app.Get("/asdf", func(c *fiber.Ctx) error {
+		return errutil.ErrDocumentNotFound
+	})
+
+	app.Use(cors.New(cors.Config{
 		AllowOrigins:     "http://localhost:5173/",
 		AllowCredentials: true,
 	}))
 
-	api.Use(encryptcookie.New(encryptcookie.Config{
+	app.Use(encryptcookie.New(encryptcookie.Config{
 		Key: s.config.Secret.CookieEncryptionKey,
 	}))
 
-	api.Use(injectValidator(validate))
+	newRouter := router.NewFiberRouter(app)
+	api := newRouter.Group("/api/v1")
 
-	userProfileStore := userprofile.NewStore(s.db, "user_profile")
-	userHandler := userprofile.NewHandler(userProfileStore, s.config)
-	userHandler.RegisterRoutes(api, "user-profile")
+	validator := validation.NewValidator()
 
 	userAccountStore := useraccount.NewStore(s.db, "user_account")
-	userAccountHandler := useraccount.NewHandler(userAccountStore, s.config)
+	userAccountHandler := useraccount.NewHandler(userAccountStore, s.config, validator)
 	userAccountHandler.RegisterRoutes(api, "user-account")
 
 	authHandler := auth.NewHandler(s.config, userAccountStore)
 	authHandler.RegisterRoutes(api, "auth")
+
+	ownerRepo := owner.NewRepo(s.db, "owners")
+	ownerService := owner.NewService(ownerRepo)
+	ownerHandler := owner.NewHandler(ownerService, s.config, validator)
+	ownerHandler.RegisterRoutes(api, "owner")
+
+	// userProfileStore := userprofile.NewStore(s.db, "user_profile")
+	// userHandler := userprofile.NewHandler(userProfileStore, s.config)
+	// userHandler.RegisterRoutes(api, "user-profile")
 
 	return app.Listen(s.addr)
 }
