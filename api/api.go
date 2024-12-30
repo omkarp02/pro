@@ -8,6 +8,8 @@ import (
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/router"
 	"github.com/omkarp02/pro/services/auth"
+	"github.com/omkarp02/pro/services/clothes/categories"
+	"github.com/omkarp02/pro/services/clothes/filter"
 	"github.com/omkarp02/pro/services/owner"
 	"github.com/omkarp02/pro/services/useraccount"
 	"github.com/omkarp02/pro/utils/errutil"
@@ -65,6 +67,17 @@ func (s *APIServer) Run() error {
 	ownerService := owner.NewService(ownerRepo)
 	ownerHandler := owner.NewHandler(ownerService, s.config, validator)
 	ownerHandler.RegisterRoutes(api, "owner")
+
+	filterRepo := filter.NewRepoFilter(s.db, "filter")
+	filterTypeRepo := filter.NewRepoFilterType(s.db, "filter_type")
+	filterService := filter.NewService(filterRepo, filterTypeRepo)
+	filterHandler := filter.NewHandler(filterService, s.config, validator)
+	filterHandler.RegisterRoutes(api, "filter")
+
+	categoryRepo := categories.NewRepo(s.db, "categories")
+	categoryService := categories.NewService(categoryRepo)
+	categoryHandler := categories.NewHandler(categoryService, s.config, validator)
+	categoryHandler.RegisterRoutes(api, "category")
 
 	// userProfileStore := userprofile.NewStore(s.db, "user_profile")
 	// userHandler := userprofile.NewHandler(userProfileStore, s.config)

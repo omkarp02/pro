@@ -10,13 +10,13 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-type Repo struct {
+type FilterTypeRepo struct {
 	*db.Database
 	collName string
 }
 
-func NewRepoFilter(curDb *db.Database, collName string) *Repo {
-	store := &Repo{
+func NewRepoFilterType(curDb *db.Database, collName string) *FilterTypeRepo {
+	store := &FilterTypeRepo{
 		Database: curDb,
 		collName: collName,
 	}
@@ -24,25 +24,18 @@ func NewRepoFilter(curDb *db.Database, collName string) *Repo {
 	return store
 }
 
-func (s *Repo) getColl() *mongo.Collection {
+func (s *FilterTypeRepo) getColl() *mongo.Collection {
 	return s.DB.Database(s.DBName).Collection(s.collName)
 }
 
-func (s *Repo) Create(ctx context.Context, createFilterModal CreateFilterModal) (string, error) {
+func (s *FilterTypeRepo) Create(ctx context.Context, createFilterTypeModal CreateFilterTypeModal) (string, error) {
 
-	typeId, err := bson.ObjectIDFromHex(createFilterModal.Type)
-	if err != nil {
-		return "", err
-	}
-
-	filter := Filter{
-		Name:       createFilterModal.Name,
-		Type:       typeId,
+	filterType := FilterType{
+		Name:       createFilterTypeModal.Name,
 		Timestamps: store.GetCurrentTimestamps(),
 	}
 
-	result, err := s.getColl().InsertOne(ctx, filter)
-
+	result, err := s.getColl().InsertOne(ctx, filterType)
 	if mongo.IsDuplicateKeyError(err) {
 		return "", errutil.ErrDocumentAlreadyExist
 	} else if err != nil {
