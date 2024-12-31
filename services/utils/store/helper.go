@@ -48,7 +48,7 @@ func CreateBsonFromStruct(input interface{}) bson.D {
 		panic("input must be a struct or a pointer to a struct")
 	}
 
-	updates := bson.D{}
+	res := bson.D{}
 
 	// Iterate over the fields
 	for i := 0; i < v.NumField(); i++ {
@@ -59,10 +59,10 @@ func CreateBsonFromStruct(input interface{}) bson.D {
 		fieldName := field.Name
 		fieldValue := value.Interface()
 
-		updates = append(updates, bson.E{Key: fieldName, Value: fieldValue})
+		res = append(res, bson.E{Key: fieldName, Value: fieldValue})
 	}
 
-	return updates
+	return res
 }
 
 func SliceOfHexToObjectID(input []string) ([]bson.ObjectID, error) {

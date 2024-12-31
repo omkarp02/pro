@@ -26,4 +26,5 @@ type Context interface {
 	GetContext() *fiber.Ctx
 	Params(key string) string
 	Redirect(location string, status ...int) error
+	QueryParser(out interface{}) error
 }

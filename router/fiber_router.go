@@ -93,3 +93,12 @@ func (c *FiberContext) Params(key string) string {
 func (c *FiberContext) Redirect(location string, status ...int) error {
 	return c.ctx.Redirect(location, status...)
 }
+
+func (c *FiberContext) QueryParser(out interface{}) error {
+
+	if err := c.ctx.QueryParser(out); err != nil {
+		return err
+	}
+	return nil
+
+}
