@@ -10,6 +10,7 @@ import (
 	"github.com/omkarp02/pro/services/auth"
 	"github.com/omkarp02/pro/services/clothes/categories"
 	"github.com/omkarp02/pro/services/clothes/filter"
+	"github.com/omkarp02/pro/services/clothes/product"
 	"github.com/omkarp02/pro/services/owner"
 	"github.com/omkarp02/pro/services/useraccount"
 	"github.com/omkarp02/pro/utils/errutil"
@@ -43,7 +44,7 @@ func (s *APIServer) Run() error {
 	})
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:5173/",
+		AllowOrigins:     "http://localhost:3000",
 		AllowCredentials: true,
 	}))
 
@@ -78,6 +79,8 @@ func (s *APIServer) Run() error {
 	categoryService := categories.NewService(categoryRepo)
 	categoryHandler := categories.NewHandler(categoryService, s.config, validator)
 	categoryHandler.RegisterRoutes(api, "category")
+
+	product.Intialize(s.db, "product-list", "product-detail", s.config, validator, "product", api)
 
 	// userProfileStore := userprofile.NewStore(s.db, "user_profile")
 	// userHandler := userprofile.NewHandler(userProfileStore, s.config)
