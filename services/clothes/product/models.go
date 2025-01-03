@@ -17,6 +17,9 @@ type ProductList struct {
 	Detail     bson.ObjectID    `json:"detail,omitempty" bson:"detail,omitempty"`
 	Category   bson.ObjectID    `json:"category,omitempty" bson:"category,omitempty"`
 	BatchId    string           `json:"batchId,omitempty" bson:"batchId,omitempty"`
+	Gender     string           `json:"gender,omitempty" bson:"gender,omitempty"`
+	Collection []string         `json:"collection,omitempty" bson:"collection,omitempty"`
+	Tags       []string         `json:"tags,omitempty" bson:"tags,omitempty"`
 	Timestamps store.Timestamps `bson:",inline"`
 }
 

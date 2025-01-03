@@ -21,3 +21,7 @@ func (s *Service) CreateProductList(ctx context.Context, createProductList TCrea
 func (s *Service) FilterProductList(ctx context.Context, filterProductList TFilterProductList) ([]ProductList, error) {
 	return s.productListRepo.FindByFilter(ctx, FilterProductListModel(filterProductList))
 }
+
+func (s *Service) AddProductsToCollection(ctx context.Context, productData TAddProductToCollection) error {
+	return s.productListRepo.AddProductsToCollection(ctx, AddProductToCollectionModel(productData))
+}

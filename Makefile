@@ -7,5 +7,9 @@ build:
 start: build
 	@./bin/pro-backend -config config/local.yaml
 
+seed: 
+	@go build -o bin/pro-backend cmd/seed/main.go
+	@./bin/pro-backend -config config/local.yaml
+
 test:
 	go test ./... -v

@@ -3,6 +3,17 @@ http_server:
   address: "localhost:8080"
 storage:
   db_name: "test_db"
+app: 
+  clothes:   
+    db_collection:
+        product_list: product_list
+        product_detail: product_detail
+        category: categories
+        filter: "filter"
+        fitler_type: "filter_type"
+    routes:
+        product: product
+        filter: filter
 auth_config_provider:
   google:
     redirect_url: "http://localhost:8080/api/v1/auth/google/callback"
@@ -11,5 +22,7 @@ auth_config_provider:
   jwt:
     provider_id: "4S4UXF650DBR6NR"
     provider_name: "jwt"
+cors: 
+  allow_origin: "http://localhost:3000, http://localhost:3001"
 
 

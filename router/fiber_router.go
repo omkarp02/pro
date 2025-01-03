@@ -2,15 +2,42 @@ package router
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/encryptcookie"
+	"github.com/omkarp02/pro/config"
 	"github.com/omkarp02/pro/types"
+	"github.com/omkarp02/pro/utils/errutil"
 )
 
 type FiberRouter struct {
 	router fiber.Router
+	app    *fiber.App
+	cfg    *config.Config
 }
 
-func NewFiberRouter(router fiber.Router) *FiberRouter {
-	return &FiberRouter{router: router}
+func NewFiberRouter(cfg *config.Config) *FiberRouter {
+
+	fiberConfig := fiber.Config{
+		ErrorHandler: errutil.ErrorHandler,
+	}
+	app := fiber.New(fiberConfig)
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     cfg.Cors.AllowOrigins,
+		AllowCredentials: true,
+	}))
+
+	app.Use(encryptcookie.New(encryptcookie.Config{
+		Key: cfg.Secret.CookieEncryptionKey,
+	}))
+
+	api := app.Group("/api/v1")
+
+	return &FiberRouter{router: api, app: app, cfg: cfg}
+}
+
+func (r *FiberRouter) Listen(path string) error {
+	return r.app.Listen(r.cfg.HTTPServer.Addr)
 }
 
 func (r *FiberRouter) Group(path string) Router {

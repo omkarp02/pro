@@ -1,19 +1,11 @@
 package api
 
 import (
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/encryptcookie"
 	"github.com/omkarp02/pro/config"
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/router"
-	"github.com/omkarp02/pro/services/auth"
-	"github.com/omkarp02/pro/services/clothes/categories"
 	"github.com/omkarp02/pro/services/clothes/filter"
 	"github.com/omkarp02/pro/services/clothes/product"
-	"github.com/omkarp02/pro/services/owner"
-	"github.com/omkarp02/pro/services/useraccount"
-	"github.com/omkarp02/pro/utils/errutil"
 	"github.com/omkarp02/pro/utils/validation"
 )
 
@@ -33,58 +25,33 @@ func NewAPIServer(addr string, curDb *db.Database, config *config.Config) *APISe
 
 func (s *APIServer) Run() error {
 
-	fiberConfig := fiber.Config{
-		ErrorHandler: errutil.ErrorHandler,
-	}
-
-	app := fiber.New(fiberConfig)
-
-	app.Get("/asdf", func(c *fiber.Ctx) error {
-		return errutil.ErrDocumentNotFound
-	})
-
-	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:3000",
-		AllowCredentials: true,
-	}))
-
-	app.Use(encryptcookie.New(encryptcookie.Config{
-		Key: s.config.Secret.CookieEncryptionKey,
-	}))
-
-	newRouter := router.NewFiberRouter(app)
-	api := newRouter.Group("/api/v1")
+	api := router.NewFiberRouter(s.config)
 
 	validator := validation.NewValidator()
 
-	userAccountStore := useraccount.NewStore(s.db, "user_account")
-	userAccountHandler := useraccount.NewHandler(userAccountStore, s.config, validator)
-	userAccountHandler.RegisterRoutes(api, "user-account")
+	setUpClothesApp(s.db, s.config, validator, api)
 
-	authHandler := auth.NewHandler(s.config, userAccountStore)
-	authHandler.RegisterRoutes(api, "auth")
-
-	ownerRepo := owner.NewRepo(s.db, "owners")
-	ownerService := owner.NewService(ownerRepo)
-	ownerHandler := owner.NewHandler(ownerService, s.config, validator)
-	ownerHandler.RegisterRoutes(api, "owner")
-
-	filterRepo := filter.NewRepoFilter(s.db, "filter")
-	filterTypeRepo := filter.NewRepoFilterType(s.db, "filter_type")
-	filterService := filter.NewService(filterRepo, filterTypeRepo)
-	filterHandler := filter.NewHandler(filterService, s.config, validator)
-	filterHandler.RegisterRoutes(api, "filter")
-
-	categoryRepo := categories.NewRepo(s.db, "categories")
-	categoryService := categories.NewService(categoryRepo)
-	categoryHandler := categories.NewHandler(categoryService, s.config, validator)
-	categoryHandler.RegisterRoutes(api, "category")
-
-	product.Intialize(s.db, "product-list", "product-detail", s.config, validator, "product", api)
-
-	// userProfileStore := userprofile.NewStore(s.db, "user_profile")
-	// userHandler := userprofile.NewHandler(userProfileStore, s.config)
-	// userHandler.RegisterRoutes(api, "user-profile")
-
-	return app.Listen(s.addr)
+	return api.Listen(s.addr)
 }
+
+func setUpClothesApp(curDb *db.Database, cfg *config.Config, validator *validation.Validator, api router.Router) {
+
+	filter.Intialize(curDb, cfg, validator, api)
+	product.Intialize(curDb, cfg, validator, api)
+}
+
+// userAccountStore := useraccount.NewStore(s.db, "user_account")
+// userAccountHandler := useraccount.NewHandler(userAccountStore, s.config, validator)
+// userAccountHandler.RegisterRoutes(api, "user-account")
+
+// authHandler := auth.NewHandler(s.config, userAccountStore)
+// authHandler.RegisterRoutes(api, "auth")
+
+// ownerRepo := owner.NewRepo(s.db, "owners")
+// ownerService := owner.NewService(ownerRepo)
+// ownerHandler := owner.NewHandler(ownerService, s.config, validator)
+// ownerHandler.RegisterRoutes(api, "owner")
+
+// userProfileStore := userprofile.NewStore(s.db, "user_profile")
+// userHandler := userprofile.NewHandler(userProfileStore, s.config)
+// userHandler.RegisterRoutes(api, "user-profile")

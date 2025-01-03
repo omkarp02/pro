@@ -2,6 +2,7 @@ package product
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/services/utils/store"
@@ -22,7 +23,33 @@ func NewProductListRepo(curDb *db.Database, collName string) *ProductListRepo {
 		collName: collName,
 	}
 
+	store.createIndexes()
+
 	return store
+}
+
+func (s *ProductListRepo) createIndexes() error {
+	collection := s.getColl()
+
+	// Define the unique index for the "email" field
+	collectionIndexModal := mongo.IndexModel{
+		Keys: bson.D{{Key: "collection", Value: 1}},
+		Options: options.Index().SetPartialFilterExpression(bson.M{
+			"tags": bson.M{
+				"$exists": true,
+				"$ne":     nil,
+				"$not":    bson.M{"$size": 0},
+			},
+		}),
+	}
+
+	priceIndexModal := mongo.IndexModel{
+		Keys: bson.D{{Key: "price", Value: 1}},
+	}
+
+	_, err := collection.Indexes().CreateMany(context.Background(), []mongo.IndexModel{collectionIndexModal, priceIndexModal})
+
+	return err
 }
 
 func (s *ProductListRepo) getColl() *mongo.Collection {
@@ -36,6 +63,11 @@ func (s *ProductListRepo) Create(ctx context.Context, createProductListModel Cre
 		return "", err
 	}
 
+	categoryId, err := bson.ObjectIDFromHex(createProductListModel.Category)
+	if err != nil {
+		return "", err
+	}
+
 	owner := ProductList{
 		Detail:     detailId,
 		Name:       createProductListModel.Name,
@@ -45,6 +77,11 @@ func (s *ProductListRepo) Create(ctx context.Context, createProductListModel Cre
 		Price:      createProductListModel.Price,
 		Stock:      createProductListModel.Stock,
 		Discount:   createProductListModel.Discount,
+		Category:   categoryId,
+		BatchId:    createProductListModel.BatchId,
+		Gender:     createProductListModel.Gender,
+		Collection: createProductListModel.Collection,
+		Tags:       createProductListModel.Tags,
 		Timestamps: store.GetCurrentTimestamps(),
 	}
 
@@ -106,4 +143,25 @@ func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListMod
 	}
 
 	return productList, nil
+}
+
+func (s *ProductListRepo) AddProductsToCollection(ctx context.Context, addProductToCollectionModel AddProductToCollectionModel) error {
+
+	listOfObjectIds, err := store.SliceOfHexToObjectID(addProductToCollectionModel.ProductId)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": bson.M{"$in": listOfObjectIds}}
+	update := bson.M{"$set": bson.M{"collection": addProductToCollectionModel.CollectionName}}
+
+	result, err := s.getColl().UpdateMany(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(result)
+
+	return nil
+
 }

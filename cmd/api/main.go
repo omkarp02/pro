@@ -30,7 +30,7 @@ func main() {
 		}
 	}()
 
-	server := api.NewAPIServer(cfg.Addr, DB, cfg)
+	server := api.NewAPIServer(cfg.HTTPServer.Addr, DB, cfg)
 	if err := server.Run(); err != nil {
 		log.Fatal(err)
 	}

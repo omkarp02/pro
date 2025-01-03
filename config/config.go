@@ -45,12 +45,42 @@ type AuthConfigProvider struct {
 	JWT    AuthConfig `yaml:"jwt"`
 }
 
+type Cors struct {
+	AllowOrigins string `yaml:"allow_origin" env:"allow_origin" env-required:"true"`
+}
+
+type ClothesRoute struct {
+	Product string `yaml:"product" env:"product" env-required:"true"`
+	Filter  string `yaml:"filter" env:"filter" env-required:"true"`
+}
+
+type ClothesStore struct {
+	ProductList   string `yaml:"product_list" env:"product_list" env-required:"true"`
+	ProductDetail string `yaml:"product_detail" env:"product_detail" env-required:"true"`
+	Category      string `yaml:"category" env:"category" env-required:"true"`
+	Filter        string `yaml:"filter" env:"filter" env-required:"true"`
+	FilterType    string `yaml:"fitler_type" env:"fitler_type" env-required:"true"`
+}
+
+type Clothes struct {
+	Routes       ClothesRoute `yaml:"routes" env:"routes" env-required:"true"`
+	DBCollection ClothesStore `yaml:"db_collection" env:"db_collection" env-required:"true"`
+}
+
+type App struct {
+	Clothes Clothes `yaml:"clothes" env:"clothes" env-required:"true"`
+}
+
 type Config struct {
-	Env                    string `yaml:"env" env:"env" env-required:"true"`
-	HTTPServer             `yaml:"http_server"`
-	Storage                `yaml:"storage"`
-	Secret                 `yaml:"secrets"`
-	AuthConfig             AuthConfigProvider `yaml:"auth_config_provider"`
+	Env        string             `yaml:"env" env:"env" env-required:"true"`
+	HTTPServer HTTPServer         `yaml:"http_server"`
+	Storage    Storage            `yaml:"storage"`
+	Secret     Secret             `yaml:"secrets"`
+	AuthConfig AuthConfigProvider `yaml:"auth_config_provider"`
+	App        App                `yaml:"app" env:"app" env-required:"true"`
+
+	Cors Cors `yaml:"cors" env:"cors" env-required:"true"`
+
 	getProviderIdByNameMap map[string]string
 }
 
