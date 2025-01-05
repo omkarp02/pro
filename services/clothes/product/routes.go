@@ -13,7 +13,7 @@ import (
 type ProductService interface {
 	// CreateProductList(ctx context.Context, createProductList TCreateProductList) (string, error)
 	FilterProductList(ctx context.Context, filterProductList TFilterProductList) ([]TFilteredProductList, error)
-	// AddProductsToCollection(ctx context.Context, productData TAddProductToCollection) error
+	AddProductsToCollection(ctx context.Context, productData TAddProductToCollection) error
 	CreateProduct(ctx context.Context, productDetails TCreateProduct) error
 }
 
@@ -32,7 +32,7 @@ func (h *Handler) RegisterRoutes(router router.Router, link string) {
 
 	// routeGrp.Post("/create/product-list", h.createProductList)
 	routeGrp.Get("/filter/product-list", h.getFilteredProductList)
-	// routeGrp.Get("/add-to-collection", h.addToCollection)
+	routeGrp.Get("/add-to-collection", h.addToCollection)
 	routeGrp.Post("/", h.createProduct)
 }
 
@@ -74,6 +74,23 @@ func createContext() (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), 10*time.Second)
 }
 
+func (h *Handler) addToCollection(c router.Context) error {
+	ctx, cancel := createContext()
+	defer cancel()
+	var productData TAddProductToCollection
+
+	if err := h.validator.ValidateBody(c, &productData); err != nil {
+		return err
+	}
+
+	err := h.service.AddProductsToCollection(ctx, productData)
+	if err != nil {
+		return err
+	}
+
+	return utils.SendResponse(c, "Product List Created Successfully", "", 200)
+}
+
 // func (h *Handler) createProductList(c router.Context) error {
 // 	ctx, cancel := createContext()
 // 	defer cancel()
@@ -92,21 +109,4 @@ func createContext() (context.Context, context.CancelFunc) {
 // 	}
 
 // 	return utils.SendResponse(c, "Product List Created Successfully", fiber.Map{"id": id}, 201)
-// }
-
-// func (h *Handler) addToCollection(c router.Context) error {
-// 	ctx, cancel := createContext()
-// 	defer cancel()
-// 	var productData TAddProductToCollection
-
-// 	if err := h.validator.ValidateBody(c, &productData); err != nil {
-// 		return err
-// 	}
-
-// 	err := h.service.AddProductsToCollection(ctx, productData)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return utils.SendResponse(c, "Product List Created Successfully", "", 200)
 // }

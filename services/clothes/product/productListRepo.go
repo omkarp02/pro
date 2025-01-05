@@ -2,7 +2,6 @@ package product
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/services/utils/store"
@@ -101,7 +100,7 @@ func (s *ProductListRepo) Create(ctx context.Context, createProductListModel Cre
 
 }
 
-func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListModel FilterProductListModel, project []string, exclusive bool) ([]ProductList, error) {
+func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListModel FilterProductListModel, project []string, inclusive bool) ([]ProductList, error) {
 
 	var productList []ProductList
 
@@ -134,10 +133,10 @@ func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListMod
 
 	projection := bson.M{}
 	for _, field := range project {
-		if exclusive {
-			projection[field] = 0
-		} else {
+		if inclusive {
 			projection[field] = 1
+		} else {
+			projection[field] = 0
 		}
 	}
 
@@ -151,13 +150,6 @@ func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListMod
 		return nil, err
 	}
 
-	for _, item := range productList {
-		fmt.Println(item.Detail == bson.NilObjectID)
-		if item.Detail == bson.NilObjectID {
-			item.Detail = bson.ObjectID{}
-		}
-	}
-
 	return productList, nil
 }
 
@@ -169,14 +161,16 @@ func (s *ProductListRepo) AddProductsToCollection(ctx context.Context, addProduc
 	}
 
 	filter := bson.M{"_id": bson.M{"$in": listOfObjectIds}}
-	update := bson.M{"$set": bson.M{"collection": addProductToCollectionModel.CollectionName}}
+	update := bson.M{"$push": bson.M{"collection": addProductToCollectionModel.CollectionName}}
 
 	result, err := s.getColl().UpdateMany(ctx, filter, update)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(result)
+	if result.MatchedCount == 0 {
+		return errutil.NotFound("Product")
+	}
 
 	return nil
 

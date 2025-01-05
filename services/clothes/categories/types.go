@@ -1,5 +1,7 @@
 package categories
 
+import "github.com/omkarp02/pro/services/utils/store"
+
 type TCreateCategory struct {
 	CatId       string `json:"catId,omitempty" validate:"required"`
 	Name        string `json:"name,omitempty" validate:"required"`
@@ -10,6 +12,11 @@ type TCreateCategory struct {
 	Slug        string `json:"slug,omitempty" validate:"required"`
 }
 
+type TFilterCategory struct {
+	IsActive   bool             `json:"isActive,omitempty"`
+	Pagination store.Pagination `json:"pagination,inline" validation:"required"`
+}
+
 type CreateCategoryModal struct {
 	CatId       string `json:"catId,omitempty"`
 	Name        string `json:"name,omitempty"`
@@ -18,4 +25,16 @@ type CreateCategoryModal struct {
 	Icon        string `json:"icon,omitempty"`
 	IsActive    bool   `json:"isActive,omitempty"`
 	Slug        string `json:"slug,omitempty"`
+}
+
+type TCategoryList struct {
+	CatId string `json:"catId,omitempty"`
+	Name  string `json:"name,omitempty"`
+	Icon  string `json:"icon,omitempty"`
+	Slug  string `json:"slug,omitempty"`
+}
+
+type FilterCategoryModal struct {
+	IsActive   bool             `json:"isActive,omitempty"`
+	Pagination store.Pagination `json:"pagination,inline"`
 }

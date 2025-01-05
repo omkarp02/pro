@@ -78,11 +78,11 @@ func InvalidReqData() APIError {
 }
 
 func AlreadyExist(name string) APIError {
-	return NewAPIError(http.StatusInternalServerError, 2, name+"already exist")
+	return NewAPIError(http.StatusInternalServerError, 2, name+" already exist")
 }
 
 func NotFound(name string) APIError {
-	return NewAPIError(http.StatusInternalServerError, 2, name+"not found")
+	return NewAPIError(http.StatusInternalServerError, 2, name+" not found")
 }
 
 func StatusBadRequest(msg string) error {

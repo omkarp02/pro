@@ -21,7 +21,7 @@ func (s *Service) FilterProductList(ctx context.Context, filterProductList TFilt
 
 	var filteredProductList []TFilteredProductList
 
-	productList, err := s.productListRepo.FindByFilter(ctx, FilterProductListModel(filterProductList), []string{"name", "price", "discount", "imgLink"}, false)
+	productList, err := s.productListRepo.FindByFilter(ctx, FilterProductListModel(filterProductList), []string{"name", "price", "discount", "imgLink", "_id"}, true)
 	if err != nil {
 		return nil, err
 	}
@@ -32,15 +32,16 @@ func (s *Service) FilterProductList(ctx context.Context, filterProductList TFilt
 			Price:    item.Price,
 			ImgLink:  item.ImgLink,
 			Discount: item.Discount,
+			Id:       item.ID.Hex(),
 		})
 	}
 
 	return filteredProductList, nil
 }
 
-// func (s *Service) AddProductsToCollection(ctx context.Context, productData TAddProductToCollection) error {
-// 	return s.productListRepo.AddProductsToCollection(ctx, AddProductToCollectionModel(productData))
-// }
+func (s *Service) AddProductsToCollection(ctx context.Context, productData TAddProductToCollection) error {
+	return s.productListRepo.AddProductsToCollection(ctx, AddProductToCollectionModel(productData))
+}
 
 func (s *Service) CreateProduct(ctx context.Context, productDetails TCreateProduct) error {
 

@@ -2,6 +2,7 @@ package categories
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/services/utils/store"
@@ -74,5 +75,36 @@ func (s *Repo) Create(ctx context.Context, createCategoryModal CreateCategoryMod
 	}
 
 	return "", errutil.ErrDatabase
+
+}
+
+func (s *Repo) Find(ctx context.Context, filterCategoryModal FilterCategoryModal, project []string, inclusive bool) ([]Category, error) {
+
+	fmt.Println(filterCategoryModal)
+
+	var categoryList []Category
+
+	query := bson.M{"isActive": filterCategoryModal.IsActive}
+
+	projection := bson.M{}
+	for _, field := range project {
+		if inclusive {
+			projection[field] = 1
+		} else {
+			projection[field] = 0
+		}
+	}
+
+	findOptions := options.Find().SetProjection(projection)
+
+	cursor, err := s.getColl().Find(ctx, query, findOptions)
+	if err != nil {
+		return nil, err
+	}
+	if err := cursor.All(context.TODO(), &categoryList); err != nil {
+		return nil, err
+	}
+
+	return categoryList, nil
 
 }

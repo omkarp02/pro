@@ -13,6 +13,7 @@ import (
 
 type CategoryService interface {
 	Create(ctx context.Context, createCategory TCreateCategory) (string, error)
+	GetAllCategory(ctx context.Context, filterData TFilterCategory) ([]TCategoryList, error)
 }
 
 type Handler struct {
@@ -29,6 +30,7 @@ func (h *Handler) RegisterRoutes(router router.Router, link string) {
 	routeGrp := router.Group(link)
 
 	routeGrp.Post("/", h.create)
+	routeGrp.Get("/", h.get)
 }
 
 func (h *Handler) create(c router.Context) error {
@@ -47,6 +49,24 @@ func (h *Handler) create(c router.Context) error {
 	}
 
 	return utils.SendResponse(c, "Category Created Successfully", fiber.Map{"id": id}, 201)
+}
+
+func (h *Handler) get(c router.Context) error {
+	ctx, cancel := createContext()
+	defer cancel()
+
+	var filterCat TFilterCategory
+
+	if err := h.validator.ValidateParams(c, &filterCat); err != nil {
+		return err
+	}
+
+	data, err := h.service.GetAllCategory(ctx, filterCat)
+	if err != nil {
+		return err
+	}
+
+	return utils.SendResponse(c, "Category Created Successfully", data, 201)
 }
 
 func createContext() (context.Context, context.CancelFunc) {
