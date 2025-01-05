@@ -9,7 +9,7 @@ import (
 	"github.com/markbates/goth/providers/google"
 	"github.com/omkarp02/pro/config"
 	"github.com/omkarp02/pro/router"
-	"github.com/omkarp02/pro/services/useraccount"
+	"github.com/omkarp02/pro/services/auth/useraccount"
 	"github.com/omkarp02/pro/services/utils/helper"
 	"github.com/omkarp02/pro/utils"
 	"github.com/omkarp02/pro/utils/constant"

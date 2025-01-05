@@ -9,7 +9,6 @@ import (
 	data "github.com/omkarp02/pro/data/clothes"
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/services/clothes/categories"
-	"github.com/omkarp02/pro/services/clothes/product"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
@@ -61,21 +60,21 @@ func populateCategories(db *db.Database, cfg *config.Config) {
 }
 
 func populateProducts(db *db.Database, cfg *config.Config) {
-	ctx, cancel := createContext()
-	defer cancel()
+	// ctx, cancel := createContext()
+	// defer cancel()
 
-	productListRepo := product.NewProductListRepo(db, cfg.App.Clothes.DBCollection.ProductList)
-	productDetailRepo := product.NewProductDetailRepo(db, cfg.App.Clothes.DBCollection.ProductDetail)
-	productService := product.NewService(productListRepo, productDetailRepo)
+	// productListRepo := product.NewProductListRepo(db, cfg.App.Clothes.DBCollection.ProductList)
+	// productDetailRepo := product.NewProductDetailRepo(db, cfg.App.Clothes.DBCollection.ProductDetail)
+	// productService := product.NewService(productListRepo, productDetailRepo)
 
-	for _, p := range data.ProductListData {
+	// for _, p := range data.ProductListData {
 
-		_, err := productService.CreateProductList(ctx, product.TCreateProductList(p))
+	// 	_, err := productService.CreateProductList(ctx, product.TCreateProductList(p))
 
-		if err != nil {
-			panic(err)
-		}
-	}
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// }
 }
 
 func createContext() (context.Context, context.CancelFunc) {

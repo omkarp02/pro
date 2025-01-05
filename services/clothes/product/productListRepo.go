@@ -101,7 +101,7 @@ func (s *ProductListRepo) Create(ctx context.Context, createProductListModel Cre
 
 }
 
-func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListModel FilterProductListModel) ([]ProductList, error) {
+func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListModel FilterProductListModel, project []string, exclusive bool) ([]ProductList, error) {
 
 	var productList []ProductList
 
@@ -132,7 +132,16 @@ func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListMod
 		query["price"] = bson.M{"$gte": minPrice}
 	}
 
-	findOptions := options.Find().SetSkip(int64(limit * (page - 1))).SetLimit(int64(limit))
+	projection := bson.M{}
+	for _, field := range project {
+		if exclusive {
+			projection[field] = 0
+		} else {
+			projection[field] = 1
+		}
+	}
+
+	findOptions := options.Find().SetSkip(int64(limit * (page - 1))).SetLimit(int64(limit)).SetProjection(projection)
 
 	cursor, err := s.getColl().Find(ctx, query, findOptions)
 	if err != nil {
@@ -140,6 +149,13 @@ func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListMod
 	}
 	if err := cursor.All(context.TODO(), &productList); err != nil {
 		return nil, err
+	}
+
+	for _, item := range productList {
+		fmt.Println(item.Detail == bson.NilObjectID)
+		if item.Detail == bson.NilObjectID {
+			item.Detail = bson.ObjectID{}
+		}
 	}
 
 	return productList, nil

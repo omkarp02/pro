@@ -50,8 +50,10 @@ type Cors struct {
 }
 
 type ClothesRoute struct {
-	Product string `yaml:"product" env:"product" env-required:"true"`
-	Filter  string `yaml:"filter" env:"filter" env-required:"true"`
+	Product  string `yaml:"product" env:"product" env-required:"true"`
+	Filter   string `yaml:"filter" env:"filter" env-required:"true"`
+	Category string `yaml:"category" env:"category" env-required:"true"`
+	Cart     string `yaml:"cart" env:"cart" env-required:"true"`
 }
 
 type ClothesStore struct {
@@ -60,6 +62,7 @@ type ClothesStore struct {
 	Category      string `yaml:"category" env:"category" env-required:"true"`
 	Filter        string `yaml:"filter" env:"filter" env-required:"true"`
 	FilterType    string `yaml:"fitler_type" env:"fitler_type" env-required:"true"`
+	Cart          string `yaml:"cart" env:"cart" env-required:"true"`
 }
 
 type Clothes struct {
@@ -67,8 +70,22 @@ type Clothes struct {
 	DBCollection ClothesStore `yaml:"db_collection" env:"db_collection" env-required:"true"`
 }
 
+type AuthRoute struct {
+	UserAccount string `yaml:"user_account" env:"user_account" env-required:"true"`
+}
+
+type AuthStore struct {
+	UserAccount string `yaml:"user_account" env:"user_account" env-required:"true"`
+}
+
+type Auth struct {
+	Routes       AuthRoute `yaml:"routes" env:"routes" env-required:"true"`
+	DBCollection AuthStore `yaml:"db_collection" env:"db_collection" env-required:"true"`
+}
+
 type App struct {
 	Clothes Clothes `yaml:"clothes" env:"clothes" env-required:"true"`
+	Auth    Auth    `yaml:"auth" env:"auth" env-required:"true"`
 }
 
 type Config struct {

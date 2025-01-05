@@ -4,6 +4,9 @@ import (
 	"github.com/omkarp02/pro/config"
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/router"
+	"github.com/omkarp02/pro/services/auth/useraccount"
+	"github.com/omkarp02/pro/services/clothes/cart"
+	"github.com/omkarp02/pro/services/clothes/categories"
 	"github.com/omkarp02/pro/services/clothes/filter"
 	"github.com/omkarp02/pro/services/clothes/product"
 	"github.com/omkarp02/pro/utils/validation"
@@ -30,19 +33,21 @@ func (s *APIServer) Run() error {
 	validator := validation.NewValidator()
 
 	setUpClothesApp(s.db, s.config, validator, api)
+	setUpAuthApp(s.db, s.config, validator, api)
 
 	return api.Listen(s.addr)
 }
 
 func setUpClothesApp(curDb *db.Database, cfg *config.Config, validator *validation.Validator, api router.Router) {
-
+	categories.Intialize(curDb, cfg, validator, api)
 	filter.Intialize(curDb, cfg, validator, api)
 	product.Intialize(curDb, cfg, validator, api)
+	cart.Intialize(curDb, cfg, validator, api)
 }
 
-// userAccountStore := useraccount.NewStore(s.db, "user_account")
-// userAccountHandler := useraccount.NewHandler(userAccountStore, s.config, validator)
-// userAccountHandler.RegisterRoutes(api, "user-account")
+func setUpAuthApp(curDb *db.Database, cfg *config.Config, validator *validation.Validator, api router.Router) {
+	useraccount.Intialize(curDb, cfg, validator, api)
+}
 
 // authHandler := auth.NewHandler(s.config, userAccountStore)
 // authHandler.RegisterRoutes(api, "auth")

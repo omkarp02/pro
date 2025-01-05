@@ -3,17 +3,25 @@ http_server:
   address: "localhost:8080"
 storage:
   db_name: "test_db"
-app: 
-  clothes:   
+app:
+  clothes:
     db_collection:
-        product_list: product_list
-        product_detail: product_detail
-        category: categories
-        filter: "filter"
-        fitler_type: "filter_type"
+      product_list: "product_list"
+      product_detail: "product_detail"
+      category: "categories"
+      filter: "filter"
+      fitler_type: "filter_type"
+      cart: "cart"
     routes:
-        product: product
-        filter: filter
+      product: "product"
+      filter: "filter"
+      category: "category"
+      cart: "cart"
+  auth:
+    db_collection:
+      user_account: "user_account"
+    routes:
+      user_account: "auth"
 auth_config_provider:
   google:
     redirect_url: "http://localhost:8080/api/v1/auth/google/callback"
@@ -22,7 +30,5 @@ auth_config_provider:
   jwt:
     provider_id: "4S4UXF650DBR6NR"
     provider_name: "jwt"
-cors: 
+cors:
   allow_origin: "http://localhost:3000, http://localhost:3001"
-
-

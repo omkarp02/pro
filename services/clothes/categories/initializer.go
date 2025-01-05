@@ -7,9 +7,12 @@ import (
 	"github.com/omkarp02/pro/utils/validation"
 )
 
-func Intialize(curDb *db.Database, cfg *config.Config, validator *validation.Validator, routeName string, api router.Router) {
-	categoryRepo := NewRepo(curDb, "categories")
+func Intialize(curDb *db.Database, cfg *config.Config, validator *validation.Validator, api router.Router) {
+
+	clothesConfig := cfg.App.Clothes
+
+	categoryRepo := NewRepo(curDb, clothesConfig.DBCollection.Category)
 	categoryService := NewService(categoryRepo)
 	categoryHandler := NewHandler(categoryService, cfg, validator)
-	categoryHandler.RegisterRoutes(api, "category")
+	categoryHandler.RegisterRoutes(api, clothesConfig.Routes.Category)
 }

@@ -20,19 +20,19 @@ type ProductList struct {
 	Gender     string           `json:"gender,omitempty" bson:"gender,omitempty"`
 	Collection []string         `json:"collection,omitempty" bson:"collection,omitempty"`
 	Tags       []string         `json:"tags,omitempty" bson:"tags,omitempty"`
-	Timestamps store.Timestamps `bson:",inline"`
+	Timestamps store.Timestamps `json:"timestamps,omitempty" bson:",inline"`
 }
 
 type ProductDetail struct {
 	Description Description      `json:"description,omitempty" bson:"description,omitempty"`
 	Variations  []Variation      `json:"variations,omitempty" bson:"variations,omitempty"`
+	ImgLink     []string         `json:"imgLink,omitempty" bson:"imgLink,omitempty"`
 	Timestamps  store.Timestamps `bson:",inline"`
 }
 
 type Variation struct {
-	Size    string   `json:"size,omitempty" bson:"size,omitempty"`
-	Price   float64  `json:"price,omitempty" bson:"price,omitempty"`
-	ImgLink []string `json:"imgLink,omitempty" bson:"imgLink,omitempty"`
+	Size  string  `json:"size,omitempty" bson:"size,omitempty"`
+	Price float64 `json:"price,omitempty" bson:"price,omitempty"`
 }
 
 type Description struct {

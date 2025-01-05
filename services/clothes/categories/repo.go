@@ -30,12 +30,17 @@ func (s *Repo) createIndexes() error {
 	collection := s.getColl()
 
 	// Define the unique index for the "email" field
-	indexModel := mongo.IndexModel{
+	catIdIndexModel := mongo.IndexModel{
 		Keys:    bson.D{{Key: "catId", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}
 
-	_, err := collection.Indexes().CreateOne(context.Background(), indexModel)
+	slugIndexModal := mongo.IndexModel{
+		Keys:    bson.D{{Key: "slug", Value: 1}},
+		Options: options.Index().SetUnique(true),
+	}
+
+	_, err := collection.Indexes().CreateMany(context.Background(), []mongo.IndexModel{catIdIndexModel, slugIndexModal})
 	return err
 }
 

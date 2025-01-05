@@ -1,24 +1,14 @@
 package product
 
-type TVariation struct {
-	Size  string  `json:"size,omitempty"`
-	Price float64 `json:"price,omitempty"`
-}
-
-type TPrice struct {
-	BasePrice  float64      `json:"basePrice,omitempty"`
-	Variations []TVariation `json:"variations,omitempty"`
-}
-
 type TCreateProductList struct {
 	Name       string   `json:"name,omitempty" validate:"required"`
-	Sizes      []string `json:"sizes,omitempty" validate:"required,min=1,max=10"`
+	Sizes      []string `json:"sizes,omitempty"`
 	Color      string   `json:"color,omitempty" validate:"required"`
 	Price      float64  `json:"price,omitempty" validate:"required"`
 	ImgLink    string   `json:"imgLink,omitempty" validate:"required"`
 	Stock      int      `json:"stock,omitempty" validate:"required"`
 	Discount   int      `json:"discount,omitempty" validate:"required"`
-	Detail     string   `json:"detail,omitempty" validate:"required"`
+	Detail     string   `json:"detail,omitempty"`
 	Category   string   `json:"category,omitempty" validate:"required"`
 	BatchId    string   `json:"batchId,omitempty" validate:"required"`
 	Gender     string   `json:"gender,omitempty" validate:"required"`
@@ -26,9 +16,15 @@ type TCreateProductList struct {
 	Tags       []string `json:"tags,omitempty" validate:"required"`
 }
 
+type TCreateProduct struct {
+	ProductList   TCreateProductList   `json:"productList,omitempty" validate:"required"`
+	ProductDetail TCreateProductDetail `json:"detail,omitempty" validate:"required"`
+}
+
 type TCreateProductDetail struct {
 	Description Description `json:"description,omitempty"`
 	Variations  []Variation `json:"variations,omitempty"`
+	ImgLink     []string    `json:"imgLink,omitempty"`
 }
 
 type TFilterProductList struct {
@@ -39,6 +35,13 @@ type TFilterProductList struct {
 	Name     string   `query:"name,omitempty"`
 	Page     int      `query:"page,omitempty" validate:"required"`
 	Limit    int      `query:"limit,omitempty" validate:"required"`
+}
+
+type TFilteredProductList struct {
+	Name     string  `json:"name,omitempty"`
+	Price    float64 `json:"price,omitempty"`
+	ImgLink  string  `json:"imgLink,omitempty"`
+	Discount int     `json:"discount,omitempty"`
 }
 
 type TAddProductToCollection struct {
@@ -60,7 +63,9 @@ type PriceModel struct {
 type CreateProductDetailModel struct {
 	Description Description `json:"description,omitempty"`
 	Variations  []Variation `json:"variations,omitempty"`
+	ImgLink     []string    `json:"imgLink,omitempty"`
 }
+
 type CreateProductListModel struct {
 	Name       string   `json:"name,omitempty"`
 	Sizes      []string `json:"sizes,omitempty"`
