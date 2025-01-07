@@ -20,8 +20,10 @@ app:
   auth:
     db_collection:
       user_account: "user_account"
+      user_profile: "user_profile"
     routes:
       user_account: "auth"
+      user_profile: "user-profile"
 auth_config_provider:
   google:
     redirect_url: "http://localhost:8080/api/v1/auth/google/callback"

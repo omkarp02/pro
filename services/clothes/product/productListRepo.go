@@ -111,6 +111,7 @@ func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListMod
 	color := filterProductListModel.Color
 	maxPrice := filterProductListModel.MaxPrice
 	minPrice := filterProductListModel.MinPrice
+	collection := filterProductListModel.Collection
 	page := filterProductListModel.Page
 	limit := filterProductListModel.Limit
 
@@ -122,6 +123,9 @@ func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListMod
 	}
 	if len(name) != 0 {
 		query["name"] = bson.M{"$regex": name, "$options": "i"}
+	}
+	if len(collection) != 0 {
+		query["collection"] = collection
 	}
 	if maxPrice != 0 && minPrice != 0 {
 		query["price"] = bson.M{"$gte": minPrice, "$lte": maxPrice}

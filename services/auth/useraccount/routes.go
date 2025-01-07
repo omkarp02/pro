@@ -1,6 +1,7 @@
 package useraccount
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 
@@ -21,7 +22,7 @@ type UserAccountStore interface {
 	GetUserAccountByEmail(string) (UserAccount, error)
 	GetUserAccount(query map[string]interface{}, project map[string]interface{}) (*UserAccount, error)
 	GetUserFromRefreshToken(refreshToken string) (UserAccount, error)
-	UpdateUserAccountById(id string, userAccount UserAccount) (bool, error)
+	UpdateUserAccountProfileById(ctx context.Context, id string, userProfileId string) error
 	UpdateUserRefreshToken(userId string, action string, refreshToken string) error
 	PullUserRefreshToken(refreshToken string) error
 	HandleRefreshTokenForLogin(userId string, refreshToken string, oldRefreshToken string) error

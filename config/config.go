@@ -72,10 +72,12 @@ type Clothes struct {
 
 type AuthRoute struct {
 	UserAccount string `yaml:"user_account" env:"user_account" env-required:"true"`
+	UserProfile string `yaml:"user_profile" env:"user_profile" env-required:"true"`
 }
 
 type AuthStore struct {
 	UserAccount string `yaml:"user_account" env:"user_account" env-required:"true"`
+	UserProfile string `yaml:"user_profile" env:"user_profile" env-required:"true"`
 }
 
 type Auth struct {

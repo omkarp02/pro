@@ -79,11 +79,13 @@ func (c *FiberContext) JSON(statusCode int, data interface{}) error {
 
 func (c *FiberContext) GetDecodedData() types.ACCESS_TOKEN_PAYLOAD {
 
-	userDetails := c.ctx.Locals("users")
+	userDetails := c.ctx.Locals("user")
 
-	//here make function to check the data coming from local("user") is valid
-	if data, ok := userDetails.(types.ACCESS_TOKEN_PAYLOAD); ok {
-		return data
+	validArray, ok := userDetails.([]interface{})
+	if ok {
+		if data, ok := validArray[0].(types.ACCESS_TOKEN_PAYLOAD); ok {
+			return data
+		}
 	}
 
 	panic("invalid data")

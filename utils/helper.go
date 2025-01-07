@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/omkarp02/pro/services/utils/helper"
 	"github.com/omkarp02/pro/types"
 	"github.com/omkarp02/pro/utils/constant"
 	"github.com/omkarp02/pro/utils/errutil"
@@ -18,9 +19,9 @@ func GetUserDataFromAccessClaimsData(claimsData interface{}) (types.ACCESS_TOKEN
 		return types.ACCESS_TOKEN_PAYLOAD{}, errutil.InternalServerError("Invalid Format")
 	}
 
-	return types.ACCESS_TOKEN_PAYLOAD{
-		ID: claimsMap["ID"].(string),
-	}, nil
+	accessTokenPayload := helper.CreateAccessTokenPayload(claimsMap["ID"].(string), claimsMap["ProviderId"].(string))
+
+	return accessTokenPayload, nil
 }
 
 func GetUserDataFromRefreshClaimsData(claimsData interface{}) (types.REFRESH_TOKEN_PAYLOAD, error) {
@@ -29,9 +30,9 @@ func GetUserDataFromRefreshClaimsData(claimsData interface{}) (types.REFRESH_TOK
 		return types.REFRESH_TOKEN_PAYLOAD{}, errutil.InternalServerError("Invalid Format")
 	}
 
-	return types.REFRESH_TOKEN_PAYLOAD{
-		ID: claimsMap["ID"].(string),
-	}, nil
+	refreshTokenPayload := helper.CreateRefreshTokenPayload(claimsMap["ID"].(string), claimsMap["ProviderId"].(string))
+
+	return refreshTokenPayload, nil
 }
 
 func GenearteRandomString(length int) string {

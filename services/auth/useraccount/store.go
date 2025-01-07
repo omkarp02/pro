@@ -85,6 +85,33 @@ func (s *Store) CreateUserAccount(user CreateUserAccountModal) (string, error) {
 	return "", errutil.ErrDatabase
 }
 
+func (s *Store) GetUserAccountEmailById(id string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var userAccount UserAccount
+
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return "", err
+	}
+
+	filter := bson.M{"_id": objectID}
+
+	findOptions := options.FindOne().SetProjection(bson.M{"email": 1})
+
+	err = s.getColl().FindOne(ctx, filter, findOptions).Decode(&userAccount)
+
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return "", errutil.ErrDocumentNotFound
+	} else if err != nil {
+		slog.Error("error will getting user account", "err", err)
+		return "", err
+	}
+
+	return userAccount.Email, nil
+}
+
 func (s *Store) GetUserAccountByEmail(email string) (UserAccount, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -147,17 +174,24 @@ func (s *Store) GetUserAccount(query map[string]interface{}, project map[string]
 	return &userAccount, nil
 }
 
-func (s *Store) UpdateUserAccountById(id string, userAccount UserAccount) (bool, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+func (s *Store) UpdateUserAccountProfileById(ctx context.Context, id string, userProfileId string) error {
 
-	update := store.CreateBsonFromStruct(userAccount)
-	result, err := s.getColl().UpdateByID(ctx, id, update)
+	objectId, err := bson.ObjectIDFromHex(userProfileId)
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	return result.Acknowledged, nil
+	update := bson.M{
+		"$s": bson.M{
+			"userProfileId": objectId, // New name to update
+		},
+	}
+	_, err = s.getColl().UpdateByID(ctx, id, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Store) HandleRefreshTokenForLogin(userId string, refreshToken string, oldRefreshToken string) error {

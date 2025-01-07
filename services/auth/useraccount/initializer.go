@@ -1,8 +1,6 @@
 package useraccount
 
 import (
-	"fmt"
-
 	"github.com/omkarp02/pro/config"
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/router"
@@ -12,8 +10,6 @@ import (
 func Intialize(curDb *db.Database, cfg *config.Config, validator *validation.Validator, api router.Router) {
 
 	authConfig := cfg.App.Auth
-
-	fmt.Println(authConfig.Routes.UserAccount)
 
 	userAccountStore := NewStore(curDb, authConfig.DBCollection.UserAccount)
 	userAccountHandler := NewHandler(userAccountStore, cfg, validator)

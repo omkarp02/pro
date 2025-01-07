@@ -23,3 +23,7 @@ type CreateUserAccountModal struct {
 	PasswordHash string             `json:"age,omitempty"`
 	AuthProvider []AuthProviderType `json:"auth_providers"`
 }
+
+type UpdateUserAccountModel struct {
+	UserProfile string
+}

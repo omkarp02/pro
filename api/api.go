@@ -5,6 +5,7 @@ import (
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/router"
 	"github.com/omkarp02/pro/services/auth/useraccount"
+	"github.com/omkarp02/pro/services/auth/userprofile"
 	"github.com/omkarp02/pro/services/clothes/cart"
 	"github.com/omkarp02/pro/services/clothes/categories"
 	"github.com/omkarp02/pro/services/clothes/filter"
@@ -47,6 +48,7 @@ func setUpClothesApp(curDb *db.Database, cfg *config.Config, validator *validati
 
 func setUpAuthApp(curDb *db.Database, cfg *config.Config, validator *validation.Validator, api router.Router) {
 	useraccount.Intialize(curDb, cfg, validator, api)
+	userprofile.Intialize(curDb, cfg, validator, api)
 }
 
 // authHandler := auth.NewHandler(s.config, userAccountStore)

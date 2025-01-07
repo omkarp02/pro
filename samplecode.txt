@@ -1,0 +1,12 @@
+func (s *Repo) createIndexes() error {
+	collection := s.getColl()
+
+	// Define the unique index for the "email" field
+	indexModel := mongo.IndexModel{
+		Keys:    bson.D{{Key: "email", Value: 1}},
+		Options: options.Index().SetUnique(true),
+	}
+
+	_, err := collection.Indexes().CreateOne(context.Background(), indexModel)
+	return err
+}
