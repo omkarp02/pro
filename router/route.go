@@ -8,6 +8,8 @@ import (
 type Router interface {
 	Group(path string) Router
 	Post(path string, handler func(ctx Context) error)
+	Put(path string, handler func(ctx Context) error)
+	Patch(path string, handler func(ctx Context) error)
 	Get(path string, handler func(ctx Context) error)
 	Use(middleware ...func(ctx Context) error)
 }
@@ -24,7 +26,7 @@ type Context interface {
 	GetCookie(name string) string
 	SetCookie(cookie *fiber.Cookie)
 	GetContext() *fiber.Ctx
-	Params(key string) string
+	Params(key string, defaultValue ...string) string
 	Redirect(location string, status ...int) error
 	QueryParser(out interface{}) error
 }

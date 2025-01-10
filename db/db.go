@@ -17,6 +17,7 @@ type Database struct {
 }
 
 func NewDatabase(cfg *config.Config) (*Database, error) {
+
 	uri := cfg.Storage.DBUrl
 	clientOptions := options.Client().ApplyURI(uri)
 

@@ -21,10 +21,17 @@ type TCreateProduct struct {
 	ProductDetail TCreateProductDetail `json:"detail,omitempty" validate:"required"`
 }
 
+type TGetProductDetails struct {
+	ProductId string `json:"productId,omitempty"`
+}
+
 type TCreateProductDetail struct {
-	Description Description `json:"description,omitempty"`
-	Variations  []Variation `json:"variations,omitempty"`
-	ImgLink     []string    `json:"imgLink,omitempty"`
+	Name        string      `json:"name,omitempty"`
+	PreviewImg  string      `json:"previewImg,omitempty"`
+	Description Description `json:"description,omitempty"  validate:"required"`
+	Variations  []Variation `json:"variations,omitempty"  validate:"required"`
+	ImgLink     []string    `json:"imgLink,omitempty"  validate:"required"`
+	BatchId     string      `json:"batchId,omitempty"  validate:"required"`
 }
 
 type TFilterProductList struct {
@@ -51,6 +58,16 @@ type TAddProductToCollection struct {
 	ProductId      []string `json:"product_id,omitempty" validate:"required"`
 }
 
+type TBatchProductDetails struct {
+	Id      string `json:"id,omitempty" bson:"id,omitempty"`
+	ImgLink string `json:"imgLink,omitempty" bson:"imgLink,omitempty"`
+}
+
+type TProductDetailsServiceResponse struct {
+	ProductDetails ProductDetail `json:"product_details,omitempty"`
+	BatchDetails   ProductBatch  `json:"product_batch,omitempty"`
+}
+
 // here are the model types
 type VariationModel struct {
 	Size  string  `json:"size,omitempty"`
@@ -63,9 +80,12 @@ type PriceModel struct {
 }
 
 type CreateProductDetailModel struct {
+	Name        string      `json:"name,omitempty"`
+	PreviewImg  string      `json:"previewImg,omitempty"`
 	Description Description `json:"description,omitempty"`
 	Variations  []Variation `json:"variations,omitempty"`
 	ImgLink     []string    `json:"imgLink,omitempty"`
+	BatchId     string      `json:"batchId,omitempty"`
 }
 
 type CreateProductListModel struct {
@@ -93,6 +113,11 @@ type FilterProductListModel struct {
 	Name       string   `json:"name,omitempty"`
 	Page       int      `json:"page,omitempty"`
 	Limit      int      `json:"limit,omitempty"`
+}
+
+type CreateProductBatchModel struct {
+	BatchCode   string                `json:"batchCode,omitempty"`
+	ProductList []BatchProductDetails `json:"batchProductDetails,omitempty"`
 }
 
 type AddProductToCollectionModel struct {

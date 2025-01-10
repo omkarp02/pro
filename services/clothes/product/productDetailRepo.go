@@ -33,11 +33,17 @@ func (s *ProductDetailRepo) getColl() *mongo.Collection {
 
 func (s *ProductDetailRepo) Create(ctx context.Context, createProductDetailModel CreateProductDetailModel) (string, error) {
 
+	batchObjectId, err := bson.ObjectIDFromHex(createProductDetailModel.BatchId)
+	if err != nil {
+		return "", err
+	}
+
 	productDetail := ProductDetail{
 		Description: createProductDetailModel.Description,
 		Variations:  createProductDetailModel.Variations,
 		ImgLink:     createProductDetailModel.ImgLink,
 		Timestamps:  store.GetCurrentTimestamps(),
+		BatchId:     batchObjectId,
 	}
 
 	result, err := s.getColl().InsertOne(ctx, productDetail)
@@ -66,59 +72,116 @@ func (s *ProductDetailRepo) FindById(ctx context.Context, id string, project []s
 	}
 
 	filter := bson.M{"_id": objectId}
+	findOneOptions := options.FindOne()
 
-	projection := bson.M{}
-	for _, field := range project {
-		if exclusive {
-			projection[field] = 0
-		} else {
-			projection[field] = 1
+	if len(project) != 0 {
+		projection := bson.M{}
+		for _, field := range project {
+			if exclusive {
+				projection[field] = 0
+			} else {
+				projection[field] = 1
+			}
 		}
+		findOneOptions.SetProjection(projection)
 	}
-
-	findOneOptions := options.FindOne().SetProjection(projection)
 
 	err = s.getColl().FindOne(ctx, filter, findOneOptions).Decode(&productDetail)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return productDetail, errutil.NotFound("Product")
 		}
-		return productDetail, errutil.NotFound("Product")
+		return productDetail, err
 	}
 
 	return productDetail, nil
 
 }
 
-func (s *ProductDetailRepo) GetProductPriceBySize(ctx context.Context, id string, size string) (float64, error) {
+func (s *ProductDetailRepo) GetProductsPriceBySizes(ctx context.Context, ids []string, sizes []string, project []string, inclusive bool) ([]ProductDetail, error) {
 
-	var productDetail ProductDetail
+	var productDetailList []ProductDetail
 
-	objectId, err := bson.ObjectIDFromHex(id)
+	objectIds, err := store.SliceOfHexToObjectID(ids)
 	if err != nil {
-		return 0, fmt.Errorf("invalid id format: %v", err)
+		return nil, fmt.Errorf("invalid id format: %v", err)
 	}
 
-	filter := bson.M{"_id": objectId}
+	projection := store.GenerateProjection(project, inclusive)
+	projection = append(projection, bson.E{Key: "variations", Value: bson.D{
+		{Key: "$filter", Value: bson.D{
+			{Key: "input", Value: "$variations"},
+			{Key: "as", Value: "variation"},
+			{Key: "cond", Value: bson.D{
+				{Key: "$in", Value: bson.A{"$$variation.size", sizes}},
+			}},
+		}},
+	}})
 
-	projection := bson.M{
-		"variations": bson.M{
-			"$elemMatch": bson.M{
-				"size": size,
-			},
+	pipeline := mongo.Pipeline{
+		{
+			{Key: "$match", Value: bson.D{
+				{Key: "_id", Value: bson.D{
+					{Key: "$in", Value: objectIds},
+				}},
+			}},
+		},
+		{
+			{Key: "$project", Value: projection},
 		},
 	}
 
-	findOneOptions := options.FindOne().SetProjection(projection)
-
-	err = s.getColl().FindOne(ctx, filter, findOneOptions).Decode(&productDetail)
+	cursor, err := s.getColl().Aggregate(ctx, pipeline)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return 0, errutil.NotFound("Product")
+			return nil, errutil.NotFound("Product")
 		}
-		return 0, errutil.NotFound("Product")
+		return nil, err
 	}
 
-	return productDetail.Variations[0].Price, nil
+	if err := cursor.All(context.TODO(), &productDetailList); err != nil {
+		return nil, err
+	}
 
+	return productDetailList, nil
+
+}
+
+func (s *ProductDetailRepo) FindByIds(ctx context.Context, ids []string, project []string, exclusive bool) ([]ProductDetail, error) {
+
+	var productDetail []ProductDetail
+
+	objectIds, err := store.SliceOfHexToObjectID(ids)
+	if err != nil {
+		return productDetail, fmt.Errorf("invalid id format: %v", err)
+	}
+
+	filter := bson.M{"_id": bson.M{"$in": objectIds}}
+	findOptions := options.Find()
+
+	if len(project) != 0 {
+		projection := bson.M{}
+		for _, field := range project {
+			if exclusive {
+				projection[field] = 0
+			} else {
+				projection[field] = 1
+			}
+		}
+		findOptions.SetProjection(projection)
+	}
+
+	cursor, err := s.getColl().Find(ctx, filter, findOptions)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return productDetail, errutil.NotFound("Product")
+		}
+		return productDetail, err
+	}
+
+	if err := cursor.All(context.TODO(), &productDetail); err != nil {
+		return nil, err
+	}
+
+	return productDetail, nil
 }

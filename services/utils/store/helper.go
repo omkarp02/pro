@@ -77,3 +77,32 @@ func SliceOfHexToObjectID(input []string) ([]bson.ObjectID, error) {
 
 	return l, nil
 }
+
+func GenerateProjection(project []string, inclusive bool) bson.D {
+	projection := bson.D{
+		bson.E{Key: "field", Value: 1},
+	}
+
+	for _, field := range project {
+		if inclusive {
+			projection = append(projection, bson.E{Key: field, Value: 1})
+		} else {
+			projection = append(projection, bson.E{Key: field, Value: 0})
+		}
+	}
+
+	return projection
+}
+
+func SliceOfObjectIDToHex(input []interface{}) ([]string, error) {
+	l := []string{}
+	for _, item := range input {
+		if id, ok := item.(bson.ObjectID); ok {
+			l = append(l, id.Hex())
+		} else {
+			return nil, errutil.InternalServerError("invalid objectid")
+		}
+	}
+
+	return l, nil
+}

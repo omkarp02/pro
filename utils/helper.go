@@ -53,3 +53,18 @@ func GenerateRandomNumber(n int) int {
 	}
 	return res
 }
+
+func RemoveDuplicateStringFromSlice(arr []string) []string {
+	// Create a map to track unique elements
+	unique := make(map[string]bool)
+	var result []string
+
+	for _, num := range arr {
+		if _, found := unique[num]; !found {
+			unique[num] = true
+			result = append(result, num)
+		}
+	}
+
+	return result
+}

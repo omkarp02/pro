@@ -47,7 +47,7 @@ func (s *Service) CreateUser(ctx context.Context, createUserPayload TCreateUser,
 			return "", err
 		}
 
-		return "id", err
+		return id, err
 	})
 
 	data, _ := result.(string)

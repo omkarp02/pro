@@ -11,9 +11,12 @@ func Intialize(curDb *db.Database, cfg *config.Config, validator *validation.Val
 
 	productConfig := cfg.App.Clothes
 
+	txn := db.NewMongoTransactionManager(curDb)
+
 	productListRepo := NewProductListRepo(curDb, productConfig.DBCollection.ProductList)
 	productDetailRepo := NewProductDetailRepo(curDb, productConfig.DBCollection.ProductDetail)
-	productService := NewService(productListRepo, productDetailRepo)
+	productBatchRepo := NewProductBatchRepo(curDb, productConfig.DBCollection.ProductBatch)
+	productService := NewService(productListRepo, productDetailRepo, productBatchRepo, txn)
 	productHandler := NewHandler(productService, cfg, validator)
 	productHandler.RegisterRoutes(api, productConfig.Routes.Product)
 }

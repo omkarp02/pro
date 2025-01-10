@@ -182,7 +182,7 @@ func (s *Store) UpdateUserAccountProfileById(ctx context.Context, id string, use
 	}
 
 	update := bson.M{
-		"$s": bson.M{
+		"$set": bson.M{
 			"userProfileId": objectId, // New name to update
 		},
 	}

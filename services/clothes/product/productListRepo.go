@@ -57,18 +57,14 @@ func (s *ProductListRepo) getColl() *mongo.Collection {
 
 func (s *ProductListRepo) Create(ctx context.Context, createProductListModel CreateProductListModel) (string, error) {
 
-	detailId, err := bson.ObjectIDFromHex(createProductListModel.Detail)
-	if err != nil {
-		return "", err
-	}
+	ids, err := store.SliceOfHexToObjectID([]string{createProductListModel.Detail, createProductListModel.Category, createProductListModel.BatchId})
 
-	categoryId, err := bson.ObjectIDFromHex(createProductListModel.Category)
 	if err != nil {
 		return "", err
 	}
 
 	owner := ProductList{
-		Detail:     detailId,
+		Detail:     ids[0],
 		Name:       createProductListModel.Name,
 		Sizes:      createProductListModel.Sizes,
 		Color:      createProductListModel.Color,
@@ -76,8 +72,8 @@ func (s *ProductListRepo) Create(ctx context.Context, createProductListModel Cre
 		Price:      createProductListModel.Price,
 		Stock:      createProductListModel.Stock,
 		Discount:   createProductListModel.Discount,
-		Category:   categoryId,
-		BatchId:    createProductListModel.BatchId,
+		Category:   ids[1],
+		BatchId:    ids[2],
 		Gender:     createProductListModel.Gender,
 		Collection: createProductListModel.Collection,
 		Tags:       createProductListModel.Tags,

@@ -59,6 +59,7 @@ type ClothesRoute struct {
 type ClothesStore struct {
 	ProductList   string `yaml:"product_list" env:"product_list" env-required:"true"`
 	ProductDetail string `yaml:"product_detail" env:"product_detail" env-required:"true"`
+	ProductBatch  string `yaml:"product_batch" env:"product_batch" env-required:"true"`
 	Category      string `yaml:"category" env:"category" env-required:"true"`
 	Filter        string `yaml:"filter" env:"filter" env-required:"true"`
 	FilterType    string `yaml:"fitler_type" env:"fitler_type" env-required:"true"`

@@ -50,6 +50,18 @@ func (r *FiberRouter) Post(path string, handler func(ctx Context) error) {
 	})
 }
 
+func (r *FiberRouter) Put(path string, handler func(ctx Context) error) {
+	r.router.Put(path, func(c *fiber.Ctx) error {
+		return handler(&FiberContext{c})
+	})
+}
+
+func (r *FiberRouter) Patch(path string, handler func(ctx Context) error) {
+	r.router.Patch(path, func(c *fiber.Ctx) error {
+		return handler(&FiberContext{c})
+	})
+}
+
 func (r *FiberRouter) Get(path string, handler func(ctx Context) error) {
 	r.router.Get(path, func(c *fiber.Ctx) error {
 		return handler(&FiberContext{c})
@@ -115,8 +127,8 @@ func (c *FiberContext) GetContext() *fiber.Ctx {
 	return c.ctx
 }
 
-func (c *FiberContext) Params(key string) string {
-	return c.ctx.Params(key)
+func (c *FiberContext) Params(key string, defaultValue ...string) string {
+	return c.ctx.Params(key, defaultValue...)
 }
 
 func (c *FiberContext) Redirect(location string, status ...int) error {

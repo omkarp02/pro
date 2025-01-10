@@ -21,16 +21,18 @@ func NewMongoTransactionManager(db *Database) *MongoTransactionManager {
 }
 
 func (tm *MongoTransactionManager) RunInTxn(ctx context.Context, fn InTxn) (interface{}, error) {
-	// Start a new session
-	session, err := tm.db.DB.StartSession()
-	if err != nil {
-		return nil, err
-	}
-	defer session.EndSession(ctx)
 
-	// Run the transaction
-	result, err := session.WithTransaction(ctx, func(sessCtx context.Context) (interface{}, error) {
-		return fn(sessCtx)
-	})
-	return result, err
+	return fn(ctx)
+	// // Start a new session
+	// session, err := tm.db.DB.StartSession()
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer session.EndSession(ctx)
+
+	// // Run the transaction
+	// result, err := session.WithTransaction(ctx, func(sessCtx context.Context) (interface{}, error) {
+	// 	return fn(sessCtx)
+	// })
+	// return result, err
 }

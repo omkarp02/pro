@@ -8,6 +8,7 @@ app:
     db_collection:
       product_list: "product_list"
       product_detail: "product_detail"
+      product_batch: "product_batch"
       category: "categories"
       filter: "filter"
       fitler_type: "filter_type"

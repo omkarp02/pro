@@ -15,6 +15,8 @@ type ProductService interface {
 	FilterProductList(ctx context.Context, filterProductList TFilterProductList) ([]TFilteredProductList, error)
 	AddProductsToCollection(ctx context.Context, productData TAddProductToCollection) error
 	CreateProduct(ctx context.Context, productDetails TCreateProduct) error
+	GetProductDetails(ctx context.Context, productId string) (TProductDetailsServiceResponse, error)
+	CreateProductBatch(ctx context.Context) (string, error)
 }
 
 type Handler struct {
@@ -33,6 +35,8 @@ func (h *Handler) RegisterRoutes(router router.Router, link string) {
 	// routeGrp.Post("/create/product-list", h.createProductList)
 	routeGrp.Get("/filter/product-list", h.getFilteredProductList)
 	routeGrp.Get("/add-to-collection", h.addToCollection)
+	routeGrp.Get("/get-details/:productId", h.getProductDetails)
+	routeGrp.Post("/batch", h.createProductBatch)
 	routeGrp.Post("/", h.createProduct)
 }
 
@@ -68,6 +72,32 @@ func (h *Handler) createProduct(c router.Context) error {
 	}
 
 	return utils.SendResponse(c, "Product List Created Successfully", "", 200)
+}
+
+func (h *Handler) createProductBatch(c router.Context) error {
+	ctx, cancel := createContext()
+	defer cancel()
+
+	id, err := h.service.CreateProductBatch(ctx)
+	if err != nil {
+		return err
+	}
+
+	return utils.SendResponse(c, "Product Batch Created Successfully", id, 200)
+}
+
+func (h *Handler) getProductDetails(c router.Context) error {
+	ctx, cancel := createContext()
+	defer cancel()
+
+	productId := c.Params("productId")
+
+	productDetails, err := h.service.GetProductDetails(ctx, productId)
+	if err != nil {
+		return err
+	}
+
+	return utils.SendResponse(c, "Product Detail fetched Successfully", productDetails, 200)
 }
 
 func createContext() (context.Context, context.CancelFunc) {

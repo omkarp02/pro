@@ -10,3 +10,29 @@ func (s *Repo) createIndexes() error {
 	_, err := collection.Indexes().CreateOne(context.Background(), indexModel)
 	return err
 }
+
+
+
+func (s *ProductListRepo) createIndexes() error {
+	collection := s.getColl()
+
+	// Define the unique index for the "email" field
+	collectionIndexModal := mongo.IndexModel{
+		Keys: bson.D{{Key: "collection", Value: 1}},
+		Options: options.Index().SetPartialFilterExpression(bson.M{
+			"tags": bson.M{
+				"$exists": true,
+				"$ne":     nil,
+				"$not":    bson.M{"$size": 0},
+			},
+		}),
+	}
+
+	priceIndexModal := mongo.IndexModel{
+		Keys: bson.D{{Key: "price", Value: 1}},
+	}
+
+	_, err := collection.Indexes().CreateMany(context.Background(), []mongo.IndexModel{collectionIndexModal, priceIndexModal})
+
+	return err
+}

@@ -16,7 +16,7 @@ type ProductList struct {
 	Discount   int              `json:"discount,omitempty" bson:"discount,omitempty"`
 	Detail     bson.ObjectID    `json:"detail,omitempty" bson:"detail,omitempty"`
 	Category   bson.ObjectID    `json:"category,omitempty" bson:"category,omitempty"`
-	BatchId    string           `json:"batchId,omitempty" bson:"batchId,omitempty"`
+	BatchId    bson.ObjectID    `json:"batchId,omitempty" bson:"batchId,omitempty"`
 	Gender     string           `json:"gender,omitempty" bson:"gender,omitempty"`
 	Collection []string         `json:"collection,omitempty" bson:"collection,omitempty"`
 	Tags       []string         `json:"tags,omitempty" bson:"tags,omitempty"`
@@ -24,10 +24,14 @@ type ProductList struct {
 }
 
 type ProductDetail struct {
+	ID          bson.ObjectID    `json:"_id,omitempty" bson:"_id,omitempty"`
+	Name        string           `json:"name,omitempty" bson:"name,omitempty"`
+	PreviewImg  string           `json:"previewImg,omitempty" bson:"previewImg,omitempty"`
 	Description Description      `json:"description,omitempty" bson:"description,omitempty"`
 	Variations  []Variation      `json:"variations,omitempty" bson:"variations,omitempty"`
 	ImgLink     []string         `json:"imgLink,omitempty" bson:"imgLink,omitempty"`
-	Timestamps  store.Timestamps `bson:",inline"`
+	BatchId     bson.ObjectID    `json:"batchId,omitempty" bson:"batchId,omitempty"`
+	Timestamps  store.Timestamps `bson:"timestamp,inline"`
 }
 
 type Variation struct {
@@ -62,4 +66,16 @@ type Specifications struct {
 	MainTrend       string `json:"mainTrend,omitempty" bson:"mainTrend,omitempty"`
 	NumberOfItems   int    `json:"numberOfItems,omitempty" bson:"numberOfItems,omitempty"`
 	PackageContains string `json:"packageContains,omitempty" bson:"packageContains,omitempty"`
+}
+
+type BatchProductDetails struct {
+	Id      bson.ObjectID `json:"id,omitempty" bson:"id,omitempty"`
+	ImgLink string        `json:"imgLink,omitempty" bson:"imgLink,omitempty"`
+}
+
+type ProductBatch struct {
+	ID          bson.ObjectID         `bson:"_id,omitempty" json:"_id,omitempty"`
+	BatchCode   string                `bson:"batchCode,omitempty" json:"batchCode,omitempty"`
+	ProductList []BatchProductDetails `bson:"batchProductDetails,omitempty" json:"batchProductDetails,omitempty"`
+	Timestamps  store.Timestamps      `json:"timestamp" bson:"timestamp,inline"`
 }

@@ -1,0 +1,147 @@
+package product
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/omkarp02/pro/db"
+	"github.com/omkarp02/pro/services/utils/store"
+	"github.com/omkarp02/pro/utils/errutil"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
+)
+
+type ProductBatchRepo struct {
+	*db.Database
+	collName string
+}
+
+func NewProductBatchRepo(curDb *db.Database, collName string) *ProductBatchRepo {
+	store := &ProductBatchRepo{
+		Database: curDb,
+		collName: collName,
+	}
+
+	return store
+}
+
+func (s *ProductBatchRepo) getColl() *mongo.Collection {
+	return s.DB.Database(s.DBName).Collection(s.collName)
+}
+
+func (s *ProductBatchRepo) Create(ctx context.Context, createPayload CreateProductBatchModel) (string, error) {
+
+	batchDetails := ProductBatch{
+		BatchCode:   createPayload.BatchCode,
+		ProductList: createPayload.ProductList,
+		Timestamps:  store.GetCurrentTimestamps(),
+	}
+
+	result, err := s.getColl().InsertOne(ctx, batchDetails)
+
+	if mongo.IsDuplicateKeyError(err) {
+		return "", errutil.ErrDocumentAlreadyExist
+	} else if err != nil {
+		return "", err
+	}
+
+	if id, ok := result.InsertedID.(bson.ObjectID); ok {
+		return id.Hex(), nil
+	}
+
+	return "", errutil.ErrDatabase
+
+}
+
+func (s *ProductBatchRepo) UpdateBatchImg(ctx context.Context, batchId string, productDetail TBatchProductDetails) error {
+
+	productId, err := bson.ObjectIDFromHex(productDetail.Id)
+	if err != nil {
+		return err
+	}
+
+	batchObjectId, err := bson.ObjectIDFromHex("677e52c416c63b4e447f4cf0")
+	if err != nil {
+		return err
+	}
+
+	updatePayload := BatchProductDetails{
+		Id:      productId,
+		ImgLink: productDetail.ImgLink,
+	}
+
+	query := bson.M{"_id": batchObjectId}
+	update := bson.M{
+		"$push": bson.M{"batchProductDetails": updatePayload},
+		"$set":  bson.M{"timestamp.updatedAt": time.Now()},
+	}
+
+	result, err := s.getColl().UpdateOne(ctx, query, update)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return errutil.NotFound("product batch")
+	}
+
+	return nil
+}
+
+func (s *ProductBatchRepo) FindById(ctx context.Context, id string, project []string, exclusive bool) (ProductBatch, error) {
+
+	var batchDetail ProductBatch
+
+	objectId, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return batchDetail, fmt.Errorf("invalid id format: %v", err)
+	}
+
+	filter := bson.M{"_id": objectId}
+	findOneOptions := options.FindOne()
+
+	if len(project) != 0 {
+		projection := bson.M{}
+		for _, field := range project {
+			if exclusive {
+				projection[field] = 0
+			} else {
+				projection[field] = 1
+			}
+		}
+		findOneOptions.SetProjection(projection)
+	}
+
+	err = s.getColl().FindOne(ctx, filter, findOneOptions).Decode(&batchDetail)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return batchDetail, errutil.NotFound("Product batch")
+		}
+		return batchDetail, errutil.NotFound("Product batch")
+	}
+
+	return batchDetail, nil
+
+}
+
+// func (s *Repo) createIndexes() error {
+// 	collection := s.getColl()
+
+// 	// Define the unique index for the "email" field
+// 	catIdIndexModel := mongo.IndexModel{
+// 		Keys:    bson.D{{Key: "catId", Value: 1}},
+// 		Options: options.Index().SetUnique(true),
+// 	}
+
+// 	slugIndexModal := mongo.IndexModel{
+// 		Keys:    bson.D{{Key: "slug", Value: 1}},
+// 		Options: options.Index().SetUnique(true),
+// 	}
+
+// 	_, err := collection.Indexes().CreateMany(context.Background(), []mongo.IndexModel{catIdIndexModel, slugIndexModal})
+// 	return err
+// }
