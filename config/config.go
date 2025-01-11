@@ -81,9 +81,14 @@ type AuthStore struct {
 	UserProfile string `yaml:"user_profile" env:"user_profile" env-required:"true"`
 }
 
+type AuthClient struct {
+	RedirectUrl string `yaml:"redirect_url" env:"redirect_url" env-required:"true"`
+}
+
 type Auth struct {
-	Routes       AuthRoute `yaml:"routes" env:"routes" env-required:"true"`
-	DBCollection AuthStore `yaml:"db_collection" env:"db_collection" env-required:"true"`
+	Routes       AuthRoute  `yaml:"routes" env:"routes" env-required:"true"`
+	DBCollection AuthStore  `yaml:"db_collection" env:"db_collection" env-required:"true"`
+	Client       AuthClient `yaml:"client" env:"client" env-required:"true"`
 }
 
 type App struct {
