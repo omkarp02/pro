@@ -63,7 +63,7 @@ func (h *Handler) RegisterProviders() {
 	googleSecret := h.cfg.Secret.Google
 
 	goth.UseProviders(
-		google.New(googleSecret.ClientId, googleSecret.ClientSecret, googleAuthConfig.RedirectUrl),
+		google.New(googleSecret.ClientId, googleSecret.ClientSecret, googleAuthConfig.RedirectUrl, "profile", "email"),
 	)
 }
 
@@ -211,6 +211,9 @@ func (h *Handler) redirectUrlHandler(c router.Context) error {
 
 	oldRefreshToken := c.GetCookie(constant.REFRESH_TOKEN_COOKIE)
 	user, err := goth_fiber.CompleteUserAuth(c.GetContext())
+
+	fmt.Println(user.Name, user.FirstName, user.LastName)
+
 	if err != nil {
 		slog.Error("err while handling the redirect url", "err", err)
 		return errutil.InternalServerError()
