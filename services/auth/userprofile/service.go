@@ -4,33 +4,25 @@ import (
 	"context"
 
 	"github.com/omkarp02/pro/db"
-	"github.com/omkarp02/pro/services/auth/useraccount"
 )
 
 type Service struct {
-	repo     *Repo
-	userRepo *useraccount.Store
-	txn      db.TransactionManager
+	repo *Repo
+	txn  db.TransactionManager
 }
 
-func NewService(repo *Repo, userRepo *useraccount.Store, txn db.TransactionManager) *Service {
+func NewService(repo *Repo, txn db.TransactionManager) *Service {
 	return &Service{
-		repo:     repo,
-		userRepo: userRepo,
-		txn:      txn,
+		repo: repo,
+		txn:  txn,
 	}
 }
 
 func (s *Service) CreateUser(ctx context.Context, createUserPayload TCreateUser, userAccountId string) (string, error) {
 
-	emailId, err := s.userRepo.GetUserAccountEmailById(userAccountId)
-	if err != nil {
-		return "", err
-	}
-
 	result, err := s.txn.RunInTxn(ctx, func(sessCtx context.Context) (interface{}, error) {
 		payload := CreateUserModel{
-			Email:       emailId,
+			Email:       createUserPayload.Email,
 			FirstName:   createUserPayload.FirstName,
 			LastName:    createUserPayload.LastName,
 			DateOfBirth: createUserPayload.DateOfBirth,
@@ -38,11 +30,6 @@ func (s *Service) CreateUser(ctx context.Context, createUserPayload TCreateUser,
 		}
 
 		id, err := s.repo.CreateUser(sessCtx, payload)
-		if err != nil {
-			return "", err
-		}
-
-		err = s.userRepo.UpdateUserAccountProfileById(sessCtx, userAccountId, id)
 		if err != nil {
 			return "", err
 		}

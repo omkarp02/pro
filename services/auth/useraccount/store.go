@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/omkarp02/pro/db"
+	"github.com/omkarp02/pro/services/auth/userprofile"
 	"github.com/omkarp02/pro/services/utils/helper"
 	"github.com/omkarp02/pro/services/utils/store"
 	"github.com/omkarp02/pro/utils/errutil"
@@ -19,13 +20,17 @@ import (
 
 type Store struct {
 	*db.Database
-	collName string
+	userProfileRepo *userprofile.Repo
+	collName        string
+	txn             db.TransactionManager
 }
 
-func NewStore(curDb *db.Database, collName string) *Store {
+func NewStore(curDb *db.Database, userProfileRepo *userprofile.Repo, collName string, txn db.TransactionManager) *Store {
 	store := &Store{
-		Database: curDb,
-		collName: collName,
+		Database:        curDb,
+		userProfileRepo: userProfileRepo,
+		collName:        collName,
+		txn:             txn,
 	}
 
 	if err := store.createIndexes(); err != nil {
@@ -275,6 +280,21 @@ func (s *Store) PullUserRefreshToken(refreshToken string) error {
 
 }
 
+func (s *Store) CreateUserProfileAndAccount(userProfile userprofile.CreateUserModel, useraccount CreateUserAccountModal) (string, error) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	userprofileId, err := s.userProfileRepo.CreateUser(ctx, userProfile)
+	if err != nil {
+		return "", err
+	}
+
+	useraccount.UserProfile = userprofileId
+
+	return s.CreateUserAccount(useraccount)
+}
+
 func (s *Store) createUserAccountModalFromData(userAccountData CreateUserAccountModal) UserAccount {
 
 	authProviderSlice := []AuthProvider{}
@@ -285,12 +305,56 @@ func (s *Store) createUserAccountModalFromData(userAccountData CreateUserAccount
 		})
 	}
 
+	userProfileObjectId, err := bson.ObjectIDFromHex(userAccountData.UserProfile)
+
+	if err != nil {
+		panic(err)
+	}
+
 	newUserAccount := UserAccount{
 		Email:        userAccountData.Email,
+		UserProfile:  userProfileObjectId,
 		PasswordHash: userAccountData.PasswordHash,
 		Timestamps:   store.GetCurrentTimestamps(),
 		AuthProvider: authProviderSlice,
 	}
 
 	return newUserAccount
+}
+
+func (s *Store) CreateUserProfile(createUserPayload userprofile.TCreateUser, userAccountId string) (string, error) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	email, err := s.GetUserAccountEmailById(userAccountId)
+	if err != nil {
+		return "", err
+	}
+
+	result, err := s.txn.RunInTxn(ctx, func(sessCtx context.Context) (interface{}, error) {
+		payload := userprofile.CreateUserModel{
+			Email:       email,
+			FirstName:   createUserPayload.FirstName,
+			LastName:    createUserPayload.LastName,
+			DateOfBirth: createUserPayload.DateOfBirth,
+			Gender:      createUserPayload.Gender,
+		}
+
+		userProfileId, err := s.userProfileRepo.CreateUser(sessCtx, payload)
+		if err != nil {
+			return "", err
+		}
+
+		if err := s.UpdateUserAccountProfileById(ctx, userAccountId, userProfileId); err != nil {
+			return "", err
+		}
+
+		return "", err
+
+	})
+
+	data, _ := result.(string)
+
+	return data, err
 }

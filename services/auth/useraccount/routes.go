@@ -11,6 +11,7 @@ import (
 	"github.com/markbates/goth/providers/google"
 	"github.com/omkarp02/pro/config"
 	"github.com/omkarp02/pro/router"
+	"github.com/omkarp02/pro/services/auth/userprofile"
 	"github.com/omkarp02/pro/services/middleware"
 	"github.com/omkarp02/pro/services/utils/helper"
 	"github.com/omkarp02/pro/utils"
@@ -29,6 +30,8 @@ type UserAccountStore interface {
 	UpdateUserRefreshToken(userId string, action string, refreshToken string) error
 	PullUserRefreshToken(refreshToken string) error
 	HandleRefreshTokenForLogin(userId string, refreshToken string, oldRefreshToken string) error
+	CreateUserProfileAndAccount(userProfile userprofile.CreateUserModel, useraccount CreateUserAccountModal) (string, error)
+	CreateUserProfile(createUserPayload userprofile.TCreateUser, userAccountId string) (string, error)
 }
 
 type Handler struct {
@@ -234,7 +237,14 @@ func (h *Handler) redirectUrlHandler(c router.Context) error {
 			},
 		}
 
-		id, err = h.store.CreateUserAccount(createUserAccountModal)
+		profile := userprofile.CreateUserModel{
+			FirstName: user.FirstName,
+			LastName:  user.LastName,
+			Email:     user.Email,
+		}
+
+		id, err = h.store.CreateUserProfileAndAccount(profile, createUserAccountModal)
+
 		if err != nil {
 			return err
 		}
@@ -259,6 +269,24 @@ func (h *Handler) redirectUrlHandler(c router.Context) error {
 	helper.UpdateCookie(c, constant.REFRESH_TOKEN_COOKIE, newRefreshToken, constant.REFRESH_TOKEN_COOKIE_EXPIRY)
 
 	return c.Redirect(h.cfg.App.Auth.Client.RedirectUrl+"?token="+newAuthToken, fiber.StatusFound)
+}
+
+func (h *Handler) create(c router.Context) error {
+	decodedUserId := c.GetDecodedData().ID
+
+	var user userprofile.TCreateUser
+
+	// Parse the JSON body into the struct
+	if err := h.validator.ValidateBody(c, &user); err != nil {
+		return err
+	}
+
+	id, err := h.store.CreateUserProfile(user, decodedUserId)
+	if err != nil {
+		return err
+	}
+
+	return utils.SendResponse(c, "User created successfully", id, 201)
 }
 
 func (h *Handler) logout(c router.Context) error {

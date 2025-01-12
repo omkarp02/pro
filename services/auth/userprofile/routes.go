@@ -29,7 +29,7 @@ func (h *Handler) RegisterRoutes(router router.Router, link string) {
 	routeGrp := router.Group(link)
 	routeGrp.Use(middleware.VerifyToken(h.cfg))
 
-	routeGrp.Post("/", h.create)
+	// routeGrp.Post("/", h.create)
 	// routeGrp.Get("/", h.get)
 }
 

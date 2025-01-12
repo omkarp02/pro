@@ -19,8 +19,9 @@ type AuthProviderType struct {
 }
 
 type CreateUserAccountModal struct {
-	Email        string             `json:"fullname,omitempty"`
-	PasswordHash string             `json:"age,omitempty"`
+	Email        string `json:"fullname,omitempty"`
+	PasswordHash string `json:"age,omitempty"`
+	UserProfile  string
 	AuthProvider []AuthProviderType `json:"auth_providers"`
 }
 

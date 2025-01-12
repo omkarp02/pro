@@ -3,6 +3,7 @@ package userprofile
 import "time"
 
 type TCreateUser struct {
+	Email       string    `json:"email,omitempty" validate:"required"`
 	FirstName   string    `json:"firstname,omitempty" validate:"required"`
 	LastName    string    `json:"lastname,omitempty" validate:"required"`
 	DateOfBirth time.Time `json:"dateofbirth,omitempty" validate:"required"`
