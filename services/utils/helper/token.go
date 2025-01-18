@@ -4,17 +4,19 @@ import "github.com/omkarp02/pro/types"
 
 var providerIdAndName = make(map[string]string)
 
-func CreateAccessTokenPayload(id string, providerId string) types.ACCESS_TOKEN_PAYLOAD {
+func CreateAccessTokenPayload(id string, providerId string, role []string) types.ACCESS_TOKEN_PAYLOAD {
 	return types.ACCESS_TOKEN_PAYLOAD{
 		ID:         id,
 		ProviderId: providerId,
+		Role:       role,
 	}
 }
 
-func CreateRefreshTokenPayload(id string, providerId string) types.REFRESH_TOKEN_PAYLOAD {
+func CreateRefreshTokenPayload(id string, providerId string, role []string) types.REFRESH_TOKEN_PAYLOAD {
 	return types.REFRESH_TOKEN_PAYLOAD{
 		ID:         id,
 		ProviderId: providerId,
+		Role:       role,
 	}
 }
 

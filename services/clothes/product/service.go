@@ -6,21 +6,24 @@ import (
 
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/utils"
+	"github.com/omkarp02/pro/utils/constant"
 )
 
 type Service struct {
-	productListRepo   *ProductListRepo
-	productDetailRepo *ProductDetailRepo
-	productBatchRepo  *ProductBatchRepo
-	txn               db.TransactionManager
+	productTemplateRepo *ProductTemplateRepo
+	productListRepo     *ProductListRepo
+	productDetailRepo   *ProductDetailRepo
+	productBatchRepo    *ProductBatchRepo
+	txn                 db.TransactionManager
 }
 
-func NewService(productListRepo *ProductListRepo, productDetailRepo *ProductDetailRepo, productBatchRepo *ProductBatchRepo, txn db.TransactionManager) *Service {
+func NewService(productListRepo *ProductListRepo, productDetailRepo *ProductDetailRepo, productBatchRepo *ProductBatchRepo, productTemplateRepo *ProductTemplateRepo, txn db.TransactionManager) *Service {
 	return &Service{
-		productListRepo:   productListRepo,
-		productDetailRepo: productDetailRepo,
-		productBatchRepo:  productBatchRepo,
-		txn:               txn,
+		productListRepo:     productListRepo,
+		productDetailRepo:   productDetailRepo,
+		productBatchRepo:    productBatchRepo,
+		productTemplateRepo: productTemplateRepo,
+		txn:                 txn,
 	}
 }
 
@@ -28,7 +31,7 @@ func (s *Service) FilterProductList(ctx context.Context, filterProductList TFilt
 
 	var filteredProductList []TFilteredProductList
 
-	productList, err := s.productListRepo.FindByFilter(ctx, FilterProductListModel(filterProductList), []string{"name", "price", "discount", "imgLink", "_id"}, true)
+	productList, err := s.productListRepo.FindByFilter(ctx, FilterProductListModel(filterProductList), []string{"name", "price", "discount", "imgLink", "_id", "detail"}, true)
 	if err != nil {
 		return nil, err
 	}
@@ -39,6 +42,7 @@ func (s *Service) FilterProductList(ctx context.Context, filterProductList TFilt
 			Price:    item.Price,
 			ImgLink:  item.ImgLink,
 			Discount: item.Discount,
+			Detail:   item.Detail.Hex(),
 			Id:       item.ID.Hex(),
 		})
 	}
@@ -56,6 +60,7 @@ func (s *Service) CreateProduct(ctx context.Context, productDetails TCreateProdu
 
 		productDetails.ProductDetail.PreviewImg = productDetails.ProductList.ImgLink
 		productDetails.ProductDetail.Name = productDetails.ProductList.Name
+		productDetails.ProductDetail.Variations = append(productDetails.ProductDetail.Variations, Variation{Size: constant.BASE_SIZE, Price: productDetails.ProductList.Price, Discount: productDetails.ProductList.Discount})
 
 		productDetailId, err := s.productDetailRepo.Create(ctx, CreateProductDetailModel(productDetails.ProductDetail))
 		if err != nil {
@@ -77,8 +82,9 @@ func (s *Service) CreateProduct(ctx context.Context, productDetails TCreateProdu
 		}
 
 		batchUpdatePayload := TBatchProductDetails{
-			ImgLink: productDetails.ProductList.ImgLink,
-			Id:      productListId,
+			ImgLink:         productDetails.ProductList.ImgLink,
+			ProductListId:   productListId,
+			ProductDetailId: productDetailId,
 		}
 
 		if err := s.productBatchRepo.UpdateBatchImg(ctx, productDetails.ProductList.BatchId, batchUpdatePayload); err != nil {
@@ -121,4 +127,19 @@ func (s *Service) CreateProductBatch(ctx context.Context) (string, error) {
 	}
 
 	return s.productBatchRepo.Create(ctx, payload)
+}
+
+func (s *Service) CreateProductTemplate(ctx context.Context, payload ProductTemplateModel) error {
+	return s.productTemplateRepo.Create(ctx, payload)
+}
+
+func (s *Service) FindProductTemplate(ctx context.Context, payload FilterProductListModel) ([]ProductList, error) {
+
+	project := []string{"name", "_id"}
+
+	return s.productTemplateRepo.FindByFilter(ctx, payload, project, true)
+}
+
+func (s *Service) FindProductTemplateById(ctx context.Context, templateId string) (ProductTemplate, error) {
+	return s.productTemplateRepo.FindById(ctx, templateId, []string{}, true)
 }

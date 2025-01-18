@@ -58,22 +58,18 @@ func (s *ProductBatchRepo) Create(ctx context.Context, createPayload CreateProdu
 
 func (s *ProductBatchRepo) UpdateBatchImg(ctx context.Context, batchId string, productDetail TBatchProductDetails) error {
 
-	productId, err := bson.ObjectIDFromHex(productDetail.Id)
-	if err != nil {
-		return err
-	}
-
-	batchObjectId, err := bson.ObjectIDFromHex("677e52c416c63b4e447f4cf0")
+	objectIds, err := store.SliceOfHexToObjectID(productDetail.ProductDetailId, productDetail.ProductListId, batchId)
 	if err != nil {
 		return err
 	}
 
 	updatePayload := BatchProductDetails{
-		Id:      productId,
-		ImgLink: productDetail.ImgLink,
+		ProductDetailId: objectIds[0],
+		ProductListId:   objectIds[1],
+		ImgLink:         productDetail.ImgLink,
 	}
 
-	query := bson.M{"_id": batchObjectId}
+	query := bson.M{"_id": batchId}
 	update := bson.M{
 		"$push": bson.M{"batchProductDetails": updatePayload},
 		"$set":  bson.M{"timestamp.updatedAt": time.Now()},
@@ -92,7 +88,7 @@ func (s *ProductBatchRepo) UpdateBatchImg(ctx context.Context, batchId string, p
 	return nil
 }
 
-func (s *ProductBatchRepo) FindById(ctx context.Context, id string, project []string, exclusive bool) (ProductBatch, error) {
+func (s *ProductBatchRepo) FindById(ctx context.Context, id string, project []string, inclusive bool) (ProductBatch, error) {
 
 	var batchDetail ProductBatch
 
@@ -105,14 +101,7 @@ func (s *ProductBatchRepo) FindById(ctx context.Context, id string, project []st
 	findOneOptions := options.FindOne()
 
 	if len(project) != 0 {
-		projection := bson.M{}
-		for _, field := range project {
-			if exclusive {
-				projection[field] = 0
-			} else {
-				projection[field] = 1
-			}
-		}
+		projection := store.GenerateProjection(project, inclusive)
 		findOneOptions.SetProjection(projection)
 	}
 

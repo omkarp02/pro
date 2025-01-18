@@ -1,4 +1,4 @@
-package userprofile
+package bussiness
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"github.com/omkarp02/pro/utils/errutil"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type Repo struct {
@@ -32,8 +31,7 @@ func (s *Repo) createIndexes() error {
 
 	// Define the unique index for the "email" field
 	indexModel := mongo.IndexModel{
-		Keys:    bson.D{{Key: "email", Value: 1}},
-		Options: options.Index().SetUnique(true),
+		Keys: bson.D{{Key: "user_id", Value: 1}},
 	}
 
 	_, err := collection.Indexes().CreateOne(context.Background(), indexModel)
@@ -44,16 +42,27 @@ func (s *Repo) getColl() *mongo.Collection {
 	return s.DB.Database(s.DBName).Collection(s.collName)
 }
 
-func (s *Repo) Create(ctx context.Context, user CreateUserModel) (string, error) {
-	newUser := User{
-		FirstName:   user.FirstName,
-		LastName:    user.LastName,
-		DateOfBirth: user.DateOfBirth,
-		Gender:      user.Gender,
+func (s *Repo) Create(ctx context.Context, createPayload CreateBusinessModel) (string, error) {
+
+	ownerObjectId, err := bson.ObjectIDFromHex(createPayload.OwnerID)
+	if err != nil {
+		return "", err
+	}
+
+	newAddress := Business{
+		Name:        createPayload.Name,
+		OwnerID:     ownerObjectId,
+		Category:    createPayload.Category,
+		Description: createPayload.Description,
+		Address:     store.Address(createPayload.Address),
+		Contacts:    createPayload.Contacts,
+		Website:     createPayload.Website,
+		LogoUrl:     createPayload.LogoUrl,
+		Active:      createPayload.Active,
 		Timestamps:  store.GetCurrentTimestamps(),
 	}
 
-	result, err := s.getColl().InsertOne(ctx, newUser)
+	result, err := s.getColl().InsertOne(ctx, newAddress)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
 			return "", errutil.ErrDocumentAlreadyExist
@@ -67,18 +76,3 @@ func (s *Repo) Create(ctx context.Context, user CreateUserModel) (string, error)
 
 	return "", errutil.ErrDatabase
 }
-
-// func (s *Store) GetUser(userId string) (*User, error) {
-// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-// 	var user User
-// 	defer cancel()
-
-// 	objId, _ := bson.ObjectIDFromHex(userId)
-
-// 	err := s.getColl().FindOne(ctx, bson.M{"_id": objId}).Decode(&user)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return &user, nil
-// }

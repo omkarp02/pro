@@ -80,7 +80,7 @@ func (s *OrderItemRepo) InsertMany(ctx context.Context, payload []CreateOrderIte
 
 func (s *OrderItemRepo) structureOrderItem(payload CreateOrderItemModel) (OrderItem, error) {
 	listOfIds := []string{payload.ProductId, payload.OrderId, payload.UserId}
-	listOfObjectId, err := store.SliceOfHexToObjectID(listOfIds)
+	listOfObjectId, err := store.SliceOfHexToObjectID(listOfIds...)
 
 	orderPayload := OrderItem{
 		ProductId:  listOfObjectId[0],

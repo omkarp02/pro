@@ -14,7 +14,9 @@ type UserAccount struct {
 	ID           bson.ObjectID    `json:"_id,omitempty" bson:"_id,omitempty"`
 	Email        string           `json:"fullname,omitempty"`
 	PasswordHash string           `json:"age,omitempty"`
+	Role         []string         `json:"role,omitempty"`
 	AuthProvider []AuthProvider   `bson:"auth_providers" json:"auth_providers"`
-	UserProfile  bson.ObjectID    `bson:"userProfileId"`
+	UserProfile  bson.ObjectID    `bson:"userProfileId,omitempty"`
+	RefreshToken []string         `bson:"refresh_token,omitempty"`
 	Timestamps   store.Timestamps `bson:",inline"`
 }

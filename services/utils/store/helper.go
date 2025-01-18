@@ -65,7 +65,7 @@ func CreateBsonFromStruct(input interface{}) bson.D {
 	return res
 }
 
-func SliceOfHexToObjectID(input []string) ([]bson.ObjectID, error) {
+func SliceOfHexToObjectID(input ...string) ([]bson.ObjectID, error) {
 	l := []bson.ObjectID{}
 	for _, item := range input {
 		id, err := bson.ObjectIDFromHex(item)
@@ -79,9 +79,7 @@ func SliceOfHexToObjectID(input []string) ([]bson.ObjectID, error) {
 }
 
 func GenerateProjection(project []string, inclusive bool) bson.D {
-	projection := bson.D{
-		bson.E{Key: "field", Value: 1},
-	}
+	projection := bson.D{}
 
 	for _, field := range project {
 		if inclusive {

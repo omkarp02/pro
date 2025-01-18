@@ -9,6 +9,7 @@ app:
       product_list: "product_list"
       product_detail: "product_detail"
       product_batch: "product_batch"
+      product_template: "product_template"
       category: "categories"
       filter: "filter"
       fitler_type: "filter_type"
@@ -22,6 +23,7 @@ app:
     db_collection:
       user_account: "user_account"
       user_profile: "user_profile"
+      owner: "owner"
     routes:
       user_account: "auth"
       user_profile: "user-profile"
@@ -36,4 +38,4 @@ auth_config_provider:
     provider_id: "4S4UXF650DBR6NR"
     provider_name: "jwt"
 cors:
-  allow_origin: "http://localhost:3000, http://localhost:3001"
+  allow_origin: "http://localhost:3000, http://localhost:3001, http://localhost:4200, http://localhost:5173"

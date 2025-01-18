@@ -7,7 +7,6 @@ import (
 	"github.com/omkarp02/pro/config"
 	"github.com/omkarp02/pro/router"
 	"github.com/omkarp02/pro/services/middleware"
-	"github.com/omkarp02/pro/utils"
 	"github.com/omkarp02/pro/utils/validation"
 )
 
@@ -33,26 +32,26 @@ func (h *Handler) RegisterRoutes(router router.Router, link string) {
 	// routeGrp.Get("/", h.get)
 }
 
-func (h *Handler) create(c router.Context) error {
-	ctx, cancel := createContext()
-	defer cancel()
+// func (h *Handler) create(c router.Context) error {
+// 	ctx, cancel := createContext()
+// 	defer cancel()
 
-	decodedUserId := c.GetDecodedData().ID
+// 	decodedUserId := c.GetDecodedData().ID
 
-	var user TCreateUser
+// 	var user TCreateUser
 
-	// Parse the JSON body into the struct
-	if err := h.validator.ValidateBody(c, &user); err != nil {
-		return err
-	}
+// 	// Parse the JSON body into the struct
+// 	if err := h.validator.ValidateBody(c, &user); err != nil {
+// 		return err
+// 	}
 
-	id, err := h.service.CreateUser(ctx, user, decodedUserId)
-	if err != nil {
-		return err
-	}
+// 	id, err := h.service.CreateUser(ctx, user, decodedUserId)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return utils.SendResponse(c, "User created successfully", id, 201)
-}
+// 	return utils.SendResponse(c, "User created successfully", id, 201)
+// }
 
 // func (h *Handler) get(c router.Context) error {
 // 	ctx, cancel := createContext()

@@ -62,7 +62,7 @@ func (s *ProductDetailRepo) Create(ctx context.Context, createProductDetailModel
 
 }
 
-func (s *ProductDetailRepo) FindById(ctx context.Context, id string, project []string, exclusive bool) (ProductDetail, error) {
+func (s *ProductDetailRepo) FindById(ctx context.Context, id string, project []string, inclusive bool) (ProductDetail, error) {
 
 	var productDetail ProductDetail
 
@@ -77,10 +77,10 @@ func (s *ProductDetailRepo) FindById(ctx context.Context, id string, project []s
 	if len(project) != 0 {
 		projection := bson.M{}
 		for _, field := range project {
-			if exclusive {
-				projection[field] = 0
-			} else {
+			if inclusive {
 				projection[field] = 1
+			} else {
+				projection[field] = 0
 			}
 		}
 		findOneOptions.SetProjection(projection)
@@ -102,7 +102,7 @@ func (s *ProductDetailRepo) GetProductsPriceBySizes(ctx context.Context, ids []s
 
 	var productDetailList []ProductDetail
 
-	objectIds, err := store.SliceOfHexToObjectID(ids)
+	objectIds, err := store.SliceOfHexToObjectID(ids...)
 	if err != nil {
 		return nil, fmt.Errorf("invalid id format: %v", err)
 	}
@@ -151,7 +151,7 @@ func (s *ProductDetailRepo) FindByIds(ctx context.Context, ids []string, project
 
 	var productDetail []ProductDetail
 
-	objectIds, err := store.SliceOfHexToObjectID(ids)
+	objectIds, err := store.SliceOfHexToObjectID(ids...)
 	if err != nil {
 		return productDetail, fmt.Errorf("invalid id format: %v", err)
 	}

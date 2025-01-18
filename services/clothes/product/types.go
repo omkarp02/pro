@@ -21,6 +21,12 @@ type TCreateProduct struct {
 	ProductDetail TCreateProductDetail `json:"detail,omitempty" validate:"required"`
 }
 
+type ProductTemplateModel struct {
+	Name          string               `json:"name,omitempty" validate:"required"`
+	ProductList   TCreateProductList   `json:"productList,omitempty" validate:"required"`
+	ProductDetail TCreateProductDetail `json:"detail,omitempty" validate:"required"`
+}
+
 type TGetProductDetails struct {
 	ProductId string `json:"productId,omitempty"`
 }
@@ -50,6 +56,7 @@ type TFilteredProductList struct {
 	Name     string  `json:"name,omitempty"`
 	Price    float64 `json:"price,omitempty"`
 	ImgLink  string  `json:"imgLink,omitempty"`
+	Detail   string  `json:"productDetailId,omitempty"`
 	Discount int     `json:"discount,omitempty"`
 }
 
@@ -59,19 +66,14 @@ type TAddProductToCollection struct {
 }
 
 type TBatchProductDetails struct {
-	Id      string `json:"id,omitempty" bson:"id,omitempty"`
-	ImgLink string `json:"imgLink,omitempty" bson:"imgLink,omitempty"`
+	ProductListId   string `json:"productListId,omitempty"`
+	ProductDetailId string `json:"productDetailId,omitempty"`
+	ImgLink         string `json:"imgLink,omitempty"`
 }
 
 type TProductDetailsServiceResponse struct {
 	ProductDetails ProductDetail `json:"product_details,omitempty"`
 	BatchDetails   ProductBatch  `json:"product_batch,omitempty"`
-}
-
-// here are the model types
-type VariationModel struct {
-	Size  string  `json:"size,omitempty"`
-	Price float64 `json:"price,omitempty"`
 }
 
 type PriceModel struct {
@@ -113,6 +115,12 @@ type FilterProductListModel struct {
 	Name       string   `json:"name,omitempty"`
 	Page       int      `json:"page,omitempty"`
 	Limit      int      `json:"limit,omitempty"`
+}
+
+type FilterProductTemplateModel struct {
+	Name  string `json:"name,omitempty"`
+	Page  int    `json:"page,omitempty"`
+	Limit int    `json:"limit,omitempty"`
 }
 
 type CreateProductBatchModel struct {

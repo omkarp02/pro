@@ -34,26 +34,28 @@ type ProductDetail struct {
 	Timestamps  store.Timestamps `bson:"timestamp,inline"`
 }
 
+type ProductTemplate struct {
+	Name   string        `json:"name,omitempty" bson:"name,omitempty"`
+	List   ProductList   `json:"size,omitempty" bson:"size,omitempty"`
+	Detail ProductDetail `json:"detail,omitempty" bson:"detail,omitempty"`
+}
+
 type Variation struct {
-	Size  string  `json:"size,omitempty" bson:"size,omitempty"`
-	Price float64 `json:"price,omitempty" bson:"price,omitempty"`
+	Size     string  `json:"size,omitempty" bson:"size,omitempty"`
+	Price    float64 `json:"price,omitempty" bson:"price,omitempty"`
+	Discount int     `json:"discount,omitempty" bson:"discount,omitempty"`
 }
 
 type Description struct {
-	ProductDetails  string          `json:"productDetails,omitempty" bson:"productDetails,omitempty"`
-	MaterialAndCare MaterialAndCare `json:"materialAndCare,omitempty" bson:"materialAndCare,omitempty"`
-	Specifications  Specifications  `json:"specifications,omitempty" bson:"specifications,omitempty"`
-}
-
-type MaterialAndCare struct {
-	Material         string `json:"material,omitempty" bson:"material,omitempty"`
-	CareInstructions string `json:"careInstructions,omitempty" bson:"careInstructions,omitempty"`
+	ProductDetails string         `json:"productDetails,omitempty" bson:"productDetails,omitempty"`
+	Specifications Specifications `json:"specifications,omitempty" bson:"specifications,omitempty"`
 }
 
 type Specifications struct {
 	SleeveLength    string `json:"sleeveLength,omitempty" bson:"sleeveLength,omitempty"`
 	Collar          string `json:"collar,omitempty" bson:"collar,omitempty"`
 	Fit             string `json:"fit,omitempty" bson:"fit,omitempty"`
+	Fabric          string `json:"fabric,omitempty" bson:"fabric,omitempty"`
 	PatternType     string `json:"patternType,omitempty" bson:"patternType,omitempty"`
 	Occasion        string `json:"occasion,omitempty" bson:"occasion,omitempty"`
 	Length          string `json:"length,omitempty" bson:"length,omitempty"`
@@ -69,8 +71,9 @@ type Specifications struct {
 }
 
 type BatchProductDetails struct {
-	Id      bson.ObjectID `json:"id,omitempty" bson:"id,omitempty"`
-	ImgLink string        `json:"imgLink,omitempty" bson:"imgLink,omitempty"`
+	ProductListId   bson.ObjectID `json:"productListId,omitempty" bson:"productListId,omitempty"`
+	ProductDetailId bson.ObjectID `json:"productDetailId,omitempty" bson:"productDetailId,omitempty"`
+	ImgLink         string        `json:"imgLink,omitempty" bson:"imgLink,omitempty"`
 }
 
 type ProductBatch struct {

@@ -57,7 +57,7 @@ func (s *ProductListRepo) getColl() *mongo.Collection {
 
 func (s *ProductListRepo) Create(ctx context.Context, createProductListModel CreateProductListModel) (string, error) {
 
-	ids, err := store.SliceOfHexToObjectID([]string{createProductListModel.Detail, createProductListModel.Category, createProductListModel.BatchId})
+	ids, err := store.SliceOfHexToObjectID(createProductListModel.Detail, createProductListModel.Category, createProductListModel.BatchId)
 
 	if err != nil {
 		return "", err
@@ -131,16 +131,12 @@ func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListMod
 		query["price"] = bson.M{"$gte": minPrice}
 	}
 
-	projection := bson.M{}
-	for _, field := range project {
-		if inclusive {
-			projection[field] = 1
-		} else {
-			projection[field] = 0
-		}
-	}
+	findOptions := options.Find().SetSkip(int64(limit * (page - 1))).SetLimit(int64(limit))
 
-	findOptions := options.Find().SetSkip(int64(limit * (page - 1))).SetLimit(int64(limit)).SetProjection(projection)
+	if len(project) > 0 {
+		projection := store.GenerateProjection(project, inclusive)
+		findOptions.SetProjection(projection)
+	}
 
 	cursor, err := s.getColl().Find(ctx, query, findOptions)
 	if err != nil {
@@ -155,7 +151,7 @@ func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListMod
 
 func (s *ProductListRepo) AddProductsToCollection(ctx context.Context, addProductToCollectionModel AddProductToCollectionModel) error {
 
-	listOfObjectIds, err := store.SliceOfHexToObjectID(addProductToCollectionModel.ProductId)
+	listOfObjectIds, err := store.SliceOfHexToObjectID(addProductToCollectionModel.ProductId...)
 	if err != nil {
 		return err
 	}

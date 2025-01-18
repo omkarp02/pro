@@ -29,13 +29,17 @@ func (s *Service) CreateUser(ctx context.Context, createUserPayload TCreateUser,
 			Gender:      createUserPayload.Gender,
 		}
 
-		id, err := s.repo.CreateUser(sessCtx, payload)
+		id, err := s.repo.Create(sessCtx, payload)
 		if err != nil {
 			return "", err
 		}
 
 		return id, err
 	})
+
+	if err != nil {
+		return "", err
+	}
 
 	data, _ := result.(string)
 

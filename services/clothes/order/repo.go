@@ -49,7 +49,7 @@ func (s *Repo) Create(ctx context.Context, payload CreateOrderModal) (string, er
 		return "", err
 	}
 
-	itemsObjectId, err := store.SliceOfHexToObjectID(payload.Items)
+	itemsObjectId, err := store.SliceOfHexToObjectID(payload.Items...)
 	if err != nil {
 		return "", err
 	}

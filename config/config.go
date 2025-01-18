@@ -57,13 +57,14 @@ type ClothesRoute struct {
 }
 
 type ClothesStore struct {
-	ProductList   string `yaml:"product_list" env:"product_list" env-required:"true"`
-	ProductDetail string `yaml:"product_detail" env:"product_detail" env-required:"true"`
-	ProductBatch  string `yaml:"product_batch" env:"product_batch" env-required:"true"`
-	Category      string `yaml:"category" env:"category" env-required:"true"`
-	Filter        string `yaml:"filter" env:"filter" env-required:"true"`
-	FilterType    string `yaml:"fitler_type" env:"fitler_type" env-required:"true"`
-	Cart          string `yaml:"cart" env:"cart" env-required:"true"`
+	ProductList     string `yaml:"product_list" env:"product_list" env-required:"true"`
+	ProductDetail   string `yaml:"product_detail" env:"product_detail" env-required:"true"`
+	ProductBatch    string `yaml:"product_batch" env:"product_batch" env-required:"true"`
+	ProductTemplate string `yaml:"product_template" env:"product_template" env-required:"true"`
+	Category        string `yaml:"category" env:"category" env-required:"true"`
+	Filter          string `yaml:"filter" env:"filter" env-required:"true"`
+	FilterType      string `yaml:"fitler_type" env:"fitler_type" env-required:"true"`
+	Cart            string `yaml:"cart" env:"cart" env-required:"true"`
 }
 
 type Clothes struct {
@@ -79,6 +80,7 @@ type AuthRoute struct {
 type AuthStore struct {
 	UserAccount string `yaml:"user_account" env:"user_account" env-required:"true"`
 	UserProfile string `yaml:"user_profile" env:"user_profile" env-required:"true"`
+	Owner       string `yaml:"owner" env:"owner" env-required:"true"`
 }
 
 type AuthClient struct {

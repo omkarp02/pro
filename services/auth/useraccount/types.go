@@ -19,10 +19,11 @@ type AuthProviderType struct {
 }
 
 type CreateUserAccountModal struct {
-	Email        string `json:"fullname,omitempty"`
-	PasswordHash string `json:"age,omitempty"`
+	Email        string
+	PasswordHash string
 	UserProfile  string
-	AuthProvider []AuthProviderType `json:"auth_providers"`
+	AuthProvider []AuthProviderType
+	Role         []string
 }
 
 type UpdateUserAccountModel struct {

@@ -19,7 +19,7 @@ func GetUserDataFromAccessClaimsData(claimsData interface{}) (types.ACCESS_TOKEN
 		return types.ACCESS_TOKEN_PAYLOAD{}, errutil.InternalServerError("Invalid Format")
 	}
 
-	accessTokenPayload := helper.CreateAccessTokenPayload(claimsMap["ID"].(string), claimsMap["ProviderId"].(string))
+	accessTokenPayload := helper.CreateAccessTokenPayload(claimsMap["ID"].(string), claimsMap["ProviderId"].(string), claimsMap["Role"].([]string))
 
 	return accessTokenPayload, nil
 }
@@ -30,7 +30,7 @@ func GetUserDataFromRefreshClaimsData(claimsData interface{}) (types.REFRESH_TOK
 		return types.REFRESH_TOKEN_PAYLOAD{}, errutil.InternalServerError("Invalid Format")
 	}
 
-	refreshTokenPayload := helper.CreateRefreshTokenPayload(claimsMap["ID"].(string), claimsMap["ProviderId"].(string))
+	refreshTokenPayload := helper.CreateRefreshTokenPayload(claimsMap["ID"].(string), claimsMap["ProviderId"].(string), claimsMap["Role"].([]string))
 
 	return refreshTokenPayload, nil
 }

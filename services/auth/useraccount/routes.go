@@ -3,15 +3,12 @@ package useraccount
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/markbates/goth"
-	"github.com/markbates/goth/providers/google"
 	"github.com/omkarp02/pro/config"
 	"github.com/omkarp02/pro/router"
-	"github.com/omkarp02/pro/services/auth/userprofile"
 	"github.com/omkarp02/pro/services/middleware"
 	"github.com/omkarp02/pro/services/utils/helper"
 	"github.com/omkarp02/pro/utils"
@@ -22,16 +19,11 @@ import (
 )
 
 type UserAccountStore interface {
-	CreateUserAccount(CreateUserAccountModal) (string, error)
-	GetUserAccountByEmail(string) (UserAccount, error)
-	GetUserAccount(query map[string]interface{}, project map[string]interface{}) (*UserAccount, error)
-	GetUserFromRefreshToken(refreshToken string) (UserAccount, error)
-	UpdateUserAccountProfileById(ctx context.Context, id string, userProfileId string) error
-	UpdateUserRefreshToken(userId string, action string, refreshToken string) error
-	PullUserRefreshToken(refreshToken string) error
-	HandleRefreshTokenForLogin(userId string, refreshToken string, oldRefreshToken string) error
-	CreateUserProfileAndAccount(userProfile userprofile.CreateUserModel, useraccount CreateUserAccountModal) (string, error)
-	CreateUserProfile(createUserPayload userprofile.TCreateUser, userAccountId string) (string, error)
+	CreateUser(ctx context.Context, payload CreateUserAccountModal) (string, error)
+	GetUser(ctx context.Context, field string, value string) (UserAccount, error)
+	UpdateUserRefreshToken(ctx context.Context, userId string, action string, refreshToken string) error
+	PullUserRefreshToken(ctx context.Context, refreshToken string) error
+	HandleRefreshTokenForLogin(ctx context.Context, userId string, refreshToken string, oldRefreshToken string) error
 }
 
 type Handler struct {
@@ -45,32 +37,21 @@ func NewHandler(store UserAccountStore, cfg *config.Config, validator *validatio
 }
 
 func (h *Handler) RegisterRoutes(router router.Router, link string) {
-	h.RegisterProviders()
-
 	routeGrp := router.Group(link)
 
 	routeGrp.Get("/handle-refresh-token", h.handleRefreshToken)
 	routeGrp.Post("/register", h.registerUser)
 	routeGrp.Post("/login", h.login)
 
-	routeGrp.Get("/:provider", h.authHandler)
-	routeGrp.Get("/:provider/callback", h.redirectUrlHandler)
-
 	routeGrp.Use(middleware.VerifyToken(h.cfg))
 	routeGrp.Get("/user/logout", h.logout)
 
 }
 
-func (h *Handler) RegisterProviders() {
-	googleAuthConfig := h.cfg.AuthConfig.Google
-	googleSecret := h.cfg.Secret.Google
-
-	goth.UseProviders(
-		google.New(googleSecret.ClientId, googleSecret.ClientSecret, googleAuthConfig.RedirectUrl, "profile", "email"),
-	)
-}
-
 func (h *Handler) registerUser(c router.Context) error {
+
+	ctx, cancel := createContext()
+	defer cancel()
 
 	var user CreateUserAccountBody
 
@@ -87,9 +68,10 @@ func (h *Handler) registerUser(c router.Context) error {
 				ProviderID: h.cfg.AuthConfig.JWT.ProviderId,
 			},
 		},
+		Role: []string{constant.ROLE_USER},
 	}
 
-	id, err := h.store.CreateUserAccount(createUserAccountModal)
+	id, err := h.store.CreateUser(ctx, createUserAccountModal)
 	if errors.Is(err, errutil.ErrDocumentAlreadyExist) {
 		return errutil.AlreadyExist("User")
 	} else if err != nil {
@@ -100,6 +82,9 @@ func (h *Handler) registerUser(c router.Context) error {
 }
 
 func (h *Handler) login(c router.Context) error {
+	ctx, cancel := createContext()
+	defer cancel()
+
 	oldRefreshToken := c.GetCookie(constant.REFRESH_TOKEN_COOKIE)
 	jwtProviderId := h.cfg.AuthConfig.JWT.ProviderId
 	var userCred LoginUserAccountType
@@ -108,7 +93,7 @@ func (h *Handler) login(c router.Context) error {
 		return err
 	}
 
-	userAccount, err := h.store.GetUserAccountByEmail(userCred.Email)
+	userAccount, err := h.store.GetUser(ctx, "email", userCred.Email)
 	if errors.Is(err, errutil.ErrDocumentNotFound) {
 		return errutil.StatusBadRequest("Invalid Credentials")
 	} else if err != nil {
@@ -132,15 +117,15 @@ func (h *Handler) login(c router.Context) error {
 		return errutil.InvalidCredentails()
 	}
 
-	accessTokenPayload := helper.CreateAccessTokenPayload(userId.Hex(), jwtProviderId)
-	refreshTokenPayload := helper.CreateRefreshTokenPayload(userId.Hex(), jwtProviderId)
+	accessTokenPayload := helper.CreateAccessTokenPayload(userId.Hex(), jwtProviderId, userAccount.Role)
+	refreshTokenPayload := helper.CreateRefreshTokenPayload(userId.Hex(), jwtProviderId, userAccount.Role)
 
 	accessToken, newRefreshToken, err := utils.GenerateRefreshAndAccessToken(accessTokenPayload, refreshTokenPayload, h.cfg)
 	if err != nil {
 		return err
 	}
 
-	h.store.HandleRefreshTokenForLogin(userId.Hex(), newRefreshToken, oldRefreshToken)
+	h.store.HandleRefreshTokenForLogin(ctx, userId.Hex(), newRefreshToken, oldRefreshToken)
 
 	if len(oldRefreshToken) != 0 {
 		helper.ClearCookie(c, constant.REFRESH_TOKEN_COOKIE)
@@ -152,9 +137,11 @@ func (h *Handler) login(c router.Context) error {
 }
 
 func (h *Handler) handleRefreshToken(c router.Context) error {
-	refreshToken := c.GetCookie(constant.REFRESH_TOKEN_COOKIE)
 
-	fmt.Println(refreshToken, "M<<<<<<<<<<<<<<<<")
+	ctx, cancel := createContext()
+	defer cancel()
+
+	refreshToken := c.GetCookie(constant.REFRESH_TOKEN_COOKIE)
 
 	if len(refreshToken) == 0 {
 		return errutil.UnAuthorized("UnAuthorized")
@@ -162,14 +149,14 @@ func (h *Handler) handleRefreshToken(c router.Context) error {
 
 	helper.ClearCookie(c, constant.REFRESH_TOKEN_COOKIE)
 
-	_, err := h.store.GetUserFromRefreshToken(refreshToken)
+	_, err := h.store.GetUser(ctx, "refresh_token", refreshToken)
 	if errors.Is(err, errutil.ErrDocumentNotFound) {
 		decodedUserData, err := utils.ValidateRefreshToken(refreshToken, h.cfg)
 		if err != nil {
 			return err
 		}
 
-		if err = h.store.UpdateUserRefreshToken(decodedUserData.ID, "empty", ""); err != nil {
+		if err = h.store.UpdateUserRefreshToken(ctx, decodedUserData.ID, "empty", ""); err != nil {
 			return err
 		}
 
@@ -181,19 +168,19 @@ func (h *Handler) handleRefreshToken(c router.Context) error {
 	decodedUserData, err := utils.ValidateRefreshToken(refreshToken, h.cfg)
 	if err != nil {
 		slog.Error("error while decoding token", "err", err.Error())
-		h.store.UpdateUserRefreshToken(decodedUserData.ID, "empty", "")
+		h.store.UpdateUserRefreshToken(ctx, decodedUserData.ID, "empty", "")
 		return errutil.UnAuthorized("UnAuthorized")
 	}
 
-	accessTokenPayload := helper.CreateAccessTokenPayload(decodedUserData.ID, decodedUserData.ProviderId)
-	refreshTokenPayload := helper.CreateRefreshTokenPayload(decodedUserData.ID, decodedUserData.ProviderId)
+	accessTokenPayload := helper.CreateAccessTokenPayload(decodedUserData.ID, decodedUserData.ProviderId, decodedUserData.Role)
+	refreshTokenPayload := helper.CreateRefreshTokenPayload(decodedUserData.ID, decodedUserData.ProviderId, decodedUserData.Role)
 
 	accessToken, refreshToken, err := utils.GenerateRefreshAndAccessToken(accessTokenPayload, refreshTokenPayload, h.cfg)
 	if err != nil {
 		return err
 	}
 
-	if err := h.store.UpdateUserRefreshToken(decodedUserData.ID, "push", refreshToken); err != nil {
+	if err := h.store.UpdateUserRefreshToken(ctx, decodedUserData.ID, "push", refreshToken); err != nil {
 		return err
 	}
 
@@ -207,89 +194,96 @@ func (h *Handler) authHandler(c router.Context) error {
 	return goth_fiber.BeginAuthHandler(c.GetContext())
 }
 
-func (h *Handler) redirectUrlHandler(c router.Context) error {
+// func (h *Handler) redirectUrlHandler(c router.Context) error {
 
-	provider := c.Params("provider")
-	providerId := h.cfg.GetProviderIdByName(provider)
+// 	ctx, cancel := createContext()
+// 	defer cancel()
 
-	oldRefreshToken := c.GetCookie(constant.REFRESH_TOKEN_COOKIE)
-	user, err := goth_fiber.CompleteUserAuth(c.GetContext())
+// 	provider := c.Params("provider")
+// 	providerId := h.cfg.GetProviderIdByName(provider)
 
-	fmt.Println(user.Name, user.FirstName, user.LastName)
+// 	oldRefreshToken := c.GetCookie(constant.REFRESH_TOKEN_COOKIE)
+// 	user, err := goth_fiber.CompleteUserAuth(c.GetContext())
 
-	if err != nil {
-		slog.Error("err while handling the redirect url", "err", err)
-		return errutil.InternalServerError()
-	}
+// 	fmt.Println(user.Name, user.FirstName, user.LastName)
 
-	var id string
-	userAccount, err := h.store.GetUserAccountByEmail(user.Email)
-	id = userAccount.ID.Hex()
+// 	if err != nil {
+// 		slog.Error("err while handling the redirect url", "err", err)
+// 		return errutil.InternalServerError()
+// 	}
 
-	if errors.Is(err, errutil.ErrDocumentNotFound) {
-		createUserAccountModal := CreateUserAccountModal{
-			Email: user.Email,
-			AuthProvider: []AuthProviderType{
-				{
-					Provider:   provider,
-					ProviderID: providerId,
-				},
-			},
-		}
+// 	var id string
+// 	userAccount, err := h.store.GetUser(ctx, "email", user.Email)
+// 	id = userAccount.ID.Hex()
 
-		profile := userprofile.CreateUserModel{
-			FirstName: user.FirstName,
-			LastName:  user.LastName,
-			Email:     user.Email,
-		}
+// 	if errors.Is(err, errutil.ErrDocumentNotFound) {
+// 		createUserAccountModal := CreateUserAccountModal{
+// 			Email: user.Email,
+// 			AuthProvider: []AuthProviderType{
+// 				{
+// 					Provider:   provider,
+// 					ProviderID: providerId,
+// 				},
+// 			},
+// 		}
 
-		id, err = h.store.CreateUserProfileAndAccount(profile, createUserAccountModal)
+// 		profile := userprofile.CreateUserModel{
+// 			FirstName: user.FirstName,
+// 			LastName:  user.LastName,
+// 			Email:     user.Email,
+// 		}
 
-		if err != nil {
-			return err
-		}
-	} else if err != nil {
-		return err
-	}
+// 		id, err = h.store.CreateUserProfileAndAccount(profile, createUserAccountModal)
 
-	accessTokenPayload := helper.CreateAccessTokenPayload(id, providerId)
-	refreshTokenPayload := helper.CreateRefreshTokenPayload(id, providerId)
+// 		if err != nil {
+// 			return err
+// 		}
+// 	} else if err != nil {
+// 		return err
+// 	}
 
-	newAuthToken, newRefreshToken, err := utils.GenerateRefreshAndAccessToken(accessTokenPayload, refreshTokenPayload, h.cfg)
-	if err != nil {
-		return err
-	}
+// 	accessTokenPayload := helper.CreateAccessTokenPayload(id, providerId)
+// 	refreshTokenPayload := helper.CreateRefreshTokenPayload(id, providerId)
 
-	h.store.HandleRefreshTokenForLogin(id, newRefreshToken, oldRefreshToken)
+// 	newAuthToken, newRefreshToken, err := utils.GenerateRefreshAndAccessToken(accessTokenPayload, refreshTokenPayload, h.cfg)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	if len(oldRefreshToken) != 0 {
-		helper.ClearCookie(c, constant.REFRESH_TOKEN_COOKIE)
-	}
+// 	h.store.HandleRefreshTokenForLogin(ctx, id, newRefreshToken, oldRefreshToken)
 
-	helper.UpdateCookie(c, constant.REFRESH_TOKEN_COOKIE, newRefreshToken, constant.REFRESH_TOKEN_COOKIE_EXPIRY)
+// 	if len(oldRefreshToken) != 0 {
+// 		helper.ClearCookie(c, constant.REFRESH_TOKEN_COOKIE)
+// 	}
 
-	return c.Redirect(h.cfg.App.Auth.Client.RedirectUrl+"?token="+newAuthToken, fiber.StatusFound)
-}
+// 	helper.UpdateCookie(c, constant.REFRESH_TOKEN_COOKIE, newRefreshToken, constant.REFRESH_TOKEN_COOKIE_EXPIRY)
 
-func (h *Handler) create(c router.Context) error {
-	decodedUserId := c.GetDecodedData().ID
+// 	return c.Redirect(h.cfg.App.Auth.Client.RedirectUrl+"?token="+newAuthToken, fiber.StatusFound)
+// }
 
-	var user userprofile.TCreateUser
+// func (h *Handler) create(c router.Context) error {
+// 	decodedUserId := c.GetDecodedData().ID
 
-	// Parse the JSON body into the struct
-	if err := h.validator.ValidateBody(c, &user); err != nil {
-		return err
-	}
+// 	var user userprofile.TCreateUser
 
-	id, err := h.store.CreateUserProfile(user, decodedUserId)
-	if err != nil {
-		return err
-	}
+// 	// Parse the JSON body into the struct
+// 	if err := h.validator.ValidateBody(c, &user); err != nil {
+// 		return err
+// 	}
 
-	return utils.SendResponse(c, "User created successfully", id, 201)
-}
+// 	id, err := h.store.CreateUserProfile(user, decodedUserId)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	return utils.SendResponse(c, "User created successfully", id, 201)
+// }
 
 func (h *Handler) logout(c router.Context) error {
+
+	ctx, cancel := createContext()
+	defer cancel()
+
 	user := c.GetDecodedData()
 
 	if user.ProviderId != h.cfg.AuthConfig.JWT.ProviderId {
@@ -303,11 +297,15 @@ func (h *Handler) logout(c router.Context) error {
 		return errutil.UnAuthorized("UnAuthorized")
 	}
 
-	if err := h.store.PullUserRefreshToken(refreshToken); err != nil {
+	if err := h.store.PullUserRefreshToken(ctx, refreshToken); err != nil {
 		helper.ClearCookie(c, constant.REFRESH_TOKEN_COOKIE)
 		return err
 	}
 
 	helper.ClearCookie(c, constant.REFRESH_TOKEN_COOKIE)
 	return utils.SendResponse(c, "User logged out successfully", fiber.Map{}, 200)
+}
+
+func createContext() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), 10*time.Second)
 }
