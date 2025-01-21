@@ -42,7 +42,7 @@ func (s *Repo) createIndexes() error {
 
 	// Define the unique index for the "email" field
 	indexModel := mongo.IndexModel{
-		Keys:    bson.D{{Key: "email", Value: 1}},
+		Keys:    bson.D{{Key: "email", Value: 1}, {Key: "phoneNo", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}
 
@@ -214,6 +214,7 @@ func (s *Repo) createUserAccountModalFromData(userAccountData CreateUserAccountM
 		PasswordHash: userAccountData.PasswordHash,
 		Timestamps:   store.GetCurrentTimestamps(),
 		Role:         userAccountData.Role,
+		PhoneNumber:  userAccountData.PhoneNumber,
 		AuthProvider: authProviderSlice,
 	}
 

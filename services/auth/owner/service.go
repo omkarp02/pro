@@ -1,5 +1,7 @@
 package owner
 
+import "context"
+
 type Service struct {
 	repo *Repo
 }
@@ -10,7 +12,6 @@ func NewService(repo *Repo) *Service {
 	}
 }
 
-// func (s *Service) Create(ctx context.Context, createOwnerBody CreateOwnerBody) (string, error) {
-
-// 	return s.repo.Create(ctx, CreateOwnerModal(createOwnerBody))
-// }
+func (s *Service) Create(ctx context.Context, createOwnerBody CreateModal) (string, error) {
+	return s.repo.Create(ctx, createOwnerBody)
+}

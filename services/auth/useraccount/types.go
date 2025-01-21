@@ -1,7 +1,8 @@
 package useraccount
 
-type CreateUserAccountBody struct {
-	Email    string `json:"email" validate:"required,email"`
+type TCreateUserAccount struct {
+	Email    string `json:"email" validate:"required_without=PhoneNo"`
+	PhoneNo  string `json:"phoneNo" validate:"required_without=Email"`
 	Password string `json:"password" validate:"required"`
 }
 
@@ -24,6 +25,7 @@ type CreateUserAccountModal struct {
 	UserProfile  string
 	AuthProvider []AuthProviderType
 	Role         []string
+	PhoneNumber  string
 }
 
 type UpdateUserAccountModel struct {

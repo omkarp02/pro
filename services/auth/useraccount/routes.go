@@ -53,7 +53,7 @@ func (h *Handler) registerUser(c router.Context) error {
 	ctx, cancel := createContext()
 	defer cancel()
 
-	var user CreateUserAccountBody
+	var user TCreateUserAccount
 
 	if err := h.validator.ValidateBody(c, &user); err != nil {
 		return err
@@ -61,6 +61,7 @@ func (h *Handler) registerUser(c router.Context) error {
 
 	createUserAccountModal := CreateUserAccountModal{
 		Email:        user.Email,
+		PhoneNumber:  user.PhoneNo,
 		PasswordHash: user.Password,
 		AuthProvider: []AuthProviderType{
 			{
@@ -133,7 +134,7 @@ func (h *Handler) login(c router.Context) error {
 
 	helper.UpdateCookie(c, constant.REFRESH_TOKEN_COOKIE, newRefreshToken, constant.REFRESH_TOKEN_COOKIE_EXPIRY)
 
-	return utils.SendResponse(c, "User Logged In Succesfully", fiber.Map{"accessToken": accessToken}, 200)
+	return utils.SendResponse(c, "User Logged In Succesfully", fiber.Map{"accessToken": accessToken, "role": userAccount.Role}, 200)
 }
 
 func (h *Handler) handleRefreshToken(c router.Context) error {

@@ -49,7 +49,12 @@ func (s *Repo) createIndexes() error {
 	return err
 }
 
-func (s *Repo) Create(ctx context.Context, createOwnerModal CreateOwnerModal) (string, error) {
+func (s *Repo) Create(ctx context.Context, createOwnerModal CreateModal) (string, error) {
+
+	auditFields, err := store.GenerateCreateAuditFields(createOwnerModal.CreatorId)
+	if err != nil {
+		return "", err
+	}
 
 	owner := Owner{
 		Name:        createOwnerModal.Name,
@@ -58,7 +63,7 @@ func (s *Repo) Create(ctx context.Context, createOwnerModal CreateOwnerModal) (s
 		DateOfBirth: createOwnerModal.DateOfBirth,
 		Gender:      createOwnerModal.Gender,
 		Email:       createOwnerModal.Email,
-		Timestamps:  store.GetCurrentTimestamps(),
+		AuditFields: auditFields,
 	}
 
 	result, err := s.getColl().InsertOne(ctx, owner)
@@ -137,4 +142,25 @@ func (s *Repo) FindById(ctx context.Context, id string, project []string, inclus
 
 	return owner, nil
 
+}
+
+func (s *Repo) AddBussiness(ctx context.Context, id string, updatedBy string, bussinessId string) error {
+
+	objectIds, err := store.SliceOfHexToObjectID(bussinessId, updatedBy)
+	if err != nil {
+		return err
+	}
+
+	update := bson.M{
+		"$push": bson.M{
+			"businesses": objectIds[0], // New name to update
+		},
+		"$set": store.GenerateUpdateAudit(objectIds[1]),
+	}
+	_, err = s.getColl().UpdateByID(ctx, id, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

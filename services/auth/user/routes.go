@@ -42,7 +42,7 @@ func NewHandler(service UserService, cfg *config.Config, validator *validation.V
 }
 
 func (h *Handler) RegisterRoutes(router router.Router, link string) {
-	h.RegisterProviders()
+	// h.RegisterProviders()
 	routeGrp := router.Group(link)
 
 	routeGrp.Get("/sso/:provider", h.authHandler)
@@ -51,6 +51,9 @@ func (h *Handler) RegisterRoutes(router router.Router, link string) {
 	routeGrp.Use(middleware.VerifyToken(h.cfg))
 
 	routeGrp.Post("/create-user-profile", h.createUserProfile)
+
+	routeGrp.Use(middleware.IsAdmin())
+
 	routeGrp.Post("/create-owner", h.createOwner)
 }
 
@@ -158,6 +161,9 @@ func (h *Handler) redirectUrlHandler(c router.Context) error {
 }
 
 func (h *Handler) createOwner(c router.Context) error {
+
+	fmt.Println(">>>>>>>>>>> reached createwoner")
+
 	ctx, cancel := createContext()
 	defer cancel()
 

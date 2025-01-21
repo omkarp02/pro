@@ -1,54 +1,62 @@
 package owner
 
-// import (
-// 	"context"
-// 	"time"
+import (
+	"context"
+	"time"
 
-// 	"github.com/gofiber/fiber/v2"
-// 	"github.com/omkarp02/pro/config"
-// 	"github.com/omkarp02/pro/router"
-// 	"github.com/omkarp02/pro/utils"
-// 	"github.com/omkarp02/pro/utils/validation"
-// )
+	"github.com/omkarp02/pro/config"
+	"github.com/omkarp02/pro/router"
+	"github.com/omkarp02/pro/services/middleware"
+	"github.com/omkarp02/pro/utils/validation"
+)
 
-// type OwnerService interface {
-// 	Create(ctx context.Context, createOwnerBody CreateOwnerBody) (string, error)
-// }
+type TestService interface {
+	Create(ctx context.Context, createBody CreateModal) (string, error)
+}
 
-// type Handler struct {
-// 	service   OwnerService
-// 	cfg       *config.Config
-// 	validator *validation.Validator
-// }
+type Handler struct {
+	service   TestService
+	cfg       *config.Config
+	validator *validation.Validator
+}
 
-// func NewHandler(service OwnerService, cfg *config.Config, validator *validation.Validator) *Handler {
-// 	return &Handler{service: service, cfg: cfg, validator: validator}
-// }
+func NewHandler(service TestService, cfg *config.Config, validator *validation.Validator) *Handler {
+	return &Handler{service: service, cfg: cfg, validator: validator}
+}
 
-// func (h *Handler) RegisterRoutes(router router.Router, link string) {
-// 	routeGrp := router.Group(link)
+func (h *Handler) RegisterRoutes(router router.Router, link string) {
+	routeGrp := router.Group(link)
 
-// 	routeGrp.Post("/", h.create)
-// }
+	routeGrp.Use(middleware.VerifyToken(h.cfg))
+
+	// routeGrp.Post("/", h.create)
+}
 
 // func (h *Handler) create(c router.Context) error {
 // 	ctx, cancel := createContext()
 // 	defer cancel()
 
-// 	var owner CreateOwnerBody
+// 	var createBody TCreateOwner
 
-// 	if err := h.validator.ValidateBody(c, &owner); err != nil {
+// 	if err := h.validator.ValidateBody(c, &createBody); err != nil {
 // 		return err
 // 	}
 
-// 	id, err := h.service.Create(ctx, owner)
+// 	userId := c.GetDecodedData().ID
+
+// 	modal := CreateModal{
+// 		TCreateOwner: createBody,
+// 		CreatorId:    userId,
+// 	}
+
+// 	id, err := h.service.Create(ctx, modal)
 // 	if err != nil {
 // 		return err
 // 	}
 
-// 	return utils.SendResponse(c, "Owner Created Successfully", fiber.Map{"id": id}, 201)
+// 	return utils.SendResponse(c, "Address Created Successfully", fiber.Map{"id": id}, 201)
 // }
 
-// func createContext() (context.Context, context.CancelFunc) {
-// 	return context.WithTimeout(context.Background(), 10*time.Second)
-// }
+func createContext() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), 10*time.Second)
+}

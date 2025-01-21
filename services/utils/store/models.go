@@ -1,10 +1,21 @@
 package store
 
-import "time"
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
+)
 
 type Timestamps struct {
 	CreatedAt time.Time `json:"createdAt,omitempty" bson:"createdAt,omitempty"`
 	UpdatedAt time.Time `json:"updatedAt,omitempty" bson:"updatedAt,omitempty"`
+}
+
+type AuditFields struct {
+	CreatedAt  time.Time     `json:"createdAt,omitempty" bson:"createdAt,omitempty"`
+	CreatedBy  bson.ObjectID `json:"createdBy,omitempty" bson:"createdBy,omitempty"`
+	UpdatedAt  time.Time     `json:"updatedAt,omitempty" bson:"updatedAt,omitempty"`
+	ModifiedBy bson.ObjectID `json:"modifiedBy,omitempty" bson:"modifiedBy,omitempty"`
 }
 
 type Pagination struct {

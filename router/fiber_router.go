@@ -1,6 +1,9 @@
 package router
 
 import (
+	"fmt"
+	"reflect"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/encryptcookie"
@@ -92,6 +95,8 @@ func (c *FiberContext) JSON(statusCode int, data interface{}) error {
 func (c *FiberContext) GetDecodedData() types.ACCESS_TOKEN_PAYLOAD {
 
 	userDetails := c.ctx.Locals("user")
+
+	fmt.Println(reflect.TypeOf(userDetails))
 
 	validArray, ok := userDetails.([]interface{})
 	if ok {

@@ -1,9 +1,10 @@
 package owner
 
-import "time"
+import (
+	"time"
+)
 
-// here this are type of repo which are entire seperately handled
-type CreateOwnerModal struct {
+type TCreateOwner struct {
 	Name        string    `json:"name,omitempty"`
 	Email       string    `json:"email,omitempty"`
 	FirstName   string    `json:"firstname,omitempty"`
@@ -11,6 +12,12 @@ type CreateOwnerModal struct {
 	DateOfBirth time.Time `json:"dateofbirth,omitempty"`
 	MobileNo    string    `json:"mobileNo,omitempty"`
 	Gender      string    `json:"gender,omitempty"`
+}
+
+// here this are type of repo which are entire seperately handled
+type CreateModal struct {
+	TCreateOwner
+	CreatorId string
 }
 
 type FilterOwnerListModel struct {

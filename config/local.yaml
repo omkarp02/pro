@@ -27,6 +27,7 @@ app:
     routes:
       user_account: "auth"
       user_profile: "user-profile"
+      user: "user"
     client:
       redirect_url: "http://localhost:3000/auth-success"
 auth_config_provider:

@@ -1,9 +1,10 @@
-package bussiness
+package test
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/services/utils/store"
@@ -24,51 +25,62 @@ func NewRepo(curDb *db.Database, collName string) *Repo {
 		collName: collName,
 	}
 
-	store.createIndexes()
-
-	return store
-}
-
-func (s *Repo) createIndexes() error {
-	collection := s.getColl()
-
-	// Define the unique index for the "email" field
-	indexModel := mongo.IndexModel{
-		Keys: bson.D{{Key: "user_id", Value: 1}},
+	if err := store.createIndexes(); err != nil {
+		log.Fatalf("Error while creating index of %s collection", collName)
 	}
 
-	_, err := collection.Indexes().CreateOne(context.Background(), indexModel)
-	return err
+	return store
 }
 
 func (s *Repo) getColl() *mongo.Collection {
 	return s.DB.Database(s.DBName).Collection(s.collName)
 }
 
-func (s *Repo) Create(ctx context.Context, createPayload CreateModal) (string, error) {
-	ownerObjectId, err := bson.ObjectIDFromHex(createPayload.OwnerID)
-	if err != nil {
-		return "", err
+func (s *Repo) createIndexes() error {
+	collection := s.getColl()
+
+	//This is code for create single index
+
+	indexModel := mongo.IndexModel{
+		Keys:    bson.D{{Key: "email", Value: 1}},
+		Options: options.Index().SetUnique(true),
 	}
 
-	newAddress := Business{
-		Name:        createPayload.Name,
-		OwnerID:     ownerObjectId,
-		Category:    createPayload.Category,
-		Description: createPayload.Description,
-		Address:     store.Address(createPayload.Address),
-		Contacts:    createPayload.Contacts,
-		Website:     createPayload.Website,
-		LogoUrl:     createPayload.LogoUrl,
-		Active:      createPayload.Active,
-		Timestamps:  store.GetCurrentTimestamps(),
+	_, err := collection.Indexes().CreateOne(context.Background(), indexModel)
+
+	//This is code for create many indexes
+
+	catIdIndexModel := mongo.IndexModel{
+		Keys:    bson.D{{Key: "catId", Value: 1}},
+		Options: options.Index().SetUnique(true),
 	}
 
-	result, err := s.getColl().InsertOne(ctx, newAddress)
-	if err != nil {
-		if mongo.IsDuplicateKeyError(err) {
-			return "", errutil.ErrDocumentAlreadyExist
-		}
+	slugIndexModal := mongo.IndexModel{
+		Keys:    bson.D{{Key: "slug", Value: 1}},
+		Options: options.Index().SetUnique(true),
+	}
+
+	_, err = collection.Indexes().CreateMany(context.Background(), []mongo.IndexModel{catIdIndexModel, slugIndexModal})
+
+	return err
+}
+
+func (s *Repo) Create(ctx context.Context, createModal CreateModal) (string, error) {
+
+	// auditFields, err := store.GenerateCreateAuditFields(createModal.CreatorId)
+	// if err != nil {
+	// 	return "", err
+	// }
+
+	dataToInsert := Model{
+		// AuditFields: auditFields,
+	}
+
+	result, err := s.getColl().InsertOne(ctx, dataToInsert)
+
+	if mongo.IsDuplicateKeyError(err) {
+		return "", errutil.ErrDocumentAlreadyExist
+	} else if err != nil {
 		return "", err
 	}
 
@@ -77,11 +89,12 @@ func (s *Repo) Create(ctx context.Context, createPayload CreateModal) (string, e
 	}
 
 	return "", errutil.ErrDatabase
+
 }
 
-func (s *Repo) FindByFilter(ctx context.Context, filterListModel FilterListModel, project []string, inclusive bool) ([]Business, error) {
+func (s *Repo) FindByFilter(ctx context.Context, filterListModel FilterListModel, project []string, inclusive bool) ([]Model, error) {
 
-	var list []Business
+	var list []Model
 
 	query := bson.M{}
 
@@ -111,13 +124,13 @@ func (s *Repo) FindByFilter(ctx context.Context, filterListModel FilterListModel
 	return list, nil
 }
 
-func (s *Repo) FindById(ctx context.Context, id string, project []string, inclusive bool) (Business, error) {
+func (s *Repo) FindById(ctx context.Context, id string, project []string, inclusive bool) (Model, error) {
 
-	var business Business
+	var model Model
 
 	objectId, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return business, fmt.Errorf("invalid id format: %v", err)
+		return model, fmt.Errorf("invalid id format: %v", err)
 	}
 
 	filter := bson.M{"_id": objectId}
@@ -128,14 +141,14 @@ func (s *Repo) FindById(ctx context.Context, id string, project []string, inclus
 		findOneOptions.SetProjection(projection)
 	}
 
-	err = s.getColl().FindOne(ctx, filter, findOneOptions).Decode(&business)
+	err = s.getColl().FindOne(ctx, filter, findOneOptions).Decode(&model)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return business, errutil.NotFound("Product")
+			return model, errutil.NotFound("Product")
 		}
-		return business, err
+		return model, err
 	}
 
-	return business, nil
+	return model, nil
 
 }

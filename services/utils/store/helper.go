@@ -15,6 +15,21 @@ func GetCurrentTimestamps() Timestamps {
 	}
 }
 
+func GenerateCreateAuditFields(creatorId string) (AuditFields, error) {
+
+	objectId, err := bson.ObjectIDFromHex(creatorId)
+	if err != nil {
+		return AuditFields{}, err
+	}
+
+	return AuditFields{
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
+		CreatedBy:  objectId,
+		ModifiedBy: objectId,
+	}, nil
+}
+
 func CreateBsonFromKeyValuePair(fields ...interface{}) (bson.D, error) {
 	if len(fields)%2 != 0 {
 		return nil, errutil.InternalServerError("invalid number of arguments, must be in key-value pairs")
@@ -103,4 +118,11 @@ func SliceOfObjectIDToHex(input []interface{}) ([]string, error) {
 	}
 
 	return l, nil
+}
+
+func GenerateUpdateAudit(updatorId bson.ObjectID) bson.M {
+	return bson.M{
+		"modifiedBy": updatorId,
+		"updatedAt":  time.Now(),
+	}
 }

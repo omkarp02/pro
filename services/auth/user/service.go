@@ -87,14 +87,16 @@ func (s *Service) CreateOwnerAndAccount(ctx context.Context, ownerPayload Create
 
 	result, err := s.txn.RunInTxn(ctx, func(sessCtx context.Context) (interface{}, error) {
 
-		ownerFormattedData := owner.CreateOwnerModal{
-			Name:        ownerPayload.Name,
-			Email:       ownerPayload.Email,
-			FirstName:   ownerPayload.FirstName,
-			LastName:    ownerPayload.LastName,
-			DateOfBirth: ownerPayload.DateOfBirth,
-			MobileNo:    ownerPayload.MobileNo,
-			Gender:      ownerPayload.Gender,
+		ownerFormattedData := owner.CreateModal{
+			TCreateOwner: owner.TCreateOwner{
+				Name:        ownerPayload.Name,
+				Email:       ownerPayload.Email,
+				FirstName:   ownerPayload.FirstName,
+				LastName:    ownerPayload.LastName,
+				DateOfBirth: ownerPayload.DateOfBirth,
+				MobileNo:    ownerPayload.MobileNo,
+				Gender:      ownerPayload.Gender,
+			},
 		}
 
 		createUserAccountModal := useraccount.CreateUserAccountModal{

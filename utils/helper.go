@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -19,7 +20,9 @@ func GetUserDataFromAccessClaimsData(claimsData interface{}) (types.ACCESS_TOKEN
 		return types.ACCESS_TOKEN_PAYLOAD{}, errutil.InternalServerError("Invalid Format")
 	}
 
-	accessTokenPayload := helper.CreateAccessTokenPayload(claimsMap["ID"].(string), claimsMap["ProviderId"].(string), claimsMap["Role"].([]string))
+	accessTokenPayload := helper.CreateAccessTokenPayload(formatClaimsData(claimsMap))
+
+	fmt.Println(accessTokenPayload, "<<<<<<<<< here is the token")
 
 	return accessTokenPayload, nil
 }
@@ -30,9 +33,22 @@ func GetUserDataFromRefreshClaimsData(claimsData interface{}) (types.REFRESH_TOK
 		return types.REFRESH_TOKEN_PAYLOAD{}, errutil.InternalServerError("Invalid Format")
 	}
 
-	refreshTokenPayload := helper.CreateRefreshTokenPayload(claimsMap["ID"].(string), claimsMap["ProviderId"].(string), claimsMap["Role"].([]string))
+	refreshTokenPayload := helper.CreateRefreshTokenPayload(formatClaimsData(claimsMap))
 
 	return refreshTokenPayload, nil
+}
+
+func formatClaimsData(claimsMap map[string]interface{}) (string, string, []string) {
+
+	roles := claimsMap["Role"].([]interface{})
+	formattedRoles := []string{}
+
+	for _, v := range roles {
+		if str, ok := v.(string); ok { // Type assertion to check if the element is a string
+			formattedRoles = append(formattedRoles, str)
+		}
+	}
+	return claimsMap["ID"].(string), claimsMap["ProviderId"].(string), formattedRoles
 }
 
 func GenearteRandomString(length int) string {
@@ -67,4 +83,16 @@ func RemoveDuplicateStringFromSlice(arr []string) []string {
 	}
 
 	return result
+}
+
+func Contains[T comparable](slice []T, element T) bool {
+	for _, v := range slice {
+
+		fmt.Println(v, element)
+
+		if v == element {
+			return true
+		}
+	}
+	return false
 }
