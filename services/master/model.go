@@ -1,0 +1,14 @@
+package master
+
+import (
+	"github.com/omkarp02/pro/services/utils/store"
+	"go.mongodb.org/mongo-driver/v2/bson"
+)
+
+type Master struct {
+	ID          bson.ObjectID     `json:"_id,omitempty" bson:"_id,omitempty"`
+	Type        string            `json:"type,omitempty" bson:"type,omitempty"`
+	Label       string            `json:"label,omitempty" bson:"label,omitempty"`
+	Value       string            `json:"value,omitempty" bson:"value,omitempty"`
+	AuditFields store.AuditFields `bson:",inline"`
+}

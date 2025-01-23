@@ -25,6 +25,7 @@ func (s *Service) Create(ctx context.Context, createBody CreateModal, userId str
 
 	result, err := s.txn.RunInTxn(ctx, func(sessCtx context.Context) (interface{}, error) {
 
+		createBody.Active = false
 		businessId, err := s.repo.Create(sessCtx, createBody)
 		if err != nil {
 			return "", err

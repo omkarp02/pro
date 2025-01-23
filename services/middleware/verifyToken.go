@@ -42,17 +42,3 @@ func VerifyToken(cfg *config.Config) router.Handler {
 		return c.Next()
 	}
 }
-
-func IsAdmin() router.Handler {
-
-	return func(c router.Context) error {
-
-		role := c.GetDecodedData().Role
-
-		if utils.Contains(role, constant.ROLE_ADMIN) {
-			return c.Next()
-		}
-
-		return errutil.UnAuthorized("You don't have enough access")
-	}
-}

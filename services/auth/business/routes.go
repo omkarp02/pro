@@ -33,12 +33,12 @@ func (h *Handler) RegisterRoutes(router router.Router, link string) {
 	routeGrp := router.Group(link)
 
 	routeGrp.Use(middleware.VerifyToken(h.cfg))
-	routeGrp.Use(middleware.IsAdmin())
+	routeGrp.Use(middleware.IsOwner())
 
-	routeGrp.Post("/", h.create)
+	routeGrp.Post("/in-owner", h.addBussinessToOwner)
 }
 
-func (h *Handler) create(c router.Context) error {
+func (h *Handler) addBussinessToOwner(c router.Context) error {
 	ctx, cancel := createContext()
 	defer cancel()
 
@@ -52,14 +52,13 @@ func (h *Handler) create(c router.Context) error {
 
 	formattedModal := CreateModal{
 		Name:        createBody.Name,
-		OwnerID:     createBody.OwnerID,
+		OwnerID:     userId,
 		Category:    createBody.Category,
 		Description: createBody.Description,
 		Address:     store.AddressModel(createBody.Address),
 		Contacts:    createBody.Contacts,
 		Website:     createBody.Website,
 		LogoUrl:     createBody.LogoUrl,
-		Active:      createBody.Active,
 		CreatorId:   userId,
 	}
 

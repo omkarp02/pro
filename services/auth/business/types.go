@@ -4,14 +4,12 @@ import "github.com/omkarp02/pro/services/utils/store"
 
 type TCreate struct {
 	Name        string         `json:"name,omitempty" validate:"required"`
-	OwnerID     string         `json:"ownerId,omitempty" validate:"required"`
 	Category    string         `json:"category,omitempty" validate:"required"`
 	Description string         `json:"description,omitempty" validate:"required"`
 	Address     store.TAddress `json:"address,omitempty" validate:"required"`
 	Contacts    []Contact      `json:"contacts,omitempty" validate:"required"`
 	Website     string         `json:"website,omitempty" validate:"required"`
 	LogoUrl     string         `json:"logoUrl,omitempty" validate:"required"`
-	Active      bool           `json:"active,omitempty" validate:"required"`
 }
 
 type TFilterList struct {
