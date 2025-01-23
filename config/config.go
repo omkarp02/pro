@@ -76,13 +76,15 @@ type AuthRoute struct {
 	UserAccount string `yaml:"user_account" env:"user_account" env-required:"true"`
 	UserProfile string `yaml:"user_profile" env:"user_profile" env-required:"true"`
 	User        string `yaml:"user" env:"user" env-required:"true"`
+	Owner       string `yaml:"owner" env:"owner" env-required:"true"`
+	Bussiness   string `yaml:"bussiness" env:"bussiness" env-required:"true"`
 }
 
 type AuthStore struct {
 	UserAccount string `yaml:"user_account" env:"user_account" env-required:"true"`
 	UserProfile string `yaml:"user_profile" env:"user_profile" env-required:"true"`
-
-	Owner string `yaml:"owner" env:"owner" env-required:"true"`
+	Owner       string `yaml:"owner" env:"owner" env-required:"true"`
+	Bussiness   string `yaml:"bussiness" env:"bussiness" env-required:"true"`
 }
 
 type AuthClient struct {

@@ -51,6 +51,11 @@ func (s *Repo) Create(ctx context.Context, createPayload CreateModal) (string, e
 		return "", err
 	}
 
+	auditFields, err := store.GenerateCreateAuditFields(createPayload.CreatorId)
+	if err != nil {
+		return "", err
+	}
+
 	newAddress := Business{
 		Name:        createPayload.Name,
 		OwnerID:     ownerObjectId,
@@ -61,7 +66,7 @@ func (s *Repo) Create(ctx context.Context, createPayload CreateModal) (string, e
 		Website:     createPayload.Website,
 		LogoUrl:     createPayload.LogoUrl,
 		Active:      createPayload.Active,
-		Timestamps:  store.GetCurrentTimestamps(),
+		AuditFields: auditFields,
 	}
 
 	result, err := s.getColl().InsertOne(ctx, newAddress)

@@ -3,6 +3,7 @@ package useraccount
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/omkarp02/pro/db"
@@ -42,7 +43,7 @@ func (s *Repo) createIndexes() error {
 
 	// Define the unique index for the "email" field
 	indexModel := mongo.IndexModel{
-		Keys:    bson.D{{Key: "email", Value: 1}, {Key: "phoneNo", Value: 1}},
+		Keys:    bson.D{{Key: "userId", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}
 
@@ -51,6 +52,7 @@ func (s *Repo) createIndexes() error {
 }
 
 func (s *Repo) Create(ctx context.Context, user CreateUserAccountModal) (string, error) {
+
 	if len(user.PasswordHash) != 0 {
 		hashedPassword, err := helper.HashPassword(user.PasswordHash)
 		if err != nil {
@@ -59,7 +61,11 @@ func (s *Repo) Create(ctx context.Context, user CreateUserAccountModal) (string,
 		user.PasswordHash = hashedPassword
 	}
 
+	fmt.Println(">>>>>>>>>>>>>", user)
+
 	newUserAccount := s.createUserAccountModalFromData(user)
+
+	fmt.Println(newUserAccount)
 
 	result, err := s.getColl().InsertOne(ctx, newUserAccount)
 
@@ -117,13 +123,18 @@ func (s *Repo) FindOne(ctx context.Context, field string, value string, project 
 		findOneOptions.SetProjection(projection)
 	}
 
+	fmt.Println(filter, findOneOptions, "<<<<<<<<<<<")
+
 	err := s.getColl().FindOne(ctx, filter, findOneOptions).Decode(&userAccount)
+	fmt.Println(err, userAccount, "<<<<<<<<<<<<<<<< here is the erro")
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return userAccount, errutil.NotFound("Product")
+			return userAccount, errutil.ErrDocumentNotFound
 		}
 		return userAccount, err
 	}
+
+	fmt.Println("reached here")
 
 	return userAccount, nil
 }
@@ -210,11 +221,11 @@ func (s *Repo) createUserAccountModalFromData(userAccountData CreateUserAccountM
 	}
 
 	newUserAccount := UserAccount{
-		Email:        userAccountData.Email,
+		UserId:       userAccountData.UserId,
 		PasswordHash: userAccountData.PasswordHash,
 		Timestamps:   store.GetCurrentTimestamps(),
 		Role:         userAccountData.Role,
-		PhoneNumber:  userAccountData.PhoneNumber,
+		Type:         userAccountData.Type,
 		AuthProvider: authProviderSlice,
 	}
 

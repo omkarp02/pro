@@ -116,7 +116,7 @@ func (h *Handler) redirectUrlHandler(c router.Context) error {
 
 	if errors.Is(err, errutil.ErrDocumentNotFound) {
 		createUserAccountModal := useraccount.CreateUserAccountModal{
-			Email: user.Email,
+			UserId: user.UserID,
 			AuthProvider: []useraccount.AuthProviderType{
 				{
 					Provider:   provider,
@@ -162,8 +162,6 @@ func (h *Handler) redirectUrlHandler(c router.Context) error {
 
 func (h *Handler) createOwner(c router.Context) error {
 
-	fmt.Println(">>>>>>>>>>> reached createwoner")
-
 	ctx, cancel := createContext()
 	defer cancel()
 
@@ -176,6 +174,8 @@ func (h *Handler) createOwner(c router.Context) error {
 		return err
 	}
 
+	fmt.Println(owner, "<<<<<<<< here is owner")
+
 	createOwnerData := CreateOwnerAndAccountModel{
 		Name:         owner.Name,
 		Email:        owner.Email,
@@ -183,10 +183,16 @@ func (h *Handler) createOwner(c router.Context) error {
 		Password:     owner.Password,
 		LastName:     owner.LastName,
 		ProviderId:   h.cfg.AuthConfig.JWT.ProviderId,
-		ProviderName: h.cfg.AuthConfig.Google.ProviderName,
+		ProviderName: h.cfg.AuthConfig.JWT.ProviderName,
 		DateOfBirth:  owner.DateOfBirth,
 		MobileNo:     owner.MobileNo,
 		Gender:       owner.Gender,
+		UserId:       owner.Email,
+		Type:         owner.Type,
+	}
+
+	if createOwnerData.Type == constant.USERACCOUNT_TYPE_PHONE {
+		createOwnerData.UserId = owner.MobileNo
 	}
 
 	id, err := h.service.CreateOwnerAndAccount(ctx, createOwnerData, decodedUserData.ID)

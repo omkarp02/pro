@@ -12,10 +12,10 @@ type AuthProvider struct {
 
 type UserAccount struct {
 	ID           bson.ObjectID    `json:"_id,omitempty" bson:"_id,omitempty"`
-	Email        string           `json:"email,omitempty" bson:"email,omitempty"`
-	PhoneNumber  string           `json:"phoneNo,omitempty" bson:"phoneNo,omitempty"`
+	UserId       string           `json:"userId,omitempty" bson:"userId,omitempty"`
 	PasswordHash string           `json:"password,omitempty" bson:"password,omitempty"`
 	Role         []string         `json:"role,omitempty" bson:"role,omitempty"`
+	Type         string           `bson:"type" json:"type"`
 	AuthProvider []AuthProvider   `bson:"auth_providers" json:"auth_providers"`
 	UserProfile  bson.ObjectID    `bson:"userProfileId,omitempty" json:"userProfileId"`
 	RefreshToken []string         `bson:"refresh_token,omitempty"`

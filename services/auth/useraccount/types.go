@@ -1,13 +1,13 @@
 package useraccount
 
 type TCreateUserAccount struct {
-	Email    string `json:"email" validate:"required_without=PhoneNo"`
-	PhoneNo  string `json:"phoneNo" validate:"required_without=Email"`
+	UserId   string `json:"userId"  validate:"required"`
+	Type     string `json:"type"  validate:"required,oneof=phone email"`
 	Password string `json:"password" validate:"required"`
 }
 
 type LoginUserAccountType struct {
-	Email    string `json:"email" validate:"required,email"`
+	UserId   string `json:"userId" validate:"required"`
 	Password string `json:"password" validate:"required"`
 }
 
@@ -20,11 +20,12 @@ type AuthProviderType struct {
 }
 
 type CreateUserAccountModal struct {
-	Email        string
+	UserId       string
 	PasswordHash string
 	UserProfile  string
 	AuthProvider []AuthProviderType
 	Role         []string
+	Type         string
 	PhoneNumber  string
 }
 

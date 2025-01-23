@@ -24,10 +24,13 @@ app:
       user_account: "user_account"
       user_profile: "user_profile"
       owner: "owner"
+      bussiness: "bussiness"
     routes:
       user_account: "auth"
       user_profile: "user-profile"
       user: "user"
+      owner: "owner"
+      bussiness: "bussiness"
     client:
       redirect_url: "http://localhost:3000/auth-success"
 auth_config_provider:

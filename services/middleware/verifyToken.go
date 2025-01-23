@@ -29,7 +29,7 @@ func VerifyToken(cfg *config.Config) router.Handler {
 		data, err := accessTokenGenerator.ValidateToken(tokenString)
 		if err != nil {
 			slog.Error("error while validating token", "error", err)
-			return errutil.UnAuthorized("Invalid Token")
+			return errutil.InvalidToken("Invalid Token")
 		}
 
 		userData, err := utils.GetUserDataFromAccessClaimsData(data)

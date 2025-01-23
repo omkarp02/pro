@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 	"time"
 
 	"github.com/omkarp02/pro/services/utils/helper"
@@ -95,4 +96,9 @@ func Contains[T comparable](slice []T, element T) bool {
 		}
 	}
 	return false
+}
+
+func isNumberString(s string) bool {
+	_, err := strconv.Atoi(s)
+	return err == nil
 }

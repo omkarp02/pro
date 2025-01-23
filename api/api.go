@@ -4,6 +4,8 @@ import (
 	"github.com/omkarp02/pro/config"
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/router"
+	bussiness "github.com/omkarp02/pro/services/auth/business"
+	"github.com/omkarp02/pro/services/auth/owner"
 	"github.com/omkarp02/pro/services/auth/user"
 	"github.com/omkarp02/pro/services/auth/useraccount"
 	"github.com/omkarp02/pro/services/auth/userprofile"
@@ -51,6 +53,8 @@ func setUpAuthApp(curDb *db.Database, cfg *config.Config, validator *validation.
 	useraccount.Intialize(curDb, cfg, validator, api)
 	userprofile.Intialize(curDb, cfg, validator, api)
 	user.Intialize(curDb, cfg, validator, api)
+	owner.Intialize(curDb, cfg, validator, api)
+	bussiness.Intialize(curDb, cfg, validator, api)
 }
 
 // authHandler := auth.NewHandler(s.config, userAccountStore)

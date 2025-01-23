@@ -65,6 +65,10 @@ func UnAuthorized(msg string) APIError {
 	return NewAPIError(http.StatusUnauthorized, 5, msg)
 }
 
+func InvalidToken(msg string) APIError {
+	return NewAPIError(http.StatusUnauthorized, 9, msg)
+}
+
 func InternalServerError(msg ...string) APIError {
 	m := "Internal Server Error"
 	if len(msg) > 0 {
@@ -82,7 +86,7 @@ func AlreadyExist(name string) APIError {
 }
 
 func NotFound(name string) APIError {
-	return NewAPIError(http.StatusInternalServerError, 2, name+" not found")
+	return NewAPIError(http.StatusInternalServerError, 3, name+" not found")
 }
 
 func StatusBadRequest(msg string) error {

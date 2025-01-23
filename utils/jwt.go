@@ -97,7 +97,7 @@ func GenerateRefreshAndAccessToken(accessPayload interface{}, refreshPayload int
 		return "", "", err
 	}
 
-	accessToken, err := accessTokenGenerator.GenerateToken(accessPayload, time.Hour)
+	accessToken, err := accessTokenGenerator.GenerateToken(accessPayload, time.Hour*24)
 	if err != nil {
 		return "", "", err
 	}
@@ -107,7 +107,7 @@ func GenerateRefreshAndAccessToken(accessPayload interface{}, refreshPayload int
 		return "", "", err
 	}
 
-	refreshToken, err := refreshTokenGenerator.GenerateToken(refreshPayload, time.Hour)
+	refreshToken, err := refreshTokenGenerator.GenerateToken(refreshPayload, time.Hour*730)
 	if err != nil {
 		return "", "", err
 	}

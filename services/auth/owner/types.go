@@ -4,6 +4,12 @@ import (
 	"time"
 )
 
+type TFilterList struct {
+	Name  string `query:"name,omitempty"`
+	Page  int    `query:"page,omitempty" validate:"required"`
+	Limit int    `query:"limit,omitempty" validate:"required"`
+}
+
 type TCreateOwner struct {
 	Name        string    `json:"name,omitempty"`
 	Email       string    `json:"email,omitempty"`

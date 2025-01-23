@@ -14,7 +14,7 @@ import (
 )
 
 type BussinessService interface {
-	Create(ctx context.Context, createBody CreateModal) (string, error)
+	Create(ctx context.Context, createBody CreateModal, userId string) (string, error)
 	Find(ctx context.Context, filterPayload FilterListModel) ([]Business, error)
 	FindById(ctx context.Context, id string) (Business, error)
 }
@@ -63,7 +63,7 @@ func (h *Handler) create(c router.Context) error {
 		CreatorId:   userId,
 	}
 
-	id, err := h.service.Create(ctx, formattedModal)
+	id, err := h.service.Create(ctx, formattedModal, userId)
 	if err != nil {
 		return err
 	}

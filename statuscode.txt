@@ -7,3 +7,4 @@
 6 internal server error
 7 validation error
 8 database error
+9 invalid token

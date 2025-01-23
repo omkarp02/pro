@@ -19,3 +19,13 @@ type TAddress struct {
 	MobileNo          string `json:"mobileNo,omitempty"  validate:"required"`
 	AlternateMobileNo string `json:"alternateMobileNo,omitempty"`
 }
+
+// {
+// 	"address": "13 Main street near brooklyn",
+// 	"city": "Hong Kong",
+// 	"state": "Bancong",
+// 	"country": "some",
+// 	"pincode": "433534",
+// 	"mobileNo": "2348334343",
+// 	"alternateMobileNo": "7348334343",
+// }

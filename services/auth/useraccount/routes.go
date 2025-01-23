@@ -3,6 +3,7 @@ package useraccount
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -60,9 +61,9 @@ func (h *Handler) registerUser(c router.Context) error {
 	}
 
 	createUserAccountModal := CreateUserAccountModal{
-		Email:        user.Email,
-		PhoneNumber:  user.PhoneNo,
+		UserId:       user.UserId,
 		PasswordHash: user.Password,
+		Type:         user.Type,
 		AuthProvider: []AuthProviderType{
 			{
 				Provider:   h.cfg.AuthConfig.JWT.ProviderName,
@@ -94,8 +95,10 @@ func (h *Handler) login(c router.Context) error {
 		return err
 	}
 
-	userAccount, err := h.store.GetUser(ctx, "email", userCred.Email)
+	userAccount, err := h.store.GetUser(ctx, "userId", userCred.UserId)
+	fmt.Println("1", err)
 	if errors.Is(err, errutil.ErrDocumentNotFound) {
+		fmt.Println(">>>>>>>>> invalid cred")
 		return errutil.StatusBadRequest("Invalid Credentials")
 	} else if err != nil {
 		return err
@@ -111,12 +114,16 @@ func (h *Handler) login(c router.Context) error {
 	}
 
 	if !userHasJWTProvider {
-		return errutil.InvalidCredentails()
+		return errutil.InternalServerError("not valid provider id")
 	}
+
+	fmt.Println("2")
 
 	if ok := helper.CheckPasswordHash(userCred.Password, userAccount.PasswordHash); !ok {
 		return errutil.InvalidCredentails()
 	}
+
+	fmt.Println("3")
 
 	accessTokenPayload := helper.CreateAccessTokenPayload(userId.Hex(), jwtProviderId, userAccount.Role)
 	refreshTokenPayload := helper.CreateRefreshTokenPayload(userId.Hex(), jwtProviderId, userAccount.Role)

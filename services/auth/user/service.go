@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/services/auth/owner"
@@ -60,7 +61,9 @@ func (s *Service) CreateUserProfile(ctx context.Context, paylaod userprofile.TCr
 			return "", err
 		}
 
-		paylaod.Email = useraccountDetails.Email
+		if useraccountDetails.Type == constant.USERACCOUNT_TYPE_EMAIL {
+			paylaod.Email = useraccountDetails.UserId
+		}
 
 		id, err := s.userprofileRepo.Create(sessCtx, userprofile.CreateUserModel(paylaod))
 		if err != nil {
@@ -86,7 +89,7 @@ func (s *Service) CreateUserProfile(ctx context.Context, paylaod userprofile.TCr
 func (s *Service) CreateOwnerAndAccount(ctx context.Context, ownerPayload CreateOwnerAndAccountModel, userId string) (string, error) {
 
 	result, err := s.txn.RunInTxn(ctx, func(sessCtx context.Context) (interface{}, error) {
-
+		fmt.Println("1")
 		ownerFormattedData := owner.CreateModal{
 			TCreateOwner: owner.TCreateOwner{
 				Name:        ownerPayload.Name,
@@ -97,23 +100,30 @@ func (s *Service) CreateOwnerAndAccount(ctx context.Context, ownerPayload Create
 				MobileNo:    ownerPayload.MobileNo,
 				Gender:      ownerPayload.Gender,
 			},
+			CreatorId: userId,
 		}
 
 		createUserAccountModal := useraccount.CreateUserAccountModal{
-			Email: ownerPayload.Email,
+			UserId: ownerPayload.UserId,
 			AuthProvider: []useraccount.AuthProviderType{
 				{
 					Provider:   ownerPayload.ProviderName,
-					ProviderID: ownerPayload.ProviderName,
+					ProviderID: ownerPayload.ProviderId,
 				},
 			},
-			Role: []string{constant.ROLE_OWNER},
+			PasswordHash: ownerPayload.Password,
+			Type:         constant.USERACCOUNT_TYPE_PHONE,
+			Role:         []string{constant.ROLE_OWNER},
 		}
+
+		fmt.Println("3")
 
 		ownerId, err := s.ownerRepo.Create(ctx, ownerFormattedData)
 		if err != nil {
 			return "", err
 		}
+
+		fmt.Println("4", ownerId)
 
 		createUserAccountModal.UserProfile = ownerId
 
