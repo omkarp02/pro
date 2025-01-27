@@ -16,5 +16,5 @@ type Filter struct {
 type FilterType struct {
 	ID         bson.ObjectID    `json:"_id,omitempty" bson:"_id,omitempty"`
 	Name       string           `json:"name,omitempty" bson:"name,omitempty"`
-	Timestamps store.Timestamps `bson:",inline"`
+	Timestamps store.Timestamps `json:"timestamp" bson:",inline"`
 }

@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"fmt"
+
 	"github.com/omkarp02/pro/router"
 	"github.com/omkarp02/pro/utils"
 	"github.com/omkarp02/pro/utils/constant"
@@ -26,6 +28,8 @@ func IsOwner() router.Handler {
 	return func(c router.Context) error {
 
 		role := c.GetDecodedData().Role
+
+		fmt.Println(role, "<<<<< hellothisisrole<<<<<<")
 
 		if utils.Contains(role, constant.ROLE_OWNER) {
 			return c.Next()

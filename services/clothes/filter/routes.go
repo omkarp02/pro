@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/omkarp02/pro/config"
 	"github.com/omkarp02/pro/router"
+	"github.com/omkarp02/pro/services/middleware"
 	"github.com/omkarp02/pro/utils"
 	"github.com/omkarp02/pro/utils/validation"
 )
@@ -14,6 +15,7 @@ import (
 type FilterService interface {
 	CreateFilter(ctx context.Context, createFilter TCreateFilter) (string, error)
 	CreateFilterType(ctx context.Context, createFilterType TCreateFilterType) (string, error)
+	FindFitlerType(ctx context.Context, filterPayload FilterListModel) ([]FilterType, error)
 }
 
 type Handler struct {
@@ -29,8 +31,12 @@ func NewHandler(service FilterService, cfg *config.Config, validator *validation
 func (h *Handler) RegisterRoutes(router router.Router, link string) {
 	routeGrp := router.Group(link)
 
+	routeGrp.Use(middleware.VerifyToken(h.cfg))
+	routeGrp.Use(middleware.IsAdmin())
+
 	routeGrp.Post("/", h.createFilter)
 	routeGrp.Post("/type", h.createFilterType)
+	routeGrp.Get("/type", h.FindFitlerType)
 }
 
 func (h *Handler) createFilter(c router.Context) error {
@@ -67,6 +73,23 @@ func (h *Handler) createFilterType(c router.Context) error {
 	}
 
 	return utils.SendResponse(c, "Filter Type Created Successfully", fiber.Map{"id": id}, 201)
+}
+
+func (h *Handler) FindFitlerType(c router.Context) error {
+	ctx, cancel := createContext()
+	defer cancel()
+
+	var filterData TFilterList
+
+	if err := h.validator.ValidateParams(c, &filterData); err != nil {
+		return err
+	}
+	data, err := h.service.FindFitlerType(ctx, FilterListModel(filterData))
+	if err != nil {
+		return err
+	}
+
+	return utils.SendResponse(c, "Address Fetched Successfully", data, 200)
 }
 
 func createContext() (context.Context, context.CancelFunc) {

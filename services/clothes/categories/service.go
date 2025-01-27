@@ -2,6 +2,8 @@ package categories
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 )
 
 type Service struct {
@@ -15,8 +17,19 @@ func NewService(repo *Repo) *Service {
 }
 
 func (s *Service) Create(ctx context.Context, createCategory TCreateCategory) (string, error) {
+	fmt.Println("reached sercie<<<<<<<<<", createCategory)
 
-	return s.repo.Create(ctx, CreateCategoryModal(createCategory))
+	count, err := s.repo.Count(ctx, FilterCategoryModal{IsActive: true})
+	if err != nil {
+		return "", nil
+	}
+
+	modal := CreateCategoryModal{
+		CatId:           "CAT-" + strconv.Itoa(count+1),
+		TCreateCategory: createCategory,
+	}
+
+	return s.repo.Create(ctx, modal)
 }
 
 func (s *Service) GetAllCategory(ctx context.Context, filterData TFilterCategory) ([]TCategoryList, error) {

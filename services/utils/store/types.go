@@ -5,7 +5,7 @@ type AddressModel struct {
 	City              string `json:"city,omitempty"`
 	State             string `json:"state,omitempty"`
 	Country           string `json:"country,omitempty"`
-	PinCode           string `json:"pincode,omitempty"`
+	PinCode           int    `json:"pincode,omitempty"`
 	MobileNo          string `json:"mobileNo,omitempty"`
 	AlternateMobileNo string `json:"alternateMobileNo,omitempty"`
 }
@@ -15,7 +15,7 @@ type TAddress struct {
 	City              string `json:"city,omitempty"  validate:"required"`
 	State             string `json:"state,omitempty"  validate:"required"`
 	Country           string `json:"country,omitempty"  validate:"required"`
-	PinCode           string `json:"pincode,omitempty"  validate:"required"`
+	PinCode           int    `json:"pincode,omitempty"  validate:"required"`
 	MobileNo          string `json:"mobileNo,omitempty"  validate:"required"`
 	AlternateMobileNo string `json:"alternateMobileNo,omitempty"`
 }

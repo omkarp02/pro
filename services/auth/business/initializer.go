@@ -18,5 +18,5 @@ func Intialize(curDb *db.Database, cfg *config.Config, validator *validation.Val
 	ownerRepo := owner.NewRepo(curDb, authConfig.DBCollection.Owner)
 	service := NewService(repo, ownerRepo, txn)
 	routeHandler := NewHandler(service, cfg, validator)
-	routeHandler.RegisterRoutes(api, authConfig.Routes.Owner)
+	routeHandler.RegisterRoutes(api, authConfig.Routes.Bussiness)
 }
