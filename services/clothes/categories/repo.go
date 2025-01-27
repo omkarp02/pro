@@ -108,3 +108,16 @@ func (s *Repo) Find(ctx context.Context, filterCategoryModal FilterCategoryModal
 	return categoryList, nil
 
 }
+
+func (s *Repo) Count(ctx context.Context, filterCategoryModal FilterCategoryModal) (int, error) {
+
+	query := bson.M{"isActive": filterCategoryModal.IsActive}
+
+	count, err := s.getColl().CountDocuments(ctx, query)
+	if err != nil {
+		return 0, err
+	}
+
+	return int(count), nil
+
+}

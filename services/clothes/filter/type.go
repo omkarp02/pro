@@ -10,6 +10,11 @@ type TCreateFilterType struct {
 	Name string `json:"name,omitempty"`
 }
 
+type TFilterList struct {
+	Page  int `query:"page,omitempty" validate:"required"`
+	Limit int `query:"limit,omitempty" validate:"required"`
+}
+
 type CreateFilterModal struct {
 	Name     string `json:"name,omitempty" bson:"name,omitempty"`
 	Type     string `json:"type,omitempty" bson:"type,omitempty"`
@@ -17,4 +22,9 @@ type CreateFilterModal struct {
 }
 type CreateFilterTypeModal struct {
 	Name string `json:"name,omitempty"`
+}
+
+type FilterListModel struct {
+	Page  int
+	Limit int
 }

@@ -28,7 +28,7 @@ type Address struct {
 	City              string `bson:"city,omitempty"`
 	State             string `bson:"state,omitempty"`
 	Country           string `bson:"country,omitempty"`
-	PinCode           string `bson:"pincode,omitempty"`
+	PinCode           int    `bson:"pincode,omitempty"`
 	MobileNo          string `bson:"mobileNo,omitempty"`
 	AlternateMobileNo string `bson:"alternateMobileNo,omitempty"`
 }

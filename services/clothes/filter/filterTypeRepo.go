@@ -8,6 +8,7 @@ import (
 	"github.com/omkarp02/pro/utils/errutil"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type FilterTypeRepo struct {
@@ -48,4 +49,31 @@ func (s *FilterTypeRepo) Create(ctx context.Context, createFilterTypeModal Creat
 
 	return "", errutil.ErrDatabase
 
+}
+
+func (s *FilterTypeRepo) FindByFilter(ctx context.Context, filterListModel FilterListModel, project []string, inclusive bool) ([]FilterType, error) {
+
+	var list []FilterType
+
+	query := bson.M{}
+
+	page := filterListModel.Page
+	limit := filterListModel.Limit
+
+	findOptions := options.Find().SetSkip(int64(limit * (page - 1))).SetLimit(int64(limit))
+
+	if len(project) > 0 {
+		projection := store.GenerateProjection(project, inclusive)
+		findOptions.SetProjection(projection)
+	}
+
+	cursor, err := s.getColl().Find(ctx, query, findOptions)
+	if err != nil {
+		return nil, err
+	}
+	if err := cursor.All(context.TODO(), &list); err != nil {
+		return nil, err
+	}
+
+	return list, nil
 }

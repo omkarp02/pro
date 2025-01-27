@@ -7,6 +7,6 @@ import (
 
 type Model struct {
 	ID          bson.ObjectID     `json:"_id,omitempty" bson:"_id,omitempty"`
-	AuditFields store.AuditFields `bson:",inline"`
+	AuditFields store.AuditFields `json:"auditFields" bson:",inline"`
 	Timestamps  store.Timestamps  `bson:",inline"`
 }
