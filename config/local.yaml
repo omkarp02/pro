@@ -19,6 +19,11 @@ app:
       filter: "filter"
       category: "category"
       cart: "cart"
+  master: 
+    db_collection:
+      master: "master"
+    routes:
+      master: "master"
   auth:
     db_collection:
       user_account: "user_account"

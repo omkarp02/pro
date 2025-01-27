@@ -14,6 +14,7 @@ import (
 
 type TestService interface {
 	Create(ctx context.Context, createBody CreateModal) (string, error)
+	Find(ctx context.Context, filterPayload FilterListModel) ([]Master, error)
 }
 
 type Handler struct {
@@ -32,6 +33,7 @@ func (h *Handler) RegisterRoutes(router router.Router, link string) {
 	routeGrp.Use(middleware.VerifyToken(h.cfg))
 
 	routeGrp.Post("/", h.create)
+	routeGrp.Get("/", h.create)
 }
 
 func (h *Handler) create(c router.Context) error {
@@ -56,7 +58,24 @@ func (h *Handler) create(c router.Context) error {
 		return err
 	}
 
-	return utils.SendResponse(c, "Address Created Successfully", fiber.Map{"id": id}, 201)
+	return utils.SendResponse(c, "Master Created Successfully", fiber.Map{"id": id}, 201)
+}
+
+func (h *Handler) find(c router.Context) error {
+	ctx, cancel := createContext()
+	defer cancel()
+
+	var filterData TFilterList
+
+	if err := h.validator.ValidateParams(c, &filterData); err != nil {
+		return err
+	}
+	data, err := h.service.Find(ctx, FilterListModel(filterData))
+	if err != nil {
+		return err
+	}
+
+	return utils.SendResponse(c, "Data Fetched Successfully", data, 200)
 }
 
 func createContext() (context.Context, context.CancelFunc) {

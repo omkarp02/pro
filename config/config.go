@@ -67,6 +67,19 @@ type ClothesStore struct {
 	Cart            string `yaml:"cart" env:"cart" env-required:"true"`
 }
 
+type MasterRoute struct {
+	Master string `yaml:"master" env:"master" env-required:"true"`
+}
+
+type MasterStore struct {
+	Master string `yaml:"master" env:"master" env-required:"true"`
+}
+
+type Master struct {
+	Routes       MasterRoute `yaml:"routes" env:"routes" env-required:"true"`
+	DBCollection MasterStore `yaml:"db_collection" env:"db_collection" env-required:"true"`
+}
+
 type Clothes struct {
 	Routes       ClothesRoute `yaml:"routes" env:"routes" env-required:"true"`
 	DBCollection ClothesStore `yaml:"db_collection" env:"db_collection" env-required:"true"`
@@ -100,6 +113,7 @@ type Auth struct {
 type App struct {
 	Clothes Clothes `yaml:"clothes" env:"clothes" env-required:"true"`
 	Auth    Auth    `yaml:"auth" env:"auth" env-required:"true"`
+	Master  Master  `yaml:"master" env:"master" env-required:"true"`
 }
 
 type Config struct {

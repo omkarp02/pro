@@ -8,7 +8,6 @@ import (
 type Master struct {
 	ID          bson.ObjectID     `json:"_id,omitempty" bson:"_id,omitempty"`
 	Type        string            `json:"type,omitempty" bson:"type,omitempty"`
-	Label       string            `json:"label,omitempty" bson:"label,omitempty"`
-	Value       string            `json:"value,omitempty" bson:"value,omitempty"`
+	Name        string            `json:"name,omitempty" bson:"name,omitempty"`
 	AuditFields store.AuditFields `bson:",inline"`
 }

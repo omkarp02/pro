@@ -18,17 +18,9 @@ func (s *Service) Create(ctx context.Context, createBody CreateModal) (string, e
 	return s.repo.Create(ctx, createBody)
 }
 
-// objectIds, err := store.SliceOfHexToObjectID(bussinessId, updatedBy)
-// 	if err != nil {
-// 		return err
-// 	}
+func (s *Service) Find(ctx context.Context, filterPayload FilterListModel) ([]Master, error) {
 
-// result, err := s.txn.RunInTxn(ctx, func(sessCtx context.Context) (interface{}, error) {})
+	project := []string{"name"}
 
-// if err != nil {
-// 	return err
-// }
-
-// data, _ := result.(string)
-
-// return data, nil
+	return s.repo.FindByFilter(ctx, filterPayload, project, false)
+}

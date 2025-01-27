@@ -9,6 +9,7 @@ import (
 	"github.com/omkarp02/pro/utils/errutil"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type Repo struct {
@@ -47,8 +48,7 @@ func (s *Repo) Create(ctx context.Context, createModal CreateModal) (string, err
 
 	dataToInsert := Master{
 		Type:        createModal.Type,
-		Label:       createModal.Label,
-		Value:       createModal.Value,
+		Name:        createModal.Name,
 		AuditFields: auditFields,
 	}
 
@@ -68,37 +68,37 @@ func (s *Repo) Create(ctx context.Context, createModal CreateModal) (string, err
 
 }
 
-// func (s *Repo) FindByFilter(ctx context.Context, filterListModel FilterListModel, project []string, inclusive bool) ([]Model, error) {
+func (s *Repo) FindByFilter(ctx context.Context, filterListModel FilterListModel, project []string, inclusive bool) ([]Master, error) {
 
-// 	var list []Model
+	var list []Master
 
-// 	query := bson.M{}
+	query := bson.M{}
 
-// 	name := filterListModel.Name
-// 	page := filterListModel.Page
-// 	limit := filterListModel.Limit
+	page := filterListModel.Page
+	limit := filterListModel.Limit
+	masterType := filterListModel.Type
 
-// 	if len(name) != 0 {
-// 		query["name"] = bson.M{"$regex": name, "$options": "i"}
-// 	}
+	if len(masterType) != 0 {
+		query["type"] = bson.M{"$regex": masterType, "$options": "i"}
+	}
 
-// 	findOptions := options.Find().SetSkip(int64(limit * (page - 1))).SetLimit(int64(limit))
+	findOptions := options.Find().SetSkip(int64(limit * (page - 1))).SetLimit(int64(limit))
 
-// 	if len(project) > 0 {
-// 		projection := store.GenerateProjection(project, inclusive)
-// 		findOptions.SetProjection(projection)
-// 	}
+	if len(project) > 0 {
+		projection := store.GenerateProjection(project, inclusive)
+		findOptions.SetProjection(projection)
+	}
 
-// 	cursor, err := s.getColl().Find(ctx, query, findOptions)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if err := cursor.All(context.TODO(), &list); err != nil {
-// 		return nil, err
-// 	}
+	cursor, err := s.getColl().Find(ctx, query, findOptions)
+	if err != nil {
+		return nil, err
+	}
+	if err := cursor.All(context.TODO(), &list); err != nil {
+		return nil, err
+	}
 
-// 	return list, nil
-// }
+	return list, nil
+}
 
 // func (s *Repo) FindById(ctx context.Context, id string, project []string, inclusive bool) (Model, error) {
 

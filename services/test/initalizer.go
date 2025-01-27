@@ -9,12 +9,12 @@ import (
 
 func Intialize(curDb *db.Database, cfg *config.Config, validator *validation.Validator, api router.Router) {
 
-	// authConfig := cfg.App.Auth
+	// configuration := cfg.App.Auth
 
 	// txn := db.NewMongoTransactionManager(curDb)
 
-	// repo := NewRepo(curDb, authConfig.DBCollection.Owner)
+	// repo := NewRepo(curDb, configuration.DBCollection.Owner)
 	// service := NewService(repo)
 	// routeHandler := NewHandler(service, cfg, validator)
-	// routeHandler.RegisterRoutes(api, authConfig.Routes.Owner)
+	// routeHandler.RegisterRoutes(api, configuration.Routes.Owner)
 }

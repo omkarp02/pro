@@ -84,7 +84,7 @@ func (h *Handler) Find(c router.Context) error {
 		return err
 	}
 
-	return utils.SendResponse(c, "Address Fetched Successfully", data, 200)
+	return utils.SendResponse(c, "Data Fetched Successfully", data, 200)
 }
 
 func createContext() (context.Context, context.CancelFunc) {
