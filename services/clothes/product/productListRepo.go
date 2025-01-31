@@ -2,6 +2,7 @@ package product
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/services/utils/store"
@@ -57,7 +58,7 @@ func (s *ProductListRepo) getColl() *mongo.Collection {
 
 func (s *ProductListRepo) Create(ctx context.Context, createProductListModel CreateProductListModel) (string, error) {
 
-	ids, err := store.SliceOfHexToObjectID(createProductListModel.Detail, createProductListModel.Category, createProductListModel.BatchId)
+	ids, err := store.SliceOfHexToObjectID(createProductListModel.Detail, createProductListModel.Category)
 
 	if err != nil {
 		return "", err
@@ -73,7 +74,7 @@ func (s *ProductListRepo) Create(ctx context.Context, createProductListModel Cre
 		Stock:      createProductListModel.Stock,
 		Discount:   createProductListModel.Discount,
 		Category:   ids[1],
-		BatchId:    ids[2],
+		BatchId:    createProductListModel.BatchId,
 		Gender:     createProductListModel.Gender,
 		Collection: createProductListModel.Collection,
 		Tags:       createProductListModel.Tags,
@@ -130,6 +131,8 @@ func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListMod
 	} else if minPrice != 0 {
 		query["price"] = bson.M{"$gte": minPrice}
 	}
+
+	fmt.Println(query)
 
 	findOptions := options.Find().SetSkip(int64(limit * (page - 1))).SetLimit(int64(limit))
 

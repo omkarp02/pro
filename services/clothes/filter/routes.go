@@ -9,13 +9,15 @@ import (
 	"github.com/omkarp02/pro/router"
 	"github.com/omkarp02/pro/services/middleware"
 	"github.com/omkarp02/pro/utils"
+	"github.com/omkarp02/pro/utils/constant"
 	"github.com/omkarp02/pro/utils/validation"
 )
 
 type FilterService interface {
-	CreateFilter(ctx context.Context, createFilter TCreateFilter) (string, error)
-	CreateFilterType(ctx context.Context, createFilterType TCreateFilterType) (string, error)
-	FindFitlerType(ctx context.Context, filterPayload FilterListModel) ([]FilterType, error)
+	CreateFilterType(ctx context.Context, createFilterType CreateFilterTypeModal) (string, error)
+	CreateFilter(ctx context.Context, createFilter CreateFilterModal) (string, error)
+	FindFitlerType(ctx context.Context, filterPayload FilterTypeListModel) ([]FilterType, error)
+	FindFitler(ctx context.Context, filterPayload FilterListModel) ([]Filter, error)
 }
 
 type Handler struct {
@@ -31,12 +33,14 @@ func NewHandler(service FilterService, cfg *config.Config, validator *validation
 func (h *Handler) RegisterRoutes(router router.Router, link string) {
 	routeGrp := router.Group(link)
 
+	routeGrp.Get("/type", h.findFitlerType)
+	routeGrp.Get("/", h.findFitler)
+
 	routeGrp.Use(middleware.VerifyToken(h.cfg))
 	routeGrp.Use(middleware.IsAdmin())
 
 	routeGrp.Post("/", h.createFilter)
 	routeGrp.Post("/type", h.createFilterType)
-	routeGrp.Get("/type", h.FindFitlerType)
 }
 
 func (h *Handler) createFilter(c router.Context) error {
@@ -49,7 +53,12 @@ func (h *Handler) createFilter(c router.Context) error {
 		return err
 	}
 
-	id, err := h.service.CreateFilter(ctx, filterDetails)
+	id, err := h.service.CreateFilter(ctx, CreateFilterModal{
+		Name:     filterDetails.Name,
+		Type:     filterDetails.Type,
+		Category: filterDetails.Category,
+		Status:   constant.STATUS_ACTIVE,
+	})
 	if err != nil {
 		return err
 	}
@@ -67,7 +76,9 @@ func (h *Handler) createFilterType(c router.Context) error {
 		return err
 	}
 
-	id, err := h.service.CreateFilterType(ctx, filterTypeDetails)
+	modal := CreateFilterTypeModal{Name: filterTypeDetails.Name, Status: constant.STATUS_ACTIVE}
+
+	id, err := h.service.CreateFilterType(ctx, modal)
 	if err != nil {
 		return err
 	}
@@ -75,7 +86,25 @@ func (h *Handler) createFilterType(c router.Context) error {
 	return utils.SendResponse(c, "Filter Type Created Successfully", fiber.Map{"id": id}, 201)
 }
 
-func (h *Handler) FindFitlerType(c router.Context) error {
+func (h *Handler) findFitlerType(c router.Context) error {
+	ctx, cancel := createContext()
+	defer cancel()
+
+	var filterData TFilterTypeList
+
+	if err := h.validator.ValidateParams(c, &filterData); err != nil {
+		return err
+	}
+
+	data, err := h.service.FindFitlerType(ctx, FilterTypeListModel(filterData))
+	if err != nil {
+		return err
+	}
+
+	return utils.SendResponse(c, "Address Fetched Successfully", data, 200)
+}
+
+func (h *Handler) findFitler(c router.Context) error {
 	ctx, cancel := createContext()
 	defer cancel()
 
@@ -84,7 +113,7 @@ func (h *Handler) FindFitlerType(c router.Context) error {
 	if err := h.validator.ValidateParams(c, &filterData); err != nil {
 		return err
 	}
-	data, err := h.service.FindFitlerType(ctx, FilterListModel(filterData))
+	data, err := h.service.FindFitler(ctx, FilterListModel(filterData))
 	if err != nil {
 		return err
 	}

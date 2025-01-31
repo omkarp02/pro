@@ -18,11 +18,11 @@ func NewService(repo *Repo, txn db.TransactionManager) *Service {
 	}
 }
 
+// TODO: here need to add an email
 func (s *Service) CreateUser(ctx context.Context, createUserPayload TCreateUser, userAccountId string) (string, error) {
 
 	result, err := s.txn.RunInTxn(ctx, func(sessCtx context.Context) (interface{}, error) {
 		payload := CreateUserModel{
-			Email:       createUserPayload.Email,
 			FirstName:   createUserPayload.FirstName,
 			LastName:    createUserPayload.LastName,
 			DateOfBirth: createUserPayload.DateOfBirth,

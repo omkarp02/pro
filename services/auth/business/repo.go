@@ -65,7 +65,7 @@ func (s *Repo) Create(ctx context.Context, createPayload CreateModal) (string, e
 		Contacts:    createPayload.Contacts,
 		Website:     createPayload.Website,
 		LogoUrl:     createPayload.LogoUrl,
-		Active:      createPayload.Active,
+		Status:      createPayload.Status,
 		AuditFields: auditFields,
 	}
 

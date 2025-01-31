@@ -2,7 +2,6 @@ package useraccount
 
 type TCreateUserAccount struct {
 	UserId   string `json:"userId"  validate:"required"`
-	Type     string `json:"type"  validate:"required,oneof=phone email"`
 	Password string `json:"password" validate:"required"`
 }
 
@@ -26,7 +25,6 @@ type CreateUserAccountModal struct {
 	AuthProvider []AuthProviderType
 	Role         []string
 	Type         string
-	PhoneNumber  string
 }
 
 type UpdateUserAccountModel struct {

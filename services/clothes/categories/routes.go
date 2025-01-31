@@ -8,12 +8,13 @@ import (
 	"github.com/omkarp02/pro/config"
 	"github.com/omkarp02/pro/router"
 	"github.com/omkarp02/pro/utils"
+	"github.com/omkarp02/pro/utils/constant"
 	"github.com/omkarp02/pro/utils/validation"
 )
 
 type CategoryService interface {
 	Create(ctx context.Context, createCategory TCreateCategory) (string, error)
-	GetAllCategory(ctx context.Context, filterData TFilterCategory) ([]TCategoryList, error)
+	GetAllCategory(ctx context.Context, filterData FilterCategoryModal, project []string, inclusive bool) ([]TCategoryList, error)
 }
 
 type Handler struct {
@@ -31,6 +32,8 @@ func (h *Handler) RegisterRoutes(router router.Router, link string) {
 
 	routeGrp.Post("/", h.create)
 	routeGrp.Get("/", h.get)
+
+	routeGrp.Get("/admin", h.getForAdmin)
 }
 
 func (h *Handler) create(c router.Context) error {
@@ -60,12 +63,30 @@ func (h *Handler) get(c router.Context) error {
 	if err := h.validator.ValidateParams(c, &filterCat); err != nil {
 		return err
 	}
-
-	data, err := h.service.GetAllCategory(ctx, filterCat)
+	project := []string{"catId", "icon", "name", "slug"}
+	data, err := h.service.GetAllCategory(ctx, FilterCategoryModal{Status: constant.STATUS_ACTIVE, Pagination: filterCat.Pagination}, project, true)
 	if err != nil {
 		return err
 	}
 
+	return utils.SendResponse(c, "Category Created Successfully", data, 201)
+}
+
+func (h *Handler) getForAdmin(c router.Context) error {
+	ctx, cancel := createContext()
+	defer cancel()
+
+	var filterCat TFilterCategory
+
+	if err := h.validator.ValidateParams(c, &filterCat); err != nil {
+		return err
+	}
+
+	project := []string{"catId", "name", "slug", "_id"}
+	data, err := h.service.GetAllCategory(ctx, FilterCategoryModal{Status: constant.STATUS_ACTIVE, Pagination: filterCat.Pagination}, project, true)
+	if err != nil {
+		return err
+	}
 	return utils.SendResponse(c, "Category Created Successfully", data, 201)
 }
 

@@ -8,12 +8,25 @@ import (
 	"github.com/omkarp02/pro/utils/errutil"
 )
 
+var validStatuses = map[string]bool{
+	"active":   true,
+	"inActive": true,
+}
+
+func validateStatus(fl validator.FieldLevel) bool {
+	// Check if the value exists in the validStatuses map
+	status := fl.Field().String()
+	return validStatuses[status]
+}
+
 type Validator struct {
 	validate *validator.Validate
 }
 
 func NewValidator() *Validator {
 	validate := validator.New(validator.WithRequiredStructEnabled())
+	validate.RegisterValidation("validStatus", validateStatus)
+
 	return &Validator{
 		validate: validate,
 	}

@@ -27,7 +27,7 @@ type CreateModal struct {
 	Contacts    []Contact
 	Website     string
 	LogoUrl     string
-	Active      bool
+	Status      string
 	CreatorId   string
 }
 

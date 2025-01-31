@@ -33,6 +33,7 @@ func (s *FilterTypeRepo) Create(ctx context.Context, createFilterTypeModal Creat
 
 	filterType := FilterType{
 		Name:       createFilterTypeModal.Name,
+		Status:     createFilterTypeModal.Status,
 		Timestamps: store.GetCurrentTimestamps(),
 	}
 
@@ -51,7 +52,7 @@ func (s *FilterTypeRepo) Create(ctx context.Context, createFilterTypeModal Creat
 
 }
 
-func (s *FilterTypeRepo) FindByFilter(ctx context.Context, filterListModel FilterListModel, project []string, inclusive bool) ([]FilterType, error) {
+func (s *FilterTypeRepo) FindByFilter(ctx context.Context, filterListModel FilterTypeListModel, project []string, inclusive bool) ([]FilterType, error) {
 
 	var list []FilterType
 

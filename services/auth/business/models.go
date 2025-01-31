@@ -15,7 +15,7 @@ type Business struct {
 	Contacts    []Contact         `json:"contacts,omitempty" bson:"contacts,omitempty"`
 	Website     string            `json:"website,omitempty" bson:"website,omitempty"`
 	LogoUrl     string            `json:"logoUrl,omitempty" bson:"logoUrl,omitempty"`
-	Active      bool              `json:"active,omitempty" bson:"active,omitempty"`
+	Status      string            `json:"status,omitempty" bson:"status,omitempty"`
 	AuditFields store.AuditFields `bson:",inline"`
 }
 

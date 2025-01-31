@@ -13,6 +13,6 @@ type Category struct {
 	ImgLink     string           `json:"imgLink,omitempty" bson:"imgLink,omitempty"`
 	Slug        string           `json:"slug,omitempty" bson:"slug,omitempty"`
 	Icon        string           `json:"icon,omitempty" bson:"icon,omitempty"`
-	IsActive    bool             `json:"isActive,omitempty" bson:"isActive,omitempty"`
-	Timestamps  store.Timestamps `bson:",inline"`
+	Status      string           `json:"status,omitempty" bson:"status,omitempty" `
+	Timestamps  store.Timestamps `json:"timestamp,omitempty" bson:",inline,omitempty"`
 }

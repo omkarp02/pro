@@ -73,6 +73,8 @@ type MasterRoute struct {
 
 type MasterStore struct {
 	Master string `yaml:"master" env:"master" env-required:"true"`
+	State  string `yaml:"state" env:"state" env-required:"true"`
+	City   string `yaml:"city" env:"city" env-required:"true"`
 }
 
 type Master struct {

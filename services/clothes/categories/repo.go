@@ -57,7 +57,7 @@ func (s *Repo) Create(ctx context.Context, createCategoryModal CreateCategoryMod
 		Description: createCategoryModal.Description,
 		ImgLink:     createCategoryModal.ImgLink,
 		Icon:        createCategoryModal.Icon,
-		IsActive:    createCategoryModal.IsActive,
+		Status:      createCategoryModal.Status,
 		Slug:        createCategoryModal.Slug,
 		Timestamps:  store.GetCurrentTimestamps(),
 	}
@@ -84,7 +84,7 @@ func (s *Repo) Find(ctx context.Context, filterCategoryModal FilterCategoryModal
 
 	var categoryList []Category
 
-	query := bson.M{"isActive": filterCategoryModal.IsActive}
+	query := bson.M{"status": filterCategoryModal.Status}
 
 	projection := bson.M{}
 	for _, field := range project {
@@ -111,7 +111,7 @@ func (s *Repo) Find(ctx context.Context, filterCategoryModal FilterCategoryModal
 
 func (s *Repo) Count(ctx context.Context, filterCategoryModal FilterCategoryModal) (int, error) {
 
-	query := bson.M{"isActive": filterCategoryModal.IsActive}
+	query := bson.M{"status": filterCategoryModal.Status}
 
 	count, err := s.getColl().CountDocuments(ctx, query)
 	if err != nil {

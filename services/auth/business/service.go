@@ -5,6 +5,7 @@ import (
 
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/services/auth/owner"
+	"github.com/omkarp02/pro/utils/constant"
 )
 
 type Service struct {
@@ -25,7 +26,7 @@ func (s *Service) Create(ctx context.Context, createBody CreateModal, userId str
 
 	result, err := s.txn.RunInTxn(ctx, func(sessCtx context.Context) (interface{}, error) {
 
-		createBody.Active = false
+		createBody.Status = constant.STATUS_ACTIVE
 		businessId, err := s.repo.Create(sessCtx, createBody)
 		if err != nil {
 			return "", err

@@ -48,6 +48,14 @@ func (s *Repo) createIndexes() error {
 
 	_, err := collection.Indexes().CreateOne(context.Background(), indexModel)
 
+	//here is dome index
+
+	// Define the unique index for the "email" field
+	// indexModel := mongo.IndexModel{
+	// 	Keys:    bson.D{{Key: "email", Value: 1}},
+	// 	Options: options.Index().SetUnique(true).SetPartialFilterExpression(bson.D{{Key: "email", Value: bson.D{{Key: "$exists", Value: true}, {Key: "$ne", Value: nil}}}}),
+	// }
+
 	//This is code for create many indexes
 
 	catIdIndexModel := mongo.IndexModel{
@@ -71,6 +79,7 @@ func (s *Repo) Create(ctx context.Context, createModal CreateModal) (string, err
 	// if err != nil {
 	// 	return "", err
 	// }
+	// timestamp := store.GetCurrentTimestamps()
 
 	dataToInsert := Model{
 		// AuditFields: auditFields,
@@ -151,4 +160,72 @@ func (s *Repo) FindById(ctx context.Context, id string, project []string, inclus
 
 	return model, nil
 
+}
+
+func (s *Repo) FindByFilterAggrgate(ctx context.Context, filterListModel FilterListModel, project []string, inclusive bool) ([]Model, error) {
+
+	var list []Model
+
+	name := filterListModel.Name
+	page := filterListModel.Page
+	limit := filterListModel.Limit
+
+	matchQuery := bson.D{}
+
+	if len(name) != 0 {
+		matchQuery = append(matchQuery, bson.E{Key: "name", Value: bson.M{"$regex": name, "$options": "i"}})
+	}
+
+	// if len(stateId) != 0 {
+	// 	matchQuery = append(matchQuery, bson.E{Key: "stateId", Value: stateId})
+	// }
+
+	pipeline := mongo.Pipeline{
+		{
+			{Key: "$match", Value: matchQuery},
+		},
+		{{
+			Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "state"},         // The collection to join with
+				{Key: "localField", Value: "stateId"}, // Field in the current collection
+				{Key: "foreignField", Value: "_id"},   // Field in the "state" collection
+				{Key: "as", Value: "stateDetails"},    // Output array field
+				{Key: "pipeline", Value: bson.A{
+					bson.D{
+						{Key: "$project", Value: bson.D{
+							{Key: "name", Value: 1},
+						}},
+					},
+				}},
+			},
+		}},
+		{{
+			Key: "$unwind", Value: bson.D{
+				{Key: "path", Value: "$stateDetails"},
+				{Key: "preserveNullAndEmptyArrays", Value: true},
+			},
+		}},
+		{
+			{Key: "$project", Value: store.GenerateProjection(project, inclusive)},
+		},
+		{
+			{Key: "$skip", Value: limit * (page - 1)},
+		},
+		{
+			{Key: "$limit", Value: limit},
+		},
+	}
+
+	cursor, err := s.getColl().Aggregate(ctx, pipeline)
+
+	if err != nil {
+		return nil, err
+	}
+	if err := cursor.All(context.TODO(), &list); err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("%+v\n", list)
+
+	return list, nil
 }

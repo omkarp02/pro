@@ -2,6 +2,7 @@ package userprofile
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/services/utils/store"
@@ -33,7 +34,7 @@ func (s *Repo) createIndexes() error {
 	// Define the unique index for the "email" field
 	indexModel := mongo.IndexModel{
 		Keys:    bson.D{{Key: "email", Value: 1}},
-		Options: options.Index().SetUnique(true),
+		Options: options.Index().SetUnique(true).SetPartialFilterExpression(bson.D{{Key: "email", Value: bson.D{{Key: "$exists", Value: true}, {Key: "$ne", Value: nil}}}}),
 	}
 
 	_, err := collection.Indexes().CreateOne(context.Background(), indexModel)
@@ -45,40 +46,57 @@ func (s *Repo) getColl() *mongo.Collection {
 }
 
 func (s *Repo) Create(ctx context.Context, user CreateUserModel) (string, error) {
+
+	var updatedUser User
+
 	newUser := User{
 		FirstName:   user.FirstName,
 		LastName:    user.LastName,
 		DateOfBirth: user.DateOfBirth,
+		Email:       user.Email,
 		Gender:      user.Gender,
 		Timestamps:  store.GetCurrentTimestamps(),
 	}
 
-	result, err := s.getColl().InsertOne(ctx, newUser)
+	filter := bson.M{"email": user.Email}
+	update := bson.M{"$set": newUser}
+
+	opts := options.FindOneAndUpdate().SetUpsert(true)
+
+	err := s.getColl().FindOneAndUpdate(ctx, filter, update, opts).Decode(&updatedUser)
 	if err != nil {
+		fmt.Println(err)
 		if mongo.IsDuplicateKeyError(err) {
 			return "", errutil.ErrDocumentAlreadyExist
 		}
 		return "", err
 	}
 
-	if id, ok := result.InsertedID.(bson.ObjectID); ok {
-		return id.Hex(), nil
-	}
-
-	return "", errutil.ErrDatabase
+	return updatedUser.ID.Hex(), nil
 }
 
-// func (s *Store) GetUser(userId string) (*User, error) {
-// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-// 	var user User
-// 	defer cancel()
+func (s *Repo) FindById(ctx context.Context, id string, project []string, inclusive bool) (User, error) {
 
-// 	objId, _ := bson.ObjectIDFromHex(userId)
+	var model User
 
-// 	err := s.getColl().FindOne(ctx, bson.M{"_id": objId}).Decode(&user)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	objectId, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return model, fmt.Errorf("invalid id format: %v", err)
+	}
 
-// 	return &user, nil
-// }
+	filter := bson.M{"_id": objectId}
+	findOneOptions := options.FindOne()
+
+	if len(project) != 0 {
+		projection := store.GenerateProjection(project, inclusive)
+		findOneOptions.SetProjection(projection)
+	}
+
+	err = s.getColl().FindOne(ctx, filter, findOneOptions).Decode(&model)
+	if err != nil {
+		return model, err
+	}
+
+	return model, nil
+
+}

@@ -6,7 +6,7 @@ import (
 )
 
 type ProductList struct {
-	ID         bson.ObjectID    `json:"_id,omitempty" bson:"_id,omitempty"`
+	ID         bson.ObjectID    `json:"id,omitempty" bson:"_id,omitempty"`
 	Name       string           `json:"name,omitempty" bson:"name,omitempty"`
 	Sizes      []string         `json:"sizes,omitempty" bson:"sizes,omitempty"`
 	Color      string           `json:"color,omitempty" bson:"color,omitempty"`
@@ -16,7 +16,7 @@ type ProductList struct {
 	Discount   int              `json:"discount,omitempty" bson:"discount,omitempty"`
 	Detail     bson.ObjectID    `json:"detail,omitempty" bson:"detail,omitempty"`
 	Category   bson.ObjectID    `json:"category,omitempty" bson:"category,omitempty"`
-	BatchId    bson.ObjectID    `json:"batchId,omitempty" bson:"batchId,omitempty"`
+	BatchId    string           `json:"batchId,omitempty" bson:"batchId,omitempty"`
 	Gender     string           `json:"gender,omitempty" bson:"gender,omitempty"`
 	Collection []string         `json:"collection,omitempty" bson:"collection,omitempty"`
 	Tags       []string         `json:"tags,omitempty" bson:"tags,omitempty"`
@@ -24,14 +24,14 @@ type ProductList struct {
 }
 
 type ProductDetail struct {
-	ID          bson.ObjectID    `json:"_id,omitempty" bson:"_id,omitempty"`
+	ID          bson.ObjectID    `json:"id,omitempty" bson:"_id,omitempty"`
 	Name        string           `json:"name,omitempty" bson:"name,omitempty"`
 	PreviewImg  string           `json:"previewImg,omitempty" bson:"previewImg,omitempty"`
 	Description Description      `json:"description,omitempty" bson:"description,omitempty"`
 	Variations  []Variation      `json:"variations,omitempty" bson:"variations,omitempty"`
 	ImgLink     []string         `json:"imgLink,omitempty" bson:"imgLink,omitempty"`
-	BatchId     bson.ObjectID    `json:"batchId,omitempty" bson:"batchId,omitempty"`
-	Timestamps  store.Timestamps `bson:"timestamp,inline"`
+	BatchId     string           `json:"batchId,omitempty" bson:"batchId,omitempty"`
+	Timestamps  store.Timestamps `json:"timestamps,omitempty" bson:"timestamp,inline"`
 }
 
 type ProductTemplate struct {
@@ -41,9 +41,9 @@ type ProductTemplate struct {
 }
 
 type Variation struct {
-	Size     string  `json:"size,omitempty" bson:"size,omitempty"`
-	Price    float64 `json:"price,omitempty" bson:"price,omitempty"`
-	Discount int     `json:"discount,omitempty" bson:"discount,omitempty"`
+	Size     string  `json:"size,omitempty" bson:"size,omitempty" validate:"required"`
+	Price    float64 `json:"price,omitempty" bson:"price,omitempty" validate:"required"`
+	Discount int     `json:"discount,omitempty" bson:"discount,omitempty" validate:"required,min=0,max=100"`
 }
 
 type Description struct {
@@ -77,8 +77,9 @@ type BatchProductDetails struct {
 }
 
 type ProductBatch struct {
-	ID          bson.ObjectID         `bson:"_id,omitempty" json:"_id,omitempty"`
-	BatchCode   string                `bson:"batchCode,omitempty" json:"batchCode,omitempty"`
+	ID          bson.ObjectID         `bson:"_id,omitempty" json:"id,omitempty"`
+	Code        string                `bson:"code,omitempty" json:"code,omitempty"`
+	Name        string                `bson:"name,omitempty" json:"name,omitempty"`
 	ProductList []BatchProductDetails `bson:"batchProductDetails,omitempty" json:"batchProductDetails,omitempty"`
-	Timestamps  store.Timestamps      `json:"timestamp" bson:"timestamp,inline"`
+	AuditFields *store.AuditFields    `json:"timestamp,inline,omitempty" bson:",inline,omitempty"`
 }

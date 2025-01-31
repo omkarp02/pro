@@ -6,8 +6,7 @@ type TCreateUser struct {
 	FirstName   string    `json:"firstname,omitempty" validate:"required"`
 	LastName    string    `json:"lastname,omitempty" validate:"required"`
 	DateOfBirth time.Time `json:"dateofbirth,omitempty" validate:"required"`
-	Gender      string    `json:"gender,omitempty" validate:"required"`
-	Email       string    `json:"email,omitempty" validate:"required"`
+	Gender      string    `json:"gender,omitempty" validate:"required,oneof=male female others"`
 }
 
 type CreateUserModel struct {

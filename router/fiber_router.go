@@ -7,6 +7,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/encryptcookie"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/monitor"
 	"github.com/omkarp02/pro/config"
 	"github.com/omkarp02/pro/types"
 	"github.com/omkarp02/pro/utils/errutil"
@@ -21,7 +23,8 @@ type FiberRouter struct {
 func NewFiberRouter(cfg *config.Config) *FiberRouter {
 
 	fiberConfig := fiber.Config{
-		ErrorHandler: errutil.ErrorHandler,
+		ErrorHandler:             errutil.ErrorHandler,
+		EnableSplittingOnParsers: true,
 	}
 	app := fiber.New(fiberConfig)
 
@@ -35,6 +38,11 @@ func NewFiberRouter(cfg *config.Config) *FiberRouter {
 	}))
 
 	api := app.Group("/api/v1")
+
+	api.Get("/metrics", monitor.New())
+	api.Use(logger.New(logger.Config{
+		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
+	}))
 
 	return &FiberRouter{router: api, app: app, cfg: cfg}
 }

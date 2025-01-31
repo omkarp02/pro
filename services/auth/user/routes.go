@@ -29,6 +29,7 @@ type UserService interface {
 	CreateOwnerAndAccount(ctx context.Context, ownerPayload CreateOwnerAndAccountModel, userId string) (string, error)
 	GetUser(ctx context.Context, field string, value string) (useraccount.UserAccount, error)
 	HandleRefreshTokenForLogin(ctx context.Context, userId string, refreshToken string, oldRefreshToken string) error
+	GetUserProfile(ctx context.Context, useraccountId string) (userprofile.User, error)
 }
 
 type Handler struct {
@@ -42,7 +43,7 @@ func NewHandler(service UserService, cfg *config.Config, validator *validation.V
 }
 
 func (h *Handler) RegisterRoutes(router router.Router, link string) {
-	// h.RegisterProviders()
+	h.RegisterProviders()
 	routeGrp := router.Group(link)
 
 	routeGrp.Get("/sso/:provider", h.authHandler)
@@ -50,7 +51,8 @@ func (h *Handler) RegisterRoutes(router router.Router, link string) {
 
 	routeGrp.Use(middleware.VerifyToken(h.cfg))
 
-	routeGrp.Post("/create-user-profile", h.createUserProfile)
+	routeGrp.Post("/profile", h.createUserProfile)
+	routeGrp.Get("/profile", h.GetUserProfile)
 
 	routeGrp.Use(middleware.IsAdmin())
 
@@ -84,7 +86,21 @@ func (h *Handler) createUserProfile(c router.Context) error {
 		return err
 	}
 
-	return utils.SendResponse(c, "User created successfully", id, 201)
+	return utils.SendResponse(c, "User created successfully", id, 200)
+}
+
+func (h *Handler) GetUserProfile(c router.Context) error {
+	ctx, cancel := createContext()
+	defer cancel()
+
+	decodedUserId := c.GetDecodedData().ID
+
+	data, err := h.service.GetUserProfile(ctx, decodedUserId)
+	if err != nil {
+		return err
+	}
+
+	return utils.SendResponse(c, "Address Fetched Successfully", data, 200)
 }
 
 func (h *Handler) authHandler(c router.Context) error {
@@ -96,23 +112,25 @@ func (h *Handler) redirectUrlHandler(c router.Context) error {
 	ctx, cancel := createContext()
 	defer cancel()
 
-	role := []string{constant.ROLE_ADMIN}
+	role := []string{constant.ROLE_USER}
 	provider := c.Params("provider")
 	providerId := h.cfg.GetProviderIdByName(provider)
 
 	oldRefreshToken := c.GetCookie(constant.REFRESH_TOKEN_COOKIE)
 	user, err := goth_fiber.CompleteUserAuth(c.GetContext())
 
-	fmt.Println(user.Name, user.FirstName, user.LastName)
-
 	if err != nil {
 		slog.Error("err while handling the redirect url", "err", err)
 		return errutil.InternalServerError()
 	}
 
-	var id string
-	userAccount, err := h.service.GetUser(ctx, "email", user.Email)
-	id = userAccount.ID.Hex()
+	fmt.Println(user.Email)
+
+	var curUserId string
+	userAccount, err := h.service.GetUser(ctx, "userId", user.Email)
+	curUserId = userAccount.ID.Hex()
+
+	fmt.Println(curUserId)
 
 	if errors.Is(err, errutil.ErrDocumentNotFound) {
 		createUserAccountModal := useraccount.CreateUserAccountModal{
@@ -132,24 +150,22 @@ func (h *Handler) redirectUrlHandler(c router.Context) error {
 			Email:     user.Email,
 		}
 
-		id, err = h.service.CreateUserProfileAndAccount(ctx, profile, createUserAccountModal)
+		curUserId, err = h.service.CreateUserProfileAndAccount(ctx, profile, createUserAccountModal)
 
 		if err != nil {
 			return err
 		}
-	} else if err != nil {
-		return err
 	}
 
-	accessTokenPayload := helper.CreateAccessTokenPayload(id, providerId, role)
-	refreshTokenPayload := helper.CreateRefreshTokenPayload(id, providerId, role)
+	accessTokenPayload := helper.CreateAccessTokenPayload(curUserId, providerId, role)
+	refreshTokenPayload := helper.CreateRefreshTokenPayload(curUserId, providerId, role)
 
 	newAuthToken, newRefreshToken, err := utils.GenerateRefreshAndAccessToken(accessTokenPayload, refreshTokenPayload, h.cfg)
 	if err != nil {
 		return err
 	}
 
-	h.service.HandleRefreshTokenForLogin(ctx, id, newRefreshToken, oldRefreshToken)
+	h.service.HandleRefreshTokenForLogin(ctx, curUserId, newRefreshToken, oldRefreshToken)
 
 	if len(oldRefreshToken) != 0 {
 		helper.ClearCookie(c, constant.REFRESH_TOKEN_COOKIE)
@@ -188,7 +204,7 @@ func (h *Handler) createOwner(c router.Context) error {
 		MobileNo:     owner.MobileNo,
 		Gender:       owner.Gender,
 		UserId:       owner.Email,
-		Type:         owner.Type,
+		Type:         constant.USERACCOUNT_TYPE_EMAIL,
 	}
 
 	if createOwnerData.Type == constant.USERACCOUNT_TYPE_PHONE {

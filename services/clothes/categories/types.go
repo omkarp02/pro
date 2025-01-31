@@ -7,7 +7,7 @@ type TCreateCategory struct {
 	Description string `json:"description,omitempty" validate:"required"`
 	ImgLink     string `json:"imgLink,omitempty" validate:"required"`
 	Icon        string `json:"icon,omitempty" validate:"required"`
-	IsActive    bool   `json:"isActive,omitempty" validate:"required"`
+	Status      string `json:"status,omitempty" validate:"required,validStatus"`
 	Slug        string `json:"slug,omitempty" validate:"required"`
 }
 
@@ -17,11 +17,11 @@ type CreateCategoryModal struct {
 }
 
 type TFilterCategory struct {
-	IsActive   bool             `json:"isActive,omitempty"`
 	Pagination store.Pagination `json:"pagination,inline" validation:"required"`
 }
 
 type TCategoryList struct {
+	Id    string `json:"id,omitempty"`
 	CatId string `json:"catId,omitempty"`
 	Name  string `json:"name,omitempty"`
 	Icon  string `json:"icon,omitempty"`
@@ -29,6 +29,6 @@ type TCategoryList struct {
 }
 
 type FilterCategoryModal struct {
-	IsActive   bool             `json:"isActive,omitempty"`
+	Status     string
 	Pagination store.Pagination `json:"pagination,inline"`
 }

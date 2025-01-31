@@ -13,7 +13,9 @@ import (
 	"github.com/omkarp02/pro/services/clothes/categories"
 	"github.com/omkarp02/pro/services/clothes/filter"
 	"github.com/omkarp02/pro/services/clothes/product"
-	"github.com/omkarp02/pro/services/master"
+	"github.com/omkarp02/pro/services/master/city"
+	"github.com/omkarp02/pro/services/master/master"
+	"github.com/omkarp02/pro/services/master/state"
 	"github.com/omkarp02/pro/utils/validation"
 )
 
@@ -61,6 +63,8 @@ func setUpAuthApp(curDb *db.Database, cfg *config.Config, validator *validation.
 
 func setUpMasterApp(curDb *db.Database, cfg *config.Config, validator *validation.Validator, api router.Router) {
 	master.Intialize(curDb, cfg, validator, api)
+	state.Intialize(curDb, cfg, validator, api)
+	city.Intialize(curDb, cfg, validator, api)
 }
 
 // authHandler := auth.NewHandler(s.config, userAccountStore)

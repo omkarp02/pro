@@ -28,16 +28,36 @@ func NewProductBatchRepo(curDb *db.Database, collName string) *ProductBatchRepo 
 	return store
 }
 
+func (s *ProductBatchRepo) createIndexes() error {
+	collection := s.getColl()
+
+	//This is code for create single index
+	indexModel := mongo.IndexModel{
+		Keys:    bson.D{{Key: "code", Value: 1}},
+		Options: options.Index().SetUnique(true),
+	}
+
+	_, err := collection.Indexes().CreateOne(context.Background(), indexModel)
+
+	return err
+}
+
 func (s *ProductBatchRepo) getColl() *mongo.Collection {
 	return s.DB.Database(s.DBName).Collection(s.collName)
 }
 
 func (s *ProductBatchRepo) Create(ctx context.Context, createPayload CreateProductBatchModel) (string, error) {
 
+	auditFields, err := store.GenerateCreateAuditFields(createPayload.CreatorId)
+	if err != nil {
+		return "", err
+	}
+
 	batchDetails := ProductBatch{
-		BatchCode:   createPayload.BatchCode,
+		Code:        createPayload.Code,
+		Name:        createPayload.Name,
 		ProductList: createPayload.ProductList,
-		Timestamps:  store.GetCurrentTimestamps(),
+		AuditFields: &auditFields,
 	}
 
 	result, err := s.getColl().InsertOne(ctx, batchDetails)
@@ -69,7 +89,9 @@ func (s *ProductBatchRepo) UpdateBatchImg(ctx context.Context, batchId string, p
 		ImgLink:         productDetail.ImgLink,
 	}
 
-	query := bson.M{"_id": batchId}
+	fmt.Println(objectIds[0])
+
+	query := bson.M{"_id": objectIds[2]}
 	update := bson.M{
 		"$push": bson.M{"batchProductDetails": updatePayload},
 		"$set":  bson.M{"timestamp.updatedAt": time.Now()},
@@ -115,6 +137,65 @@ func (s *ProductBatchRepo) FindById(ctx context.Context, id string, project []st
 
 	return batchDetail, nil
 
+}
+
+func (s *ProductBatchRepo) FindByCode(ctx context.Context, code string, project []string, inclusive bool) (ProductBatch, error) {
+
+	var batchDetail ProductBatch
+
+	filter := bson.M{"code": code}
+	findOneOptions := options.FindOne()
+
+	if len(project) != 0 {
+		projection := store.GenerateProjection(project, inclusive)
+		findOneOptions.SetProjection(projection)
+	}
+
+	err := s.getColl().FindOne(ctx, filter, findOneOptions).Decode(&batchDetail)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return batchDetail, errutil.NotFound("Product batch")
+		}
+		return batchDetail, errutil.NotFound("Product batch")
+	}
+
+	return batchDetail, nil
+
+}
+
+func (s *ProductBatchRepo) FindByFilter(ctx context.Context, filterListModel FilterProductBatchListModel, project []string, inclusive bool) ([]ProductBatch, error) {
+
+	var list []ProductBatch
+
+	query := bson.M{}
+
+	page := filterListModel.Page
+	limit := filterListModel.Limit
+	creatorId := filterListModel.CreatorId
+
+	creatorObjectId, err := bson.ObjectIDFromHex(creatorId)
+	if err != nil {
+		return list, err
+	}
+
+	query["createdBy"] = creatorObjectId
+
+	findOptions := options.Find().SetSkip(int64(limit * (page - 1))).SetLimit(int64(limit))
+
+	if len(project) > 0 {
+		projection := store.GenerateProjection(project, inclusive)
+		findOptions.SetProjection(projection)
+	}
+
+	cursor, err := s.getColl().Find(ctx, query, findOptions)
+	if err != nil {
+		return nil, err
+	}
+	if err := cursor.All(context.TODO(), &list); err != nil {
+		return nil, err
+	}
+
+	return list, nil
 }
 
 // func (s *Repo) createIndexes() error {

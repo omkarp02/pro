@@ -31,7 +31,7 @@ func (s *Service) FilterProductList(ctx context.Context, filterProductList TFilt
 
 	var filteredProductList []TFilteredProductList
 
-	productList, err := s.productListRepo.FindByFilter(ctx, FilterProductListModel(filterProductList), []string{"name", "price", "discount", "imgLink", "_id", "detail"}, true)
+	productList, err := s.productListRepo.FindByFilter(ctx, FilterProductListModel(filterProductList), []string{"name", "price", "discount", "imgLink", "_id", "detail", "batchId"}, true)
 	if err != nil {
 		return nil, err
 	}
@@ -43,6 +43,7 @@ func (s *Service) FilterProductList(ctx context.Context, filterProductList TFilt
 			ImgLink:  item.ImgLink,
 			Discount: item.Discount,
 			Detail:   item.Detail.Hex(),
+			BatchId:  item.BatchId,
 			Id:       item.ID.Hex(),
 		})
 	}
@@ -58,7 +59,9 @@ func (s *Service) CreateProduct(ctx context.Context, productDetails TCreateProdu
 
 	_, err := s.txn.RunInTxn(ctx, func(sessCtx context.Context) (interface{}, error) {
 
-		productDetails.ProductDetail.PreviewImg = productDetails.ProductList.ImgLink
+		previewImg := productDetails.ProductDetail.ImgLink[0]
+		productDetails.ProductList.ImgLink = previewImg
+		productDetails.ProductDetail.PreviewImg = previewImg
 		productDetails.ProductDetail.Name = productDetails.ProductList.Name
 		productDetails.ProductDetail.Variations = append(productDetails.ProductDetail.Variations, Variation{Size: constant.BASE_SIZE, Price: productDetails.ProductList.Price, Discount: productDetails.ProductList.Discount})
 
@@ -97,33 +100,34 @@ func (s *Service) CreateProduct(ctx context.Context, productDetails TCreateProdu
 	return err
 }
 
-func (s *Service) GetProductDetails(ctx context.Context, productId string) (TProductDetailsServiceResponse, error) {
+func (s *Service) GetProductDetails(ctx context.Context, productId string) (ProductDetail, error) {
 
-	var result TProductDetailsServiceResponse
+	var result ProductDetail
 
 	productDetails, err := s.productDetailRepo.FindById(ctx, productId, []string{}, false)
 	if err != nil {
 		return result, err
 	}
+	return productDetails, nil
+}
 
-	batchDetails, err := s.productBatchRepo.FindById(ctx, productDetails.BatchId.Hex(), []string{}, false)
+func (s *Service) GetProductBatchDetails(ctx context.Context, code string) (ProductBatch, error) {
+	var result ProductBatch
+	batchDetails, err := s.productBatchRepo.FindByCode(ctx, code, []string{}, false)
 	if err != nil {
 		return result, err
 	}
-
-	//here need to link the batch details and also need to update the code on create like on product crate also update the batch document
-	result.ProductDetails = productDetails
-	result.BatchDetails = batchDetails
-
-	return result, nil
+	return batchDetails, nil
 }
 
-func (s *Service) CreateProductBatch(ctx context.Context) (string, error) {
+func (s *Service) CreateProductBatch(ctx context.Context, createPayload TCreateProductBatch, userId string) (string, error) {
 
-	batchId := "BATCH" + strconv.Itoa(utils.GenerateRandomNumber(5))
+	batchId := strconv.Itoa(utils.GenerateRandomNumber(6))
 
 	payload := CreateProductBatchModel{
-		BatchCode: batchId,
+		Code:      batchId,
+		Name:      createPayload.Name,
+		CreatorId: userId,
 	}
 
 	return s.productBatchRepo.Create(ctx, payload)
@@ -142,4 +146,11 @@ func (s *Service) FindProductTemplate(ctx context.Context, payload FilterProduct
 
 func (s *Service) FindProductTemplateById(ctx context.Context, templateId string) (ProductTemplate, error) {
 	return s.productTemplateRepo.FindById(ctx, templateId, []string{}, true)
+}
+
+func (s *Service) FindProductBatch(ctx context.Context, filterPayload FilterProductBatchListModel) ([]ProductBatch, error) {
+
+	project := []string{"code", "name", "_id"}
+
+	return s.productBatchRepo.FindByFilter(ctx, filterPayload, project, true)
 }

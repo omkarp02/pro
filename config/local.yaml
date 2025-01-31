@@ -22,8 +22,12 @@ app:
   master: 
     db_collection:
       master: "master"
-    routes:
+      state: "state"
+      city: "city"
+    routes: 
       master: "master"
+      state: "state"
+      city: "city"
   auth:
     db_collection:
       user_account: "user_account"
@@ -40,7 +44,7 @@ app:
       redirect_url: "http://localhost:3000/auth-success"
 auth_config_provider:
   google:
-    redirect_url: "http://localhost:8080/api/v1/auth/google/callback"
+    redirect_url: "http://localhost:8080/api/v1/user/sso/google/callback"
     provider_id: "B80E81BI66XN6MU"
     provider_name: "google"
   jwt:

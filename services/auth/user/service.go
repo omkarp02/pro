@@ -52,26 +52,33 @@ func (s *Service) CreateUserProfileAndAccount(ctx context.Context, userprofile u
 
 }
 
-func (s *Service) CreateUserProfile(ctx context.Context, paylaod userprofile.TCreateUser, useraccountId string) (string, error) {
+func (s *Service) CreateUserProfile(ctx context.Context, payload userprofile.TCreateUser, useraccountId string) (string, error) {
 
 	result, err := s.txn.RunInTxn(ctx, func(sessCtx context.Context) (interface{}, error) {
 
-		useraccountDetails, err := s.useraccountRepo.FindById(ctx, useraccountId, []string{"email"}, true)
+		useraccountDetails, err := s.useraccountRepo.FindById(ctx, useraccountId, []string{"userId", "userProfileId"}, true)
 		if err != nil {
 			return "", err
 		}
 
-		if useraccountDetails.Type == constant.USERACCOUNT_TYPE_EMAIL {
-			paylaod.Email = useraccountDetails.UserId
+		userProfileDetails := userprofile.CreateUserModel{
+			FirstName:   payload.FirstName,
+			LastName:    payload.LastName,
+			DateOfBirth: payload.DateOfBirth,
+			Gender:      payload.Gender,
+			Email:       useraccountDetails.UserId,
 		}
 
-		id, err := s.userprofileRepo.Create(sessCtx, userprofile.CreateUserModel(paylaod))
+		id, err := s.userprofileRepo.Create(sessCtx, userProfileDetails)
 		if err != nil {
 			return "", err
 		}
 
-		if err := s.useraccountRepo.UpdateUserProfileById(ctx, useraccountId, id); err != nil {
-			return "", err
+		if useraccountDetails.UserProfile.IsZero() {
+			_, err = s.useraccountRepo.UpdateUserProfileById(ctx, useraccountId, id)
+			if err != nil {
+				return "", err
+			}
 		}
 
 		return id, err
@@ -142,6 +149,17 @@ func (s *Service) CreateOwnerAndAccount(ctx context.Context, ownerPayload Create
 
 func (s *Service) GetUser(ctx context.Context, field string, value string) (useraccount.UserAccount, error) {
 	return s.useraccountRepo.FindOne(ctx, field, value, []string{}, false)
+}
+
+func (s *Service) GetUserProfile(ctx context.Context, useraccountId string) (userprofile.User, error) {
+	var user userprofile.User
+
+	useraccountDetails, err := s.useraccountRepo.FindById(ctx, useraccountId, []string{"userProfileId"}, true)
+	if err != nil {
+		return user, err
+	}
+
+	return s.userprofileRepo.FindById(ctx, useraccountDetails.UserProfile.Hex(), []string{}, false)
 }
 
 func (s *Service) HandleRefreshTokenForLogin(ctx context.Context, userId string, refreshToken string, oldRefreshToken string) error {

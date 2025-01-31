@@ -35,7 +35,7 @@ type TCreateProductDetail struct {
 	Name        string      `json:"name,omitempty"`
 	PreviewImg  string      `json:"previewImg,omitempty"`
 	Description Description `json:"description,omitempty"  validate:"required"`
-	Variations  []Variation `json:"variations,omitempty"  validate:"required"`
+	Variations  []Variation `json:"variations,omitempty"  validate:"required,dive"`
 	ImgLink     []string    `json:"imgLink,omitempty"  validate:"required"`
 	BatchId     string      `json:"batchId,omitempty"  validate:"required"`
 }
@@ -51,6 +51,17 @@ type TFilterProductList struct {
 	Limit      int      `query:"limit,omitempty" validate:"required"`
 }
 
+type FilterProductListModel struct {
+	Sizes      []string `json:"sizes,omitempty"`
+	Color      string   `json:"color,omitempty"`
+	MinPrice   float64  `json:"min_price,omitempty"`
+	MaxPrice   float64  `json:"max_price,omitempty"`
+	Collection string   `json:"collection,omitempty"`
+	Name       string   `json:"name,omitempty"`
+	Page       int      `json:"page,omitempty"`
+	Limit      int      `json:"limit,omitempty"`
+}
+
 type TFilteredProductList struct {
 	Id       string  `json:"id,omitempty"`
 	Name     string  `json:"name,omitempty"`
@@ -58,6 +69,7 @@ type TFilteredProductList struct {
 	ImgLink  string  `json:"imgLink,omitempty"`
 	Detail   string  `json:"productDetailId,omitempty"`
 	Discount int     `json:"discount,omitempty"`
+	BatchId  string  `json:"batchId,omitempty"`
 }
 
 type TAddProductToCollection struct {
@@ -106,29 +118,35 @@ type CreateProductListModel struct {
 	Tags       []string `json:"tags,omitempty"`
 }
 
-type FilterProductListModel struct {
-	Sizes      []string `json:"sizes,omitempty"`
-	Color      string   `json:"color,omitempty"`
-	MinPrice   float64  `json:"min_price,omitempty"`
-	MaxPrice   float64  `json:"max_price,omitempty"`
-	Collection string   `json:"collection,omitempty"`
-	Name       string   `json:"name,omitempty"`
-	Page       int      `json:"page,omitempty"`
-	Limit      int      `json:"limit,omitempty"`
-}
-
 type FilterProductTemplateModel struct {
 	Name  string `json:"name,omitempty"`
 	Page  int    `json:"page,omitempty"`
 	Limit int    `json:"limit,omitempty"`
 }
 
+type TCreateProductBatch struct {
+	Name string `json:"name,omitempty" validate:"required"`
+}
+
 type CreateProductBatchModel struct {
-	BatchCode   string                `json:"batchCode,omitempty"`
+	Code        string                `json:"code,omitempty"`
+	Name        string                `json:"name,omitempty"`
 	ProductList []BatchProductDetails `json:"batchProductDetails,omitempty"`
+	CreatorId   string
 }
 
 type AddProductToCollectionModel struct {
 	CollectionName string   `json:"collection_name,omitempty"`
 	ProductId      []string `json:"product_id,omitempty"`
+}
+
+type TFilterProductBatchList struct {
+	Page  int `query:"page,omitempty" validate:"required"`
+	Limit int `query:"limit,omitempty" validate:"required"`
+}
+
+type FilterProductBatchListModel struct {
+	CreatorId string
+	Page      int `json:"page,omitempty"`
+	Limit     int `json:"limit,omitempty"`
 }

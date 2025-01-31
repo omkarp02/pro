@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/omkarp02/pro/config"
@@ -36,6 +37,8 @@ func VerifyToken(cfg *config.Config) router.Handler {
 		if err != nil {
 			return err
 		}
+
+		fmt.Println(">>>>>>>>>>> here is decoded userData", userData)
 
 		c.Locals("user", userData)
 

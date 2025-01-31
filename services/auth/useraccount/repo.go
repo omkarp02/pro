@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/omkarp02/pro/db"
+	"github.com/omkarp02/pro/services/utils"
 	"github.com/omkarp02/pro/services/utils/helper"
 	"github.com/omkarp02/pro/services/utils/store"
 	"github.com/omkarp02/pro/utils/errutil"
@@ -61,13 +62,13 @@ func (s *Repo) Create(ctx context.Context, user CreateUserAccountModal) (string,
 		user.PasswordHash = hashedPassword
 	}
 
-	fmt.Println(">>>>>>>>>>>>>", user)
-
 	newUserAccount := s.createUserAccountModalFromData(user)
 
-	fmt.Println(newUserAccount)
+	fmt.Println(newUserAccount, "<<<<<<<<<<<< user account")
 
 	result, err := s.getColl().InsertOne(ctx, newUserAccount)
+
+	fmt.Println(result, err, "<<<<<<<<<<<< isnerted result")
 
 	if mongo.IsDuplicateKeyError(err) {
 		return "", errutil.ErrDocumentAlreadyExist
@@ -139,11 +140,18 @@ func (s *Repo) FindOne(ctx context.Context, field string, value string, project 
 	return userAccount, nil
 }
 
-func (s *Repo) UpdateUserProfileById(ctx context.Context, id string, userProfileId string) error {
+func (s *Repo) UpdateUserProfileById(ctx context.Context, id string, userProfileId string) (utils.UPDATE_RESULT, error) {
+
+	var updateResult utils.UPDATE_RESULT
 
 	objectId, err := bson.ObjectIDFromHex(userProfileId)
 	if err != nil {
-		return err
+		return updateResult, err
+	}
+
+	userObjectId, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return updateResult, err
 	}
 
 	update := bson.M{
@@ -151,12 +159,15 @@ func (s *Repo) UpdateUserProfileById(ctx context.Context, id string, userProfile
 			"userProfileId": objectId, // New name to update
 		},
 	}
-	_, err = s.getColl().UpdateByID(ctx, id, update)
-	if err != nil {
-		return err
+
+	data, err := s.getColl().UpdateByID(ctx, userObjectId, update)
+
+	updateResult = utils.UPDATE_RESULT{
+		MatchedCount:  int(data.MatchedCount),
+		ModifiedCount: int(data.ModifiedCount),
 	}
 
-	return nil
+	return updateResult, err
 }
 
 func (s *Repo) UpdateUserRefreshToken(ctx context.Context, userId string, action string, refreshToken string) error {
@@ -232,7 +243,7 @@ func (s *Repo) createUserAccountModalFromData(userAccountData CreateUserAccountM
 	if len(userAccountData.UserProfile) != 0 {
 		userProfileObjectId, err := bson.ObjectIDFromHex(userAccountData.UserProfile)
 
-		newUserAccount.UserProfile = userProfileObjectId
+		newUserAccount.UserProfile = &userProfileObjectId
 
 		if err != nil {
 			panic(err)

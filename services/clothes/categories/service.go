@@ -2,8 +2,9 @@ package categories
 
 import (
 	"context"
-	"fmt"
 	"strconv"
+
+	"github.com/omkarp02/pro/utils/constant"
 )
 
 type Service struct {
@@ -17,9 +18,8 @@ func NewService(repo *Repo) *Service {
 }
 
 func (s *Service) Create(ctx context.Context, createCategory TCreateCategory) (string, error) {
-	fmt.Println("reached sercie<<<<<<<<<", createCategory)
 
-	count, err := s.repo.Count(ctx, FilterCategoryModal{IsActive: true})
+	count, err := s.repo.Count(ctx, FilterCategoryModal{Status: constant.STATUS_ACTIVE})
 	if err != nil {
 		return "", nil
 	}
@@ -32,17 +32,14 @@ func (s *Service) Create(ctx context.Context, createCategory TCreateCategory) (s
 	return s.repo.Create(ctx, modal)
 }
 
-func (s *Service) GetAllCategory(ctx context.Context, filterData TFilterCategory) ([]TCategoryList, error) {
+func (s *Service) GetAllCategory(ctx context.Context, filterData FilterCategoryModal, project []string, inclusive bool) ([]TCategoryList, error) {
 
 	var categoryList []TCategoryList
 
-	project := []string{"catId", "icon", "name", "slug"}
-
-	categoryData, err := s.repo.Find(ctx, FilterCategoryModal{IsActive: true}, project, true)
+	categoryData, err := s.repo.Find(ctx, filterData, project, inclusive)
 	if err != nil {
 		return nil, err
 	}
-
 	for _, item := range categoryData {
 
 		categoryList = append(categoryList, TCategoryList{
@@ -50,8 +47,8 @@ func (s *Service) GetAllCategory(ctx context.Context, filterData TFilterCategory
 			Name:  item.Name,
 			Icon:  item.Icon,
 			Slug:  item.Slug,
+			Id:    item.ID.Hex(),
 		})
 	}
-
 	return categoryList, nil
 }

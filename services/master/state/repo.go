@@ -1,7 +1,9 @@
-package master
+package state
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log"
 
 	"github.com/omkarp02/pro/db"
@@ -35,21 +37,25 @@ func (s *Repo) getColl() *mongo.Collection {
 }
 
 func (s *Repo) createIndexes() error {
+	collection := s.getColl()
 
-	return nil
+	indexModel := mongo.IndexModel{
+		Keys:    bson.D{{Key: "name", Value: 1}},
+		Options: options.Index().SetUnique(true),
+	}
+
+	_, err := collection.Indexes().CreateOne(context.Background(), indexModel)
+
+	return err
 }
 
 func (s *Repo) Create(ctx context.Context, createModal CreateModal) (string, error) {
 
-	auditFields, err := store.GenerateCreateAuditFields(createModal.CreatorId)
-	if err != nil {
-		return "", err
-	}
+	timestamp := store.GetCurrentTimestamps()
 
-	dataToInsert := Master{
-		Type:        createModal.Type,
-		Name:        createModal.Name,
-		AuditFields: auditFields,
+	dataToInsert := State{
+		Name:       createModal.Name,
+		Timestamps: &timestamp,
 	}
 
 	result, err := s.getColl().InsertOne(ctx, dataToInsert)
@@ -68,18 +74,18 @@ func (s *Repo) Create(ctx context.Context, createModal CreateModal) (string, err
 
 }
 
-func (s *Repo) FindByFilter(ctx context.Context, filterListModel FilterListModel, project []string, inclusive bool) ([]Master, error) {
+func (s *Repo) FindByFilter(ctx context.Context, filterListModel FilterListModel, project []string, inclusive bool) ([]State, error) {
 
-	var list []Master
+	var list []State
 
 	query := bson.M{}
 
+	name := filterListModel.Name
 	page := filterListModel.Page
 	limit := filterListModel.Limit
-	masterType := filterListModel.Type
 
-	if len(masterType) != 0 {
-		query["type"] = bson.M{"$regex": masterType, "$options": "i"}
+	if len(name) != 0 {
+		query["name"] = bson.M{"$regex": name, "$options": "i"}
 	}
 
 	findOptions := options.Find().SetSkip(int64(limit * (page - 1))).SetLimit(int64(limit))
@@ -100,31 +106,31 @@ func (s *Repo) FindByFilter(ctx context.Context, filterListModel FilterListModel
 	return list, nil
 }
 
-// func (s *Repo) FindById(ctx context.Context, id string, project []string, inclusive bool) (Model, error) {
+func (s *Repo) FindById(ctx context.Context, id string, project []string, inclusive bool) (State, error) {
 
-// 	var model Model
+	var model State
 
-// 	objectId, err := bson.ObjectIDFromHex(id)
-// 	if err != nil {
-// 		return model, fmt.Errorf("invalid id format: %v", err)
-// 	}
+	objectId, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return model, fmt.Errorf("invalid id format: %v", err)
+	}
 
-// 	filter := bson.M{"_id": objectId}
-// 	findOneOptions := options.FindOne()
+	filter := bson.M{"_id": objectId}
+	findOneOptions := options.FindOne()
 
-// 	if len(project) != 0 {
-// 		projection := store.GenerateProjection(project, inclusive)
-// 		findOneOptions.SetProjection(projection)
-// 	}
+	if len(project) != 0 {
+		projection := store.GenerateProjection(project, inclusive)
+		findOneOptions.SetProjection(projection)
+	}
 
-// 	err = s.getColl().FindOne(ctx, filter, findOneOptions).Decode(&model)
-// 	if err != nil {
-// 		if errors.Is(err, mongo.ErrNoDocuments) {
-// 			return model, errutil.NotFound("Product")
-// 		}
-// 		return model, err
-// 	}
+	err = s.getColl().FindOne(ctx, filter, findOneOptions).Decode(&model)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return model, errutil.NotFound("Product")
+		}
+		return model, err
+	}
 
-// 	return model, nil
+	return model, nil
 
-// }
+}

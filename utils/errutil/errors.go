@@ -26,8 +26,8 @@ func NewAPIError(statusCode int, code int, msg string) APIError {
 	}
 }
 
-var ErrDocumentNotFound = NewAPIError(http.StatusInternalServerError, 2, "Document Not found")
-var ErrDocumentAlreadyExist = NewAPIError(http.StatusInternalServerError, 3, "Document Already Exist")
+var ErrDocumentNotFound = NewAPIError(http.StatusInternalServerError, 3, "Document Not found")
+var ErrDocumentAlreadyExist = NewAPIError(http.StatusInternalServerError, 2, "Document Already Exist")
 var ErrDatabase = NewAPIError(http.StatusInternalServerError, 8, "Database Error")
 
 func GenerateError(statusCode int, code int, err error) error {

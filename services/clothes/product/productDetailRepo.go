@@ -33,17 +33,14 @@ func (s *ProductDetailRepo) getColl() *mongo.Collection {
 
 func (s *ProductDetailRepo) Create(ctx context.Context, createProductDetailModel CreateProductDetailModel) (string, error) {
 
-	batchObjectId, err := bson.ObjectIDFromHex(createProductDetailModel.BatchId)
-	if err != nil {
-		return "", err
-	}
-
 	productDetail := ProductDetail{
 		Description: createProductDetailModel.Description,
 		Variations:  createProductDetailModel.Variations,
 		ImgLink:     createProductDetailModel.ImgLink,
 		Timestamps:  store.GetCurrentTimestamps(),
-		BatchId:     batchObjectId,
+		Name:        createProductDetailModel.Name,
+		PreviewImg:  createProductDetailModel.PreviewImg,
+		BatchId:     createProductDetailModel.BatchId,
 	}
 
 	result, err := s.getColl().InsertOne(ctx, productDetail)

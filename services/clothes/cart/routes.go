@@ -31,7 +31,7 @@ func (h *Handler) RegisterRoutes(router router.Router, link string) {
 	routeGrp := router.Group(link)
 
 	routeGrp.Use(middleware.VerifyToken(h.cfg))
-	routeGrp.Post("/add-to-cart", h.addToCard)
+	routeGrp.Post("/add", h.addToCard)
 	routeGrp.Patch("/item-quantity", h.updateCartItemQuantity)
 	routeGrp.Get("/", h.getCart)
 }

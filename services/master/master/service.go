@@ -20,7 +20,7 @@ func (s *Service) Create(ctx context.Context, createBody CreateModal) (string, e
 
 func (s *Service) Find(ctx context.Context, filterPayload FilterListModel) ([]Master, error) {
 
-	project := []string{"name"}
+	project := []string{"name", "type"}
 
-	return s.repo.FindByFilter(ctx, filterPayload, project, false)
+	return s.repo.FindByFilter(ctx, filterPayload, project, true)
 }

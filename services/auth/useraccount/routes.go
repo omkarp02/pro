@@ -63,7 +63,7 @@ func (h *Handler) registerUser(c router.Context) error {
 	createUserAccountModal := CreateUserAccountModal{
 		UserId:       user.UserId,
 		PasswordHash: user.Password,
-		Type:         user.Type,
+		Type:         constant.USERACCOUNT_TYPE_EMAIL,
 		AuthProvider: []AuthProviderType{
 			{
 				Provider:   h.cfg.AuthConfig.JWT.ProviderName,
@@ -98,7 +98,6 @@ func (h *Handler) login(c router.Context) error {
 	userAccount, err := h.store.GetUser(ctx, "userId", userCred.UserId)
 	fmt.Println("1", err)
 	if errors.Is(err, errutil.ErrDocumentNotFound) {
-		fmt.Println(">>>>>>>>> invalid cred")
 		return errutil.StatusBadRequest("Invalid Credentials")
 	} else if err != nil {
 		return err
@@ -117,13 +116,9 @@ func (h *Handler) login(c router.Context) error {
 		return errutil.InternalServerError("not valid provider id")
 	}
 
-	fmt.Println("2")
-
 	if ok := helper.CheckPasswordHash(userCred.Password, userAccount.PasswordHash); !ok {
 		return errutil.InvalidCredentails()
 	}
-
-	fmt.Println("3")
 
 	accessTokenPayload := helper.CreateAccessTokenPayload(userId.Hex(), jwtProviderId, userAccount.Role)
 	refreshTokenPayload := helper.CreateRefreshTokenPayload(userId.Hex(), jwtProviderId, userAccount.Role)
@@ -141,7 +136,7 @@ func (h *Handler) login(c router.Context) error {
 
 	helper.UpdateCookie(c, constant.REFRESH_TOKEN_COOKIE, newRefreshToken, constant.REFRESH_TOKEN_COOKIE_EXPIRY)
 
-	return utils.SendResponse(c, "User Logged In Succesfully", fiber.Map{"accessToken": accessToken, "role": userAccount.Role}, 200)
+	return utils.SendResponse(c, "User Logged In Succesfully", fiber.Map{"accessToken": accessToken, "role": userAccount.Role, "userProfileId": userAccount.UserProfile}, 200)
 }
 
 func (h *Handler) handleRefreshToken(c router.Context) error {

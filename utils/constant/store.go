@@ -14,3 +14,9 @@ const (
 	USERACCOUNT_TYPE_PHONE = "phone"
 	USERACCOUNT_TYPE_EMAIL = "email"
 )
+
+const (
+	STATUS_ACTIVE   = "active"
+	STATUS_INACTIVE = "inActive"
+	STATUS_ARCHIVE  = "archive"
+)

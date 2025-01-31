@@ -35,7 +35,7 @@ func (s *ProductTemplateRepo) Create(ctx context.Context, paylaod ProductTemplat
 	productList := paylaod.ProductList
 	productDetail := paylaod.ProductDetail
 
-	objectIds, err := store.SliceOfHexToObjectID(productList.Detail, productList.Category, productList.BatchId)
+	objectIds, err := store.SliceOfHexToObjectID(productList.Detail, productList.Category)
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func (s *ProductTemplateRepo) Create(ctx context.Context, paylaod ProductTemplat
 			Discount:   productList.Discount,
 			Detail:     objectIds[0],
 			Category:   objectIds[1],
-			BatchId:    objectIds[2],
+			BatchId:    productList.BatchId,
 			Gender:     productList.Gender,
 			Collection: productList.Collection,
 			Tags:       productList.Tags,
@@ -64,7 +64,7 @@ func (s *ProductTemplateRepo) Create(ctx context.Context, paylaod ProductTemplat
 			Description: productDetail.Description,
 			Variations:  productDetail.Variations,
 			ImgLink:     productDetail.ImgLink,
-			BatchId:     objectIds[2],
+			BatchId:     productList.BatchId,
 			Timestamps:  store.GetCurrentTimestamps(),
 		},
 	}
