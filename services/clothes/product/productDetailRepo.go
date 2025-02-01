@@ -24,22 +24,42 @@ func NewProductDetailRepo(curDb *db.Database, collName string) *ProductDetailRep
 		collName: collName,
 	}
 
+	store.createIndexes()
+
 	return store
+}
+
+func (s *ProductDetailRepo) createIndexes() error {
+	collection := s.getColl()
+
+	slugIndexModel := mongo.IndexModel{
+		Keys:    bson.D{{Key: "slug", Value: 1}},
+		Options: options.Index().SetUnique(true),
+	}
+
+	_, err := collection.Indexes().CreateOne(context.Background(), slugIndexModel)
+
+	return err
 }
 
 func (s *ProductDetailRepo) getColl() *mongo.Collection {
 	return s.DB.Database(s.DBName).Collection(s.collName)
 }
 
-func (s *ProductDetailRepo) Create(ctx context.Context, createProductDetailModel CreateProductDetailModel) (string, error) {
+func (s *ProductDetailRepo) Create(ctx context.Context, createProductDetailModel CreateProductDetailModel, creatorId string) (string, error) {
+
+	auditFields, err := store.GenerateCreateAuditFields(creatorId)
+	if err != nil {
+		return "", err
+	}
 
 	productDetail := ProductDetail{
 		Description: createProductDetailModel.Description,
 		Variations:  createProductDetailModel.Variations,
+		Slug:        createProductDetailModel.Slug,
 		ImgLink:     createProductDetailModel.ImgLink,
-		Timestamps:  store.GetCurrentTimestamps(),
+		AuditFields: &auditFields,
 		Name:        createProductDetailModel.Name,
-		PreviewImg:  createProductDetailModel.PreviewImg,
 		BatchId:     createProductDetailModel.BatchId,
 	}
 
@@ -59,16 +79,11 @@ func (s *ProductDetailRepo) Create(ctx context.Context, createProductDetailModel
 
 }
 
-func (s *ProductDetailRepo) FindById(ctx context.Context, id string, project []string, inclusive bool) (ProductDetail, error) {
+func (s *ProductDetailRepo) FindBySlug(ctx context.Context, slug string, project []string, inclusive bool) (ProductDetail, error) {
 
 	var productDetail ProductDetail
 
-	objectId, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return productDetail, fmt.Errorf("invalid id format: %v", err)
-	}
-
-	filter := bson.M{"_id": objectId}
+	filter := bson.M{"slug": slug}
 	findOneOptions := options.FindOne()
 
 	if len(project) != 0 {
@@ -83,7 +98,7 @@ func (s *ProductDetailRepo) FindById(ctx context.Context, id string, project []s
 		findOneOptions.SetProjection(projection)
 	}
 
-	err = s.getColl().FindOne(ctx, filter, findOneOptions).Decode(&productDetail)
+	err := s.getColl().FindOne(ctx, filter, findOneOptions).Decode(&productDetail)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return productDetail, errutil.NotFound("Product")

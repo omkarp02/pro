@@ -91,7 +91,7 @@ func (s *Service) FindOne(ctx context.Context, userId string) (IFindOneRes, erro
 
 	sizes = utils.RemoveDuplicateStringFromSlice(sizes)
 	productIds = utils.RemoveDuplicateStringFromSlice(productIds)
-	project := []string{"_id", "name", "previewImg"}
+	project := []string{"_id", "name", "imgLink"}
 
 	productDetailList, err := s.productRepo.GetProductsPriceBySizes(ctx, productIds, sizes, project, true)
 
@@ -112,7 +112,7 @@ func (s *Service) FindOne(ctx context.Context, userId string) (IFindOneRes, erro
 					Product: IFindOneResProductItems{
 						ID:         product.ID.Hex(),
 						Name:       product.Name,
-						PreviewImg: product.PreviewImg,
+						PreviewImg: product.ImgLink[0],
 						Variations: product.Variations,
 					},
 				})

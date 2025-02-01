@@ -31,7 +31,7 @@ func (s *Service) FilterProductList(ctx context.Context, filterProductList TFilt
 
 	var filteredProductList []TFilteredProductList
 
-	productList, err := s.productListRepo.FindByFilter(ctx, FilterProductListModel(filterProductList), []string{"name", "price", "discount", "imgLink", "_id", "detail", "batchId"}, true)
+	productList, err := s.productListRepo.FindByFilter(ctx, FilterProductListModel(filterProductList), []string{"name", "price", "discount", "imgLink", "_id", "detail", "batchId", "slug"}, true)
 	if err != nil {
 		return nil, err
 	}
@@ -43,6 +43,7 @@ func (s *Service) FilterProductList(ctx context.Context, filterProductList TFilt
 			ImgLink:  item.ImgLink,
 			Discount: item.Discount,
 			Detail:   item.Detail.Hex(),
+			Slug:     item.Slug,
 			BatchId:  item.BatchId,
 			Id:       item.ID.Hex(),
 		})
@@ -55,42 +56,61 @@ func (s *Service) AddProductsToCollection(ctx context.Context, productData TAddP
 	return s.productListRepo.AddProductsToCollection(ctx, AddProductToCollectionModel(productData))
 }
 
-func (s *Service) CreateProduct(ctx context.Context, productDetails TCreateProduct) error {
+func (s *Service) CreateProduct(ctx context.Context, productDetails TCreateProduct, creatorId string) error {
 
 	_, err := s.txn.RunInTxn(ctx, func(sessCtx context.Context) (interface{}, error) {
 
 		previewImg := productDetails.ProductDetail.ImgLink[0]
 		productDetails.ProductList.ImgLink = previewImg
-		productDetails.ProductDetail.PreviewImg = previewImg
-		productDetails.ProductDetail.Name = productDetails.ProductList.Name
-		productDetails.ProductDetail.Variations = append(productDetails.ProductDetail.Variations, Variation{Size: constant.BASE_SIZE, Price: productDetails.ProductList.Price, Discount: productDetails.ProductList.Discount})
 
-		productDetailId, err := s.productDetailRepo.Create(ctx, CreateProductDetailModel(productDetails.ProductDetail))
+		productDetailModal := CreateProductDetailModel{
+			Name:        productDetails.Name,
+			Slug:        productDetails.Slug,
+			Description: productDetails.ProductDetail.Description,
+			Variations:  productDetails.ProductDetail.Variations,
+			ImgLink:     productDetails.ProductDetail.ImgLink,
+			BatchId:     productDetails.BatchId,
+		}
+
+		productDetailModal.Variations = append(productDetailModal.Variations, Variation{Size: constant.BASE_SIZE, Price: productDetails.ProductList.Price, Discount: productDetails.ProductList.Discount})
+
+		productDetailId, err := s.productDetailRepo.Create(ctx, productDetailModal, creatorId)
 		if err != nil {
 			return nil, err
 		}
-
 		sizes := []string{}
 
 		for _, variation := range productDetails.ProductDetail.Variations {
 			sizes = append(sizes, variation.Size)
 		}
 
-		productDetails.ProductList.Detail = productDetailId
-		productDetails.ProductList.Sizes = sizes
-
-		productListId, err := s.productListRepo.Create(ctx, CreateProductListModel(productDetails.ProductList))
+		productListModal := CreateProductListModel{
+			Name:       productDetails.Name,
+			Slug:       productDetails.Slug,
+			ImgLink:    productDetails.ProductList.ImgLink,
+			BatchId:    productDetails.BatchId,
+			Sizes:      sizes,
+			Color:      productDetails.ProductList.Color,
+			Price:      productDetails.ProductList.Price,
+			Stock:      productDetails.ProductList.Stock,
+			Discount:   productDetails.ProductList.Discount,
+			Detail:     productDetailId,
+			Category:   productDetails.ProductList.Category,
+			Gender:     productDetails.ProductList.Gender,
+			Collection: productDetails.ProductList.Collection,
+			Tags:       productDetails.ProductList.Tags,
+		}
+		productListId, err := s.productListRepo.Create(ctx, productListModal, creatorId)
 		if err != nil {
 			return nil, err
 		}
-
 		batchUpdatePayload := TBatchProductDetails{
 			ImgLink:         productDetails.ProductList.ImgLink,
 			ProductListId:   productListId,
 			ProductDetailId: productDetailId,
 		}
 
-		if err := s.productBatchRepo.UpdateBatchImg(ctx, productDetails.ProductList.BatchId, batchUpdatePayload); err != nil {
+		if err := s.productBatchRepo.UpdateBatchImg(ctx, productDetails.BatchId, batchUpdatePayload); err != nil {
 			return "", err
 		}
 
@@ -100,11 +120,11 @@ func (s *Service) CreateProduct(ctx context.Context, productDetails TCreateProdu
 	return err
 }
 
-func (s *Service) GetProductDetails(ctx context.Context, productId string) (ProductDetail, error) {
+func (s *Service) GetProductDetails(ctx context.Context, slug string) (ProductDetail, error) {
 
 	var result ProductDetail
 
-	productDetails, err := s.productDetailRepo.FindById(ctx, productId, []string{}, false)
+	productDetails, err := s.productDetailRepo.FindBySlug(ctx, slug, []string{}, false)
 	if err != nil {
 		return result, err
 	}

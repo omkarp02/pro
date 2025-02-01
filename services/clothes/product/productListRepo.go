@@ -43,11 +43,16 @@ func (s *ProductListRepo) createIndexes() error {
 		}),
 	}
 
+	slugIndexModel := mongo.IndexModel{
+		Keys:    bson.D{{Key: "slug", Value: 1}},
+		Options: options.Index().SetUnique(true),
+	}
+
 	priceIndexModal := mongo.IndexModel{
 		Keys: bson.D{{Key: "price", Value: 1}},
 	}
 
-	_, err := collection.Indexes().CreateMany(context.Background(), []mongo.IndexModel{collectionIndexModal, priceIndexModal})
+	_, err := collection.Indexes().CreateMany(context.Background(), []mongo.IndexModel{collectionIndexModal, priceIndexModal, slugIndexModel})
 
 	return err
 }
@@ -56,29 +61,35 @@ func (s *ProductListRepo) getColl() *mongo.Collection {
 	return s.DB.Database(s.DBName).Collection(s.collName)
 }
 
-func (s *ProductListRepo) Create(ctx context.Context, createProductListModel CreateProductListModel) (string, error) {
+func (s *ProductListRepo) Create(ctx context.Context, createProductListModel CreateProductListModel, creatorId string) (string, error) {
 
 	ids, err := store.SliceOfHexToObjectID(createProductListModel.Detail, createProductListModel.Category)
+
+	auditFields, err := store.GenerateCreateAuditFields(creatorId)
+	if err != nil {
+		return "", err
+	}
 
 	if err != nil {
 		return "", err
 	}
 
 	owner := ProductList{
-		Detail:     ids[0],
-		Name:       createProductListModel.Name,
-		Sizes:      createProductListModel.Sizes,
-		Color:      createProductListModel.Color,
-		ImgLink:    createProductListModel.ImgLink,
-		Price:      createProductListModel.Price,
-		Stock:      createProductListModel.Stock,
-		Discount:   createProductListModel.Discount,
-		Category:   ids[1],
-		BatchId:    createProductListModel.BatchId,
-		Gender:     createProductListModel.Gender,
-		Collection: createProductListModel.Collection,
-		Tags:       createProductListModel.Tags,
-		Timestamps: store.GetCurrentTimestamps(),
+		Detail:      ids[0],
+		Name:        createProductListModel.Name,
+		Sizes:       createProductListModel.Sizes,
+		Color:       createProductListModel.Color,
+		ImgLink:     createProductListModel.ImgLink,
+		Price:       createProductListModel.Price,
+		Slug:        createProductListModel.Slug,
+		Stock:       createProductListModel.Stock,
+		Discount:    createProductListModel.Discount,
+		AuditFields: &auditFields,
+		Category:    ids[1],
+		BatchId:     createProductListModel.BatchId,
+		Gender:      createProductListModel.Gender,
+		Collection:  createProductListModel.Collection,
+		Tags:        createProductListModel.Tags,
 	}
 
 	result, err := s.getColl().InsertOne(ctx, owner)

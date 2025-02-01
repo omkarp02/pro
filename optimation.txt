@@ -1,0 +1,1 @@
+remove slug index from produt list

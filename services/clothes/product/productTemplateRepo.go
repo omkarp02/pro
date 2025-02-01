@@ -56,16 +56,13 @@ func (s *ProductTemplateRepo) Create(ctx context.Context, paylaod ProductTemplat
 			Gender:     productList.Gender,
 			Collection: productList.Collection,
 			Tags:       productList.Tags,
-			Timestamps: store.GetCurrentTimestamps(),
 		},
 		Detail: ProductDetail{
 			Name:        productList.Name,
-			PreviewImg:  productDetail.PreviewImg,
 			Description: productDetail.Description,
 			Variations:  productDetail.Variations,
 			ImgLink:     productDetail.ImgLink,
 			BatchId:     productList.BatchId,
-			Timestamps:  store.GetCurrentTimestamps(),
 		},
 	}
 

@@ -2,7 +2,6 @@ package product
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/omkarp02/pro/config"
@@ -16,8 +15,8 @@ type ProductService interface {
 	// CreateProductList(ctx context.Context, createProductList TCreateProductList) (string, error)
 	FilterProductList(ctx context.Context, filterProductList TFilterProductList) ([]TFilteredProductList, error)
 	AddProductsToCollection(ctx context.Context, productData TAddProductToCollection) error
-	CreateProduct(ctx context.Context, productDetails TCreateProduct) error
-	GetProductDetails(ctx context.Context, productId string) (ProductDetail, error)
+	CreateProduct(ctx context.Context, productDetails TCreateProduct, creatorId string) error
+	GetProductDetails(ctx context.Context, slug string) (ProductDetail, error)
 	CreateProductBatch(ctx context.Context, createPayload TCreateProductBatch, userId string) (string, error)
 	FindProductBatch(ctx context.Context, filterPayload FilterProductBatchListModel) ([]ProductBatch, error)
 	GetProductBatchDetails(ctx context.Context, code string) (ProductBatch, error)
@@ -73,13 +72,13 @@ func (h *Handler) createProduct(c router.Context) error {
 	defer cancel()
 	var productData TCreateProduct
 
+	userId := c.GetDecodedData().ID
+
 	if err := h.validator.ValidateBody(c, &productData); err != nil {
 		return err
 	}
 
-	fmt.Println(productData)
-
-	err := h.service.CreateProduct(ctx, productData)
+	err := h.service.CreateProduct(ctx, productData, userId)
 	if err != nil {
 		return err
 	}

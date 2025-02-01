@@ -1,16 +1,12 @@
 package product
 
 type TCreateProductList struct {
-	Name       string   `json:"name,omitempty" validate:"required"`
-	Sizes      []string `json:"sizes,omitempty"`
 	Color      string   `json:"color,omitempty" validate:"required"`
 	Price      float64  `json:"price,omitempty" validate:"required"`
 	ImgLink    string   `json:"imgLink,omitempty" validate:"required"`
 	Stock      int      `json:"stock,omitempty" validate:"required"`
 	Discount   int      `json:"discount,omitempty" validate:"required"`
-	Detail     string   `json:"detail,omitempty"`
 	Category   string   `json:"category,omitempty" validate:"required"`
-	BatchId    string   `json:"batchId,omitempty" validate:"required"`
 	Gender     string   `json:"gender,omitempty" validate:"required"`
 	Collection []string `json:"collection,omitempty" validate:"required"`
 	Tags       []string `json:"tags,omitempty" validate:"required"`
@@ -19,25 +15,28 @@ type TCreateProductList struct {
 type TCreateProduct struct {
 	ProductList   TCreateProductList   `json:"productList,omitempty" validate:"required"`
 	ProductDetail TCreateProductDetail `json:"detail,omitempty" validate:"required"`
+	Name          string               `json:"name,omitempty"  validate:"required"`
+	Slug          string               `json:"slug,omitempty"  validate:"required"`
+	BatchId       string               `json:"batchId,omitempty"  validate:"required"`
+}
+
+type TCreateProductDetail struct {
+	Description Description `json:"description,omitempty"  validate:"required"`
+	Variations  []Variation `json:"variations,omitempty"  validate:"required,dive"`
+	ImgLink     []string    `json:"imgLink,omitempty"  validate:"required"`
 }
 
 type ProductTemplateModel struct {
-	Name          string               `json:"name,omitempty" validate:"required"`
-	ProductList   TCreateProductList   `json:"productList,omitempty" validate:"required"`
-	ProductDetail TCreateProductDetail `json:"detail,omitempty" validate:"required"`
+	Slug          string                   `json:"slug,omitempty"  validate:"required"`
+	BatchId       string                   `json:"batchId,omitempty"  validate:"required"`
+	Name          string                   `json:"name,omitempty" validate:"required"`
+	ProductName   string                   `json:"productName,omitempty" validate:"required"`
+	ProductList   CreateProductListModel   `json:"productList,omitempty" validate:"required"`
+	ProductDetail CreateProductDetailModel `json:"detail,omitempty" validate:"required"`
 }
 
 type TGetProductDetails struct {
 	ProductId string `json:"productId,omitempty"`
-}
-
-type TCreateProductDetail struct {
-	Name        string      `json:"name,omitempty"`
-	PreviewImg  string      `json:"previewImg,omitempty"`
-	Description Description `json:"description,omitempty"  validate:"required"`
-	Variations  []Variation `json:"variations,omitempty"  validate:"required,dive"`
-	ImgLink     []string    `json:"imgLink,omitempty"  validate:"required"`
-	BatchId     string      `json:"batchId,omitempty"  validate:"required"`
 }
 
 type TFilterProductList struct {
@@ -70,6 +69,7 @@ type TFilteredProductList struct {
 	Detail   string  `json:"productDetailId,omitempty"`
 	Discount int     `json:"discount,omitempty"`
 	BatchId  string  `json:"batchId,omitempty"`
+	Slug     string  `json:"slug,omitempty"`
 }
 
 type TAddProductToCollection struct {
@@ -95,7 +95,7 @@ type PriceModel struct {
 
 type CreateProductDetailModel struct {
 	Name        string      `json:"name,omitempty"`
-	PreviewImg  string      `json:"previewImg,omitempty"`
+	Slug        string      `json:"slug,omitempty"`
 	Description Description `json:"description,omitempty"`
 	Variations  []Variation `json:"variations,omitempty"`
 	ImgLink     []string    `json:"imgLink,omitempty"`
@@ -109,6 +109,7 @@ type CreateProductListModel struct {
 	Price      float64  `json:"price,omitempty"`
 	ImgLink    string   `json:"imgLink,omitempty"`
 	Stock      int      `json:"stock,omitempty"`
+	Slug       string   `json:"slug,omitempty"`
 	Discount   int      `json:"discount,omitempty"`
 	Detail     string   `json:"detail,omitempty"`
 	Category   string   `json:"category,omitempty"`

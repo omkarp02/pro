@@ -78,7 +78,7 @@ func (s *ProductBatchRepo) Create(ctx context.Context, createPayload CreateProdu
 
 func (s *ProductBatchRepo) UpdateBatchImg(ctx context.Context, batchId string, productDetail TBatchProductDetails) error {
 
-	objectIds, err := store.SliceOfHexToObjectID(productDetail.ProductDetailId, productDetail.ProductListId, batchId)
+	objectIds, err := store.SliceOfHexToObjectID(productDetail.ProductDetailId, productDetail.ProductListId)
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func (s *ProductBatchRepo) UpdateBatchImg(ctx context.Context, batchId string, p
 
 	fmt.Println(objectIds[0])
 
-	query := bson.M{"_id": objectIds[2]}
+	query := bson.M{"code": batchId}
 	update := bson.M{
 		"$push": bson.M{"batchProductDetails": updatePayload},
 		"$set":  bson.M{"timestamp.updatedAt": time.Now()},
