@@ -16,7 +16,7 @@ type ProductService interface {
 	FilterProductList(ctx context.Context, filterProductList TFilterProductList) ([]TFilteredProductList, error)
 	AddProductsToCollection(ctx context.Context, productData TAddProductToCollection) error
 	CreateProduct(ctx context.Context, productDetails TCreateProduct, creatorId string) error
-	GetProductDetails(ctx context.Context, slug string) (ProductDetail, error)
+	GetProductDetails(ctx context.Context, id string) (ProductDetail, error)
 	CreateProductBatch(ctx context.Context, createPayload TCreateProductBatch, userId string) (string, error)
 	FindProductBatch(ctx context.Context, filterPayload FilterProductBatchListModel) ([]ProductBatch, error)
 	GetProductBatchDetails(ctx context.Context, code string) (ProductBatch, error)

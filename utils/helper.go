@@ -1,7 +1,10 @@
 package utils
 
 import (
+	cryptorand "crypto/rand"
 	"fmt"
+	"math"
+	"math/big"
 	"math/rand"
 	"strconv"
 	"time"
@@ -61,14 +64,18 @@ func GenearteRandomString(length int) string {
 }
 
 func GenerateRandomNumber(n int) int {
-	res := 0
-	temp := 0
-	for i := 0; i < n; i++ {
-		r := rand.Intn(10)
-		res = r + temp
-		temp = res * 10
-	}
-	return res
+	// res := 0
+	// temp := 0
+	// for i := 0; i < n; i++ {
+	// 	r := rand.Intn(10)
+	// 	res = r + temp
+	// 	temp = res * 10
+	// }
+	// return res
+	number := int64(math.Pow(10, float64(n-1)))
+
+	randomNumber, _ := cryptorand.Int(cryptorand.Reader, big.NewInt(number))
+	return int(randomNumber.Int64())
 }
 
 func RemoveDuplicateStringFromSlice(arr []string) []string {

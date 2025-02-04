@@ -109,6 +109,8 @@ func (h *Handler) authHandler(c router.Context) error {
 
 func (h *Handler) redirectUrlHandler(c router.Context) error {
 
+	fmt.Println(">>>>>>>>>>>>>>> here redirect rule")
+
 	ctx, cancel := createContext()
 	defer cancel()
 
@@ -130,17 +132,19 @@ func (h *Handler) redirectUrlHandler(c router.Context) error {
 	userAccount, err := h.service.GetUser(ctx, "userId", user.Email)
 	curUserId = userAccount.ID.Hex()
 
-	fmt.Println(curUserId)
+	fmt.Println(">>>>>>>>>>>>>> this is the userid", curUserId)
 
 	if errors.Is(err, errutil.ErrDocumentNotFound) {
+		fmt.Println(">>>>>>>>>>>>>>>> reached here to create accoun")
 		createUserAccountModal := useraccount.CreateUserAccountModal{
-			UserId: user.UserID,
+			UserId: user.Email,
 			AuthProvider: []useraccount.AuthProviderType{
 				{
 					Provider:   provider,
 					ProviderID: providerId,
 				},
 			},
+			Type: constant.USERACCOUNT_TYPE_EMAIL,
 			Role: role,
 		}
 
@@ -160,11 +164,13 @@ func (h *Handler) redirectUrlHandler(c router.Context) error {
 	accessTokenPayload := helper.CreateAccessTokenPayload(curUserId, providerId, role)
 	refreshTokenPayload := helper.CreateRefreshTokenPayload(curUserId, providerId, role)
 
+	fmt.Println(">>>>>>>>>>>>>> generating access token payload", curUserId)
 	newAuthToken, newRefreshToken, err := utils.GenerateRefreshAndAccessToken(accessTokenPayload, refreshTokenPayload, h.cfg)
 	if err != nil {
 		return err
 	}
 
+	fmt.Println(">>>>>>>>>>>> handle refersh token for login")
 	h.service.HandleRefreshTokenForLogin(ctx, curUserId, newRefreshToken, oldRefreshToken)
 
 	if len(oldRefreshToken) != 0 {

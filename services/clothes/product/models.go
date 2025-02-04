@@ -7,6 +7,7 @@ import (
 
 type ProductList struct {
 	ID          bson.ObjectID      `json:"id,omitempty" bson:"_id,omitempty"`
+	Code        string             `json:"code,omitempty" bson:"code,omitempty"`
 	Name        string             `json:"name,omitempty" bson:"name,omitempty"`
 	Sizes       []string           `json:"sizes,omitempty" bson:"sizes,omitempty"`
 	Color       string             `json:"color,omitempty" bson:"color,omitempty"`
@@ -26,6 +27,7 @@ type ProductList struct {
 
 type ProductDetail struct {
 	ID          bson.ObjectID      `json:"id,omitempty" bson:"_id,omitempty"`
+	Code        string             `json:"code,omitempty" bson:"code,omitempty"`
 	Name        string             `json:"name,omitempty" bson:"name,omitempty"`
 	Description Description        `json:"description,omitempty" bson:"description,omitempty"`
 	Variations  []Variation        `json:"variations,omitempty" bson:"variations,omitempty"`
@@ -72,9 +74,9 @@ type Specifications struct {
 }
 
 type BatchProductDetails struct {
-	ProductListId   bson.ObjectID `json:"productListId,omitempty" bson:"productListId,omitempty"`
-	ProductDetailId bson.ObjectID `json:"productDetailId,omitempty" bson:"productDetailId,omitempty"`
-	ImgLink         string        `json:"imgLink,omitempty" bson:"imgLink,omitempty"`
+	ProductCode string `json:"productCode,omitempty" bson:"productCode,omitempty"`
+	Slug        string `json:"slug,omitempty" bson:"slug,omitempty"`
+	ImgLink     string `json:"imgLink,omitempty" bson:"imgLink,omitempty"`
 }
 
 type ProductBatch struct {

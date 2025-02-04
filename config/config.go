@@ -102,8 +102,23 @@ type AuthStore struct {
 	Bussiness   string `yaml:"bussiness" env:"bussiness" env-required:"true"`
 }
 
+type ReviewRoute struct {
+	Review     string `yaml:"review" env:"review" env-required:"true"`
+	ReviewVote string `yaml:"review_vote" env:"review_vote" env-required:"true"`
+}
+
+type ReviewStore struct {
+	Review     string `yaml:"review" env:"review" env-required:"true"`
+	ReviewVote string `yaml:"review_vote" env:"review_vote" env-required:"true"`
+}
+
 type AuthClient struct {
 	RedirectUrl string `yaml:"redirect_url" env:"redirect_url" env-required:"true"`
+}
+
+type Review struct {
+	Routes       ReviewRoute `yaml:"routes" env:"routes" env-required:"true"`
+	DBCollection ReviewStore `yaml:"db_collection" env:"db_collection" env-required:"true"`
 }
 
 type Auth struct {
@@ -116,6 +131,7 @@ type App struct {
 	Clothes Clothes `yaml:"clothes" env:"clothes" env-required:"true"`
 	Auth    Auth    `yaml:"auth" env:"auth" env-required:"true"`
 	Master  Master  `yaml:"master" env:"master" env-required:"true"`
+	Review  Review  `yaml:"assessment" env:"assessment" env-required:"true"`
 }
 
 type Config struct {

@@ -43,8 +43,8 @@ func (s *ProductListRepo) createIndexes() error {
 		}),
 	}
 
-	slugIndexModel := mongo.IndexModel{
-		Keys:    bson.D{{Key: "slug", Value: 1}},
+	codeIndexModel := mongo.IndexModel{
+		Keys:    bson.D{{Key: "code", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}
 
@@ -52,7 +52,7 @@ func (s *ProductListRepo) createIndexes() error {
 		Keys: bson.D{{Key: "price", Value: 1}},
 	}
 
-	_, err := collection.Indexes().CreateMany(context.Background(), []mongo.IndexModel{collectionIndexModal, priceIndexModal, slugIndexModel})
+	_, err := collection.Indexes().CreateMany(context.Background(), []mongo.IndexModel{collectionIndexModal, priceIndexModal, codeIndexModel})
 
 	return err
 }
@@ -64,12 +64,11 @@ func (s *ProductListRepo) getColl() *mongo.Collection {
 func (s *ProductListRepo) Create(ctx context.Context, createProductListModel CreateProductListModel, creatorId string) (string, error) {
 
 	ids, err := store.SliceOfHexToObjectID(createProductListModel.Detail, createProductListModel.Category)
-
-	auditFields, err := store.GenerateCreateAuditFields(creatorId)
 	if err != nil {
 		return "", err
 	}
 
+	auditFields, err := store.GenerateCreateAuditFields(creatorId)
 	if err != nil {
 		return "", err
 	}
@@ -77,6 +76,7 @@ func (s *ProductListRepo) Create(ctx context.Context, createProductListModel Cre
 	owner := ProductList{
 		Detail:      ids[0],
 		Name:        createProductListModel.Name,
+		Code:        createProductListModel.Code,
 		Sizes:       createProductListModel.Sizes,
 		Color:       createProductListModel.Color,
 		ImgLink:     createProductListModel.ImgLink,
