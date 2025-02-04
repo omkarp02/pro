@@ -1,6 +1,7 @@
 package product
 
 import (
+	"github.com/omkarp02/pro/services/utils"
 	"github.com/omkarp02/pro/services/utils/store"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -83,4 +84,12 @@ type ProductBatch struct {
 	Name        string                `bson:"name,omitempty" json:"name,omitempty"`
 	ProductList []BatchProductDetails `bson:"batchProductDetails,omitempty" json:"batchProductDetails,omitempty"`
 	AuditFields *store.AuditFields    `json:"timestamp,inline,omitempty" bson:",inline,omitempty"`
+}
+
+type ProductStatus struct {
+	ID          bson.ObjectID      `bson:"_id,omitempty" json:"id,omitempty"`
+	ProductCode string             `bson:"productCode,omitempty" json:"productCode,omitempty"`
+	Status      utils.MODEL_STATUS `bson:"status,omitempty" json:"status,omitempty"`
+	Rating      string             `bson:"rating,omitempty" json:"rating,omitempty"`
+	Timestamps  *store.Timestamps  `json:"timestamp,omitempty" bson:",inline"`
 }

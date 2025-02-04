@@ -14,6 +14,7 @@ type Service struct {
 	productListRepo     *ProductListRepo
 	productDetailRepo   *ProductDetailRepo
 	productBatchRepo    *ProductBatchRepo
+	productStatusRepo   *ProductStatusRepo
 	txn                 db.TransactionManager
 }
 
@@ -152,6 +153,19 @@ func (s *Service) CreateProductBatch(ctx context.Context, createPayload TCreateP
 
 	return s.productBatchRepo.Create(ctx, payload)
 }
+
+func (s *Service) CreateProductStatus(ctx context.Context, createPayload CreateProductStatusModal, userId string) (string, error) {
+	return s.productStatusRepo.Create(ctx, createPayload)
+}
+
+func (s *Service) GetProductRating(ctx context.Context, productCode string) (ProductStatus, error) {
+	project := []string{"status", "rating"}
+	return s.productStatusRepo.FindById(ctx, productCode, project, true)
+}
+
+// func (s *Service) UpdateProductRating(ctx context.Context, productCode string, rating int) {
+// 	s.productStatusRepo.UpdateByProductCode(ctx, productCode, "rating", rating)
+// }
 
 func (s *Service) CreateProductTemplate(ctx context.Context, payload ProductTemplateModel) error {
 	return s.productTemplateRepo.Create(ctx, payload)

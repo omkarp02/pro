@@ -1,5 +1,7 @@
 package product
 
+import "github.com/omkarp02/pro/services/utils"
+
 type TCreateProductList struct {
 	Color      string   `json:"color,omitempty" validate:"required"`
 	Price      float64  `json:"price,omitempty" validate:"required"`
@@ -33,6 +35,11 @@ type ProductTemplateModel struct {
 	ProductName   string                   `json:"productName,omitempty" validate:"required"`
 	ProductList   CreateProductListModel   `json:"productList,omitempty" validate:"required"`
 	ProductDetail CreateProductDetailModel `json:"detail,omitempty" validate:"required"`
+}
+
+type CreateProductStatusModal struct {
+	ProductCode string             `json:"productCode,omitempty"`
+	Status      utils.MODEL_STATUS `json:"status,omitempty"`
 }
 
 type TGetProductDetails struct {
