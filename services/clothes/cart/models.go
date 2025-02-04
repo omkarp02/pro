@@ -6,10 +6,10 @@ import (
 )
 
 type CartItem struct {
-	CartId    string        `bson:"cartId,omitempty" json:"cartId,omitempty"`
-	ProductId bson.ObjectID `bson:"productId,omitempty" json:"productId,omitempty"`
-	Size      string        `bson:"size,omitempty" json:"size,omitempty"`
-	Quantity  int           `bson:"quantity,omitempty" json:"quantity,omitempty"`
+	CartId      string `bson:"cartId,omitempty" json:"cartId,omitempty"`
+	ProductCode string `bson:"productCode,omitempty" json:"productCode,omitempty"`
+	Size        string `bson:"size,omitempty" json:"size,omitempty"`
+	Quantity    int    `bson:"quantity,omitempty" json:"quantity,omitempty"`
 }
 
 type Cart struct {

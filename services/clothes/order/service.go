@@ -31,7 +31,7 @@ func NewService(repo *Repo, orderItemRepo *OrderItemRepo, cartRepo *cart.Repo, p
 }
 
 func (s *Service) CreateOrder(ctx context.Context, userId string, createOrderPayload TCreateOrder) (string, error) {
-	var productIds []string
+	var productCodes []string
 	var sizes []string
 
 	cartDetails, err := s.cartRepo.FindById(ctx, userId, []string{}, false)
@@ -40,15 +40,15 @@ func (s *Service) CreateOrder(ctx context.Context, userId string, createOrderPay
 	}
 
 	for _, item := range cartDetails.Items {
-		productIds = append(productIds, item.ProductId.Hex())
+		productCodes = append(productCodes, item.ProductCode)
 		sizes = append(sizes, item.Size)
 	}
 
 	sizes = utils.RemoveDuplicateStringFromSlice(sizes)
-	productIds = utils.RemoveDuplicateStringFromSlice(productIds)
-	project := []string{"_id", "name", "previewImg"}
+	productCodes = utils.RemoveDuplicateStringFromSlice(productCodes)
+	project := []string{"_id", "name", "previewImg", "code"}
 
-	productDetailList, err := s.productRepo.GetProductsPriceBySizes(ctx, productIds, sizes, project, true)
+	productDetailList, err := s.productRepo.GetProductsPriceBySizes(ctx, productCodes, sizes, project, true)
 
 	if err != nil {
 		return "", err
@@ -93,12 +93,12 @@ func createOrderItem(userId string, cartDetails cart.Cart, productDetailList []p
 	productMap := make(map[string]product.ProductDetail, len(productDetailList))
 
 	for _, product := range productDetailList {
-		productMap[product.ID.Hex()] = product
+		productMap[product.Code] = product
 	}
 
 	//here we are checking if product are in stock
 	for _, cartItem := range cartDetails.Items {
-		_, exists := productMap[cartItem.ProductId.Hex()]
+		_, exists := productMap[cartItem.ProductCode]
 		if !exists {
 			return nil, 0.0, errutil.InternalServerError("Something went wrong")
 		}
@@ -107,7 +107,7 @@ func createOrderItem(userId string, cartDetails cart.Cart, productDetailList []p
 	var totalProductPrice float64
 
 	for _, cartItem := range cartDetails.Items {
-		product := productMap[cartItem.ProductId.Hex()]
+		product := productMap[cartItem.ProductCode]
 		var size string
 		var price float64
 

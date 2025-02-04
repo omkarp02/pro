@@ -3,6 +3,7 @@ package cart
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -49,32 +50,33 @@ func (s *Repo) createIndexes() error {
 func (s *Repo) Create(ctx context.Context, payload CreateCartModel) error {
 	collection := s.getColl()
 
+	fmt.Println(">>>>>>>>>>>>>>>>>")
+
 	userObjectId, err := bson.ObjectIDFromHex(payload.UserId)
 	if err != nil {
 		return err
 	}
 
 	var cartItems []CartItem
+	productCodes := []string{}
 
 	totalItems := 0
 
 	for _, item := range payload.Items {
-		productId, err := bson.ObjectIDFromHex(item.ProductId)
-		if err != nil {
-			return err
+		totalItems += item.Quantity
+		cartItem := CartItem{
+			CartId:      "C-" + strconv.Itoa(utils.GenerateRandomNumber(5)),
+			ProductCode: item.ProductCode,
+			Size:        item.Size,
+			Quantity:    item.Quantity,
 		}
 
-		totalItems += item.Quantity
-
-		cartItems = append(cartItems, CartItem{
-			CartId:    "C-" + strconv.Itoa(utils.GenerateRandomNumber(5)),
-			ProductId: productId,
-			Size:      item.Size,
-			Quantity:  item.Quantity,
-		})
+		cartItems = append(cartItems, cartItem)
+		productCodes = append(productCodes, cartItem.ProductCode)
 	}
 
-	filter := bson.M{"userId": userObjectId}
+	filter := bson.M{"userId": userObjectId, "items.productCode": bson.M{"$nin": productCodes}}
+	// filter := bson.M{"userId": userObjectId}
 	update := bson.M{
 		"$setOnInsert": bson.M{
 			"userId":    userObjectId,
@@ -96,7 +98,11 @@ func (s *Repo) Create(ctx context.Context, payload CreateCartModel) error {
 
 	opts := options.Update().SetUpsert(true)
 	_, err = collection.UpdateOne(ctx, filter, update, opts)
+	fmt.Println("err", err)
 	if err != nil {
+		if mongo.IsDuplicateKeyError(err) {
+			return errutil.ErrDocumentAlreadyExist
+		}
 		return err
 	}
 

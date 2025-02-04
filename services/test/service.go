@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"github.com/omkarp02/pro/db"
-	"github.com/omkarp02/pro/services/utils/store"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type Service struct {
@@ -38,26 +36,26 @@ func (s *Service) FindById(ctx context.Context, id string) (Model, error) {
 	return s.repo.FindById(ctx, id, project, false)
 }
 
-func (s *Repo) UpdateById(ctx context.Context, id string, userProfileId string) error {
+// func (s *Service) UpdateById(ctx context.Context, id string, userProfileId string) error {
 
-	objectId, err := bson.ObjectIDFromHex(userProfileId)
-	if err != nil {
-		return err
-	}
+// 	objectId, err := bson.ObjectIDFromHex(userProfileId)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	update := bson.M{
-		"$push": bson.M{
-			"businesses": objectId, // New name to update
-		},
-		"$set": store.GenerateUpdateAudit(objectId),
-	}
-	_, err = s.getColl().UpdateByID(ctx, id, update)
-	if err != nil {
-		return err
-	}
+// 	update := bson.M{
+// 		"$push": bson.M{
+// 			"businesses": objectId, // New name to update
+// 		},
+// 		"$set": store.GenerateUpdateAudit(objectId),
+// 	}
+// 	_, err = s.getColl().UpdateByID(ctx, id, update)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 // objectIds, err := store.SliceOfHexToObjectID(bussinessId, updatedBy)
 // 	if err != nil {

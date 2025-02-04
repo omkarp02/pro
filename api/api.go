@@ -4,6 +4,7 @@ import (
 	"github.com/omkarp02/pro/config"
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/router"
+	"github.com/omkarp02/pro/services/assessment/review"
 	bussiness "github.com/omkarp02/pro/services/auth/business"
 	"github.com/omkarp02/pro/services/auth/owner"
 	"github.com/omkarp02/pro/services/auth/user"
@@ -42,6 +43,7 @@ func (s *APIServer) Run() error {
 	setUpClothesApp(s.db, s.config, validator, api)
 	setUpAuthApp(s.db, s.config, validator, api)
 	setUpMasterApp(s.db, s.config, validator, api)
+	setUpAssessment(s.db, s.config, validator, api)
 
 	return api.Listen(s.addr)
 }
@@ -65,6 +67,10 @@ func setUpMasterApp(curDb *db.Database, cfg *config.Config, validator *validatio
 	master.Intialize(curDb, cfg, validator, api)
 	state.Intialize(curDb, cfg, validator, api)
 	city.Intialize(curDb, cfg, validator, api)
+}
+
+func setUpAssessment(curDb *db.Database, cfg *config.Config, validator *validation.Validator, api router.Router) {
+	review.Intialize(curDb, cfg, validator, api)
 }
 
 // authHandler := auth.NewHandler(s.config, userAccountStore)

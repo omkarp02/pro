@@ -76,6 +76,7 @@ type TFilteredProductList struct {
 	Detail   string  `json:"productDetailId,omitempty"`
 	Discount int     `json:"discount,omitempty"`
 	BatchId  string  `json:"batchId,omitempty"`
+	Code     string  `json:"code,omitempty"`
 	Slug     string  `json:"slug,omitempty"`
 }
 
@@ -85,9 +86,9 @@ type TAddProductToCollection struct {
 }
 
 type TBatchProductDetails struct {
-	ProductListId   string `json:"productListId,omitempty"`
-	ProductDetailId string `json:"productDetailId,omitempty"`
-	ImgLink         string `json:"imgLink,omitempty"`
+	ImgLink     string `json:"imgLink,omitempty"`
+	Slug        string `json:"slug,omitempty"`
+	ProductCode string `json:"productCode,omitempty"`
 }
 
 type TProductDetailsServiceResponse struct {
@@ -102,6 +103,7 @@ type PriceModel struct {
 
 type CreateProductDetailModel struct {
 	Name        string      `json:"name,omitempty"`
+	Code        string      `json:"code,omitempty"`
 	Slug        string      `json:"slug,omitempty"`
 	Description Description `json:"description,omitempty"`
 	Variations  []Variation `json:"variations,omitempty"`
@@ -115,6 +117,7 @@ type CreateProductListModel struct {
 	Color      string   `json:"color,omitempty"`
 	Price      float64  `json:"price,omitempty"`
 	ImgLink    string   `json:"imgLink,omitempty"`
+	Code       string   `json:"code,omitempty"`
 	Stock      int      `json:"stock,omitempty"`
 	Slug       string   `json:"slug,omitempty"`
 	Discount   int      `json:"discount,omitempty"`

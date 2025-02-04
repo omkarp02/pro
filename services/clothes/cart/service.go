@@ -21,19 +21,19 @@ func NewService(repo *Repo, productRepo *product.ProductDetailRepo) *Service {
 
 func (s *Service) AddToCard(ctx context.Context, userId string, cartDetails TAddToCart) error {
 
-	var productIds []string
+	var productCodes []string
 	var sizes []string
 
 	for _, item := range cartDetails.Items {
-		productIds = append(productIds, item.ProductId)
+		productCodes = append(productCodes, item.ProductCode)
 		sizes = append(sizes, item.Size)
 	}
 
 	sizes = utils.RemoveDuplicateStringFromSlice(sizes)
-	productIds = utils.RemoveDuplicateStringFromSlice(productIds)
-	project := []string{"_id"}
+	productCodes = utils.RemoveDuplicateStringFromSlice(productCodes)
+	project := []string{"code"}
 
-	productDetailList, err := s.productRepo.GetProductsPriceBySizes(ctx, productIds, sizes, project, true)
+	productDetailList, err := s.productRepo.GetProductsPriceBySizes(ctx, productCodes, sizes, project, true)
 
 	if err != nil {
 		return err
@@ -44,7 +44,7 @@ func (s *Service) AddToCard(ctx context.Context, userId string, cartDetails TAdd
 
 	for _, item := range cartDetails.Items {
 		for _, product := range productDetailList {
-			if item.ProductId == product.ID.Hex() {
+			if item.ProductCode == product.Code {
 				for _, variation := range product.Variations {
 					if item.Size == variation.Size {
 						curCartTotalPrice += float64(item.Quantity) * variation.Price
@@ -76,7 +76,7 @@ func (s *Service) UpdateQuantityOfItem(ctx context.Context, userId string, paylo
 func (s *Service) FindOne(ctx context.Context, userId string) (IFindOneRes, error) {
 
 	var res IFindOneRes
-	var productIds []string
+	var productCodes []string
 	var sizes []string
 
 	cartDetails, err := s.repo.FindById(ctx, userId, []string{}, false)
@@ -85,15 +85,15 @@ func (s *Service) FindOne(ctx context.Context, userId string) (IFindOneRes, erro
 	}
 
 	for _, item := range cartDetails.Items {
-		productIds = append(productIds, item.ProductId.Hex())
+		productCodes = append(productCodes, item.ProductCode)
 		sizes = append(sizes, item.Size)
 	}
 
 	sizes = utils.RemoveDuplicateStringFromSlice(sizes)
-	productIds = utils.RemoveDuplicateStringFromSlice(productIds)
-	project := []string{"_id", "name", "imgLink"}
+	productCodes = utils.RemoveDuplicateStringFromSlice(productCodes)
+	project := []string{"_id", "name", "imgLink", "code"}
 
-	productDetailList, err := s.productRepo.GetProductsPriceBySizes(ctx, productIds, sizes, project, true)
+	productDetailList, err := s.productRepo.GetProductsPriceBySizes(ctx, productCodes, sizes, project, true)
 
 	if err != nil {
 		return res, err
@@ -103,12 +103,12 @@ func (s *Service) FindOne(ctx context.Context, userId string) (IFindOneRes, erro
 
 	for _, cartItem := range cartDetails.Items {
 		for _, product := range productDetailList {
-			if product.ID.Hex() == cartItem.ProductId.Hex() {
+			if product.Code == cartItem.ProductCode {
 				items = append(items, IFindOneResCartItem{
-					CartId:    cartItem.CartId,
-					ProductId: cartItem.ProductId.Hex(),
-					Size:      cartItem.Size,
-					Quantity:  cartItem.Quantity,
+					CartId:      cartItem.CartId,
+					ProductCode: cartItem.ProductCode,
+					Size:        cartItem.Size,
+					Quantity:    cartItem.Quantity,
 					Product: IFindOneResProductItems{
 						ID:         product.ID.Hex(),
 						Name:       product.Name,

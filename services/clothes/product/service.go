@@ -32,7 +32,7 @@ func (s *Service) FilterProductList(ctx context.Context, filterProductList TFilt
 
 	var filteredProductList []TFilteredProductList
 
-	productList, err := s.productListRepo.FindByFilter(ctx, FilterProductListModel(filterProductList), []string{"name", "price", "discount", "imgLink", "_id", "detail", "batchId", "slug"}, true)
+	productList, err := s.productListRepo.FindByFilter(ctx, FilterProductListModel(filterProductList), []string{"name", "price", "discount", "imgLink", "_id", "detail", "batchId", "slug", "code"}, true)
 	if err != nil {
 		return nil, err
 	}
@@ -46,6 +46,7 @@ func (s *Service) FilterProductList(ctx context.Context, filterProductList TFilt
 			Detail:   item.Detail.Hex(),
 			Slug:     item.Slug,
 			BatchId:  item.BatchId,
+			Code:     item.Code,
 			Id:       item.ID.Hex(),
 		})
 	}
@@ -64,7 +65,10 @@ func (s *Service) CreateProduct(ctx context.Context, productDetails TCreateProdu
 		previewImg := productDetails.ProductDetail.ImgLink[0]
 		productDetails.ProductList.ImgLink = previewImg
 
+		productCode := strconv.Itoa(utils.GenerateRandomNumber(7))
+
 		productDetailModal := CreateProductDetailModel{
+			Code:        productCode,
 			Name:        productDetails.Name,
 			Slug:        productDetails.Slug,
 			Description: productDetails.ProductDetail.Description,
@@ -88,6 +92,7 @@ func (s *Service) CreateProduct(ctx context.Context, productDetails TCreateProdu
 		productListModal := CreateProductListModel{
 			Name:       productDetails.Name,
 			Slug:       productDetails.Slug,
+			Code:       productCode,
 			ImgLink:    productDetails.ProductList.ImgLink,
 			BatchId:    productDetails.BatchId,
 			Sizes:      sizes,
@@ -106,9 +111,9 @@ func (s *Service) CreateProduct(ctx context.Context, productDetails TCreateProdu
 			return nil, err
 		}
 		batchUpdatePayload := TBatchProductDetails{
-			ImgLink:         productDetails.ProductList.ImgLink,
-			ProductListId:   productListId,
-			ProductDetailId: productDetailId,
+			ImgLink:     productDetails.ProductList.ImgLink,
+			ProductCode: productCode,
+			Slug:        productDetails.Slug,
 		}
 
 		if err := s.productBatchRepo.UpdateBatchImg(ctx, productDetails.BatchId, batchUpdatePayload); err != nil {
@@ -121,11 +126,11 @@ func (s *Service) CreateProduct(ctx context.Context, productDetails TCreateProdu
 	return err
 }
 
-func (s *Service) GetProductDetails(ctx context.Context, slug string) (ProductDetail, error) {
+func (s *Service) GetProductDetails(ctx context.Context, id string) (ProductDetail, error) {
 
 	var result ProductDetail
 
-	productDetails, err := s.productDetailRepo.FindBySlug(ctx, slug, []string{}, false)
+	productDetails, err := s.productDetailRepo.FindByCode(ctx, id, []string{}, false)
 	if err != nil {
 		return result, err
 	}

@@ -6,9 +6,9 @@ import (
 )
 
 type TCartItem struct {
-	ProductId string `json:"productId,omitempty"  validate:"required"`
-	Size      string `json:"size,omitempty"  validate:"required"`
-	Quantity  int    `json:"quantity,omitempty"  validate:"required"`
+	ProductCode string `json:"productCode,omitempty"  validate:"required"`
+	Size        string `json:"size,omitempty"  validate:"required"`
+	Quantity    int    `json:"quantity,omitempty"  validate:"required"`
 }
 
 type IUpdateQuantityOfItem struct {
@@ -24,11 +24,11 @@ type IFindOneResProductItems struct {
 }
 
 type IFindOneResCartItem struct {
-	CartId    string                  `json:"cartId,omitempty"`
-	ProductId string                  `json:"productId,omitempty"`
-	Size      string                  `json:"size,omitempty"`
-	Quantity  int                     `json:"quantity,omitempty"`
-	Product   IFindOneResProductItems `json:"product,omitempty"`
+	CartId      string                  `json:"cartId,omitempty"`
+	ProductCode string                  `json:"productCode,omitempty"`
+	Size        string                  `json:"size,omitempty"`
+	Quantity    int                     `json:"quantity,omitempty"`
+	Product     IFindOneResProductItems `json:"product,omitempty"`
 }
 
 type IFindOneRes struct {
@@ -40,7 +40,7 @@ type IFindOneRes struct {
 }
 
 type TAddToCart struct {
-	Items []TCartItem `json:"item,omitempty"  validate:"required"`
+	Items []TCartItem `json:"item,omitempty"  validate:"required,dive"`
 }
 
 type CreateCartModel struct {

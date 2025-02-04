@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/omkarp02/pro/db"
+	"github.com/omkarp02/pro/services/utils"
 	"github.com/omkarp02/pro/services/utils/store"
 	"github.com/omkarp02/pro/utils/errutil"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -228,4 +229,43 @@ func (s *Repo) FindByFilterAggrgate(ctx context.Context, filterListModel FilterL
 	fmt.Printf("%+v\n", list)
 
 	return list, nil
+}
+
+func (s *Repo) UpdateById(ctx context.Context, field string, value string, id string) (utils.UPDATE_RESULT, error) {
+
+	var updateResult utils.UPDATE_RESULT
+
+	query := bson.M{"_id": id}
+	update := bson.M{"$set": bson.M{field: value}}
+
+	result, err := s.getColl().UpdateOne(ctx, query, update)
+	updateResult.MatchedCount = int(result.MatchedCount)
+	updateResult.ModifiedCount = int(result.ModifiedCount)
+
+	return updateResult, err
+}
+
+func (s *Repo) IncReviewCount(ctx context.Context, reviewId string) error {
+	objID, err := bson.ObjectIDFromHex(reviewId)
+	if err != nil {
+		return errors.New("invalid review ID format")
+	}
+
+	// Define filter to find the review
+	filter := bson.M{"_id": objID}
+
+	// Define update to increment HelpfulVotes
+	update := bson.M{"$inc": bson.M{"helpfulVotes": 1}}
+
+	// Perform the update operation
+	result, err := s.getColl().UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return errutil.ErrDocumentNotFound
+	}
+
+	return nil
 }

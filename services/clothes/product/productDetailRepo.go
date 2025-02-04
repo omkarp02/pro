@@ -32,12 +32,12 @@ func NewProductDetailRepo(curDb *db.Database, collName string) *ProductDetailRep
 func (s *ProductDetailRepo) createIndexes() error {
 	collection := s.getColl()
 
-	slugIndexModel := mongo.IndexModel{
-		Keys:    bson.D{{Key: "slug", Value: 1}},
+	codeIndexModel := mongo.IndexModel{
+		Keys:    bson.D{{Key: "code", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}
 
-	_, err := collection.Indexes().CreateOne(context.Background(), slugIndexModel)
+	_, err := collection.Indexes().CreateOne(context.Background(), codeIndexModel)
 
 	return err
 }
@@ -54,6 +54,7 @@ func (s *ProductDetailRepo) Create(ctx context.Context, createProductDetailModel
 	}
 
 	productDetail := ProductDetail{
+		Code:        createProductDetailModel.Code,
 		Description: createProductDetailModel.Description,
 		Variations:  createProductDetailModel.Variations,
 		Slug:        createProductDetailModel.Slug,
@@ -79,11 +80,11 @@ func (s *ProductDetailRepo) Create(ctx context.Context, createProductDetailModel
 
 }
 
-func (s *ProductDetailRepo) FindBySlug(ctx context.Context, slug string, project []string, inclusive bool) (ProductDetail, error) {
+func (s *ProductDetailRepo) FindByCode(ctx context.Context, id string, project []string, inclusive bool) (ProductDetail, error) {
 
 	var productDetail ProductDetail
 
-	filter := bson.M{"slug": slug}
+	filter := bson.M{"code": id}
 	findOneOptions := options.FindOne()
 
 	if len(project) != 0 {
@@ -110,14 +111,9 @@ func (s *ProductDetailRepo) FindBySlug(ctx context.Context, slug string, project
 
 }
 
-func (s *ProductDetailRepo) GetProductsPriceBySizes(ctx context.Context, ids []string, sizes []string, project []string, inclusive bool) ([]ProductDetail, error) {
+func (s *ProductDetailRepo) GetProductsPriceBySizes(ctx context.Context, codes []string, sizes []string, project []string, inclusive bool) ([]ProductDetail, error) {
 
 	var productDetailList []ProductDetail
-
-	objectIds, err := store.SliceOfHexToObjectID(ids...)
-	if err != nil {
-		return nil, fmt.Errorf("invalid id format: %v", err)
-	}
 
 	projection := store.GenerateProjection(project, inclusive)
 	projection = append(projection, bson.E{Key: "variations", Value: bson.D{
@@ -133,8 +129,8 @@ func (s *ProductDetailRepo) GetProductsPriceBySizes(ctx context.Context, ids []s
 	pipeline := mongo.Pipeline{
 		{
 			{Key: "$match", Value: bson.D{
-				{Key: "_id", Value: bson.D{
-					{Key: "$in", Value: objectIds},
+				{Key: "code", Value: bson.D{
+					{Key: "$in", Value: codes},
 				}},
 			}},
 		},

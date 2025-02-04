@@ -28,6 +28,13 @@ app:
       master: "master"
       state: "state"
       city: "city"
+  assessment:
+    db_collection:
+      review: "review"
+      review_vote: "review_vote"
+    routes: 
+      review: "review"
+      review_vote: "review-vote"
   auth:
     db_collection:
       user_account: "user_account"

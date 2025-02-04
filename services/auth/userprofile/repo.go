@@ -61,11 +61,14 @@ func (s *Repo) Create(ctx context.Context, user CreateUserModel) (string, error)
 	filter := bson.M{"email": user.Email}
 	update := bson.M{"$set": newUser}
 
-	opts := options.FindOneAndUpdate().SetUpsert(true)
+	opts := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
 
 	err := s.getColl().FindOneAndUpdate(ctx, filter, update, opts).Decode(&updatedUser)
+
+	fmt.Println(updatedUser, "<<<<<<<")
+
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(err, "<<<<<<<<<<<<<< hre is the error")
 		if mongo.IsDuplicateKeyError(err) {
 			return "", errutil.ErrDocumentAlreadyExist
 		}

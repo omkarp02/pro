@@ -32,12 +32,17 @@ func NewService(useraccountRepo *useraccount.Repo, userprofileRepo *userprofile.
 func (s *Service) CreateUserProfileAndAccount(ctx context.Context, userprofile userprofile.CreateUserModel, useraccount useraccount.CreateUserAccountModal) (string, error) {
 
 	result, err := s.txn.RunInTxn(ctx, func(sessCtx context.Context) (interface{}, error) {
+
+		fmt.Println(">>>>>>>>>>>> data before inserting in database userporfile", userprofile)
+
 		userProfileId, err := s.userprofileRepo.Create(ctx, userprofile)
 		if err != nil {
 			return "", err
 		}
 
 		useraccount.UserProfile = userProfileId
+
+		fmt.Println(">>>>>>>>>>>> data before inserting in database useraccount", useraccount)
 
 		return s.useraccountRepo.Create(ctx, useraccount)
 	})
