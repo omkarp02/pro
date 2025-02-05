@@ -11,6 +11,7 @@ type Router interface {
 	Put(path string, handler func(ctx Context) error)
 	Patch(path string, handler func(ctx Context) error)
 	Get(path string, handler func(ctx Context) error)
+	Delete(path string, handler func(ctx Context) error)
 	Use(middleware ...func(ctx Context) error)
 }
 

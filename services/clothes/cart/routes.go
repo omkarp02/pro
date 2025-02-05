@@ -2,7 +2,6 @@ package cart
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -10,6 +9,7 @@ import (
 	"github.com/omkarp02/pro/router"
 	"github.com/omkarp02/pro/services/middleware"
 	"github.com/omkarp02/pro/utils"
+	"github.com/omkarp02/pro/utils/errutil"
 	"github.com/omkarp02/pro/utils/validation"
 )
 
@@ -19,6 +19,7 @@ type CartService interface {
 	FindOne(ctx context.Context, userId string) (IFindOneRes, error)
 	GetTotalItems(ctx context.Context, userId string) (int, error)
 	GetCartItemForOffline(ctx context.Context, cartDetails GetCartOfflineModal) ([]IFindOneResCartItem, error)
+	DeleteCartItem(ctx context.Context, productCode string, userId string) error
 }
 
 type Handler struct {
@@ -40,6 +41,7 @@ func (h *Handler) RegisterRoutes(router router.Router, link string) {
 	routeGrp.Post("/add", h.addToCard)
 	routeGrp.Patch("/item", h.updateCartItemQuantity)
 	routeGrp.Get("/", h.getCart)
+	routeGrp.Delete("/item/:code", h.deleteCartItem)
 	routeGrp.Get("/item/total", h.getCartTotalItem)
 }
 
@@ -64,7 +66,6 @@ func (h *Handler) addToCard(c router.Context) error {
 }
 
 func (h *Handler) getCartOffline(c router.Context) error {
-	fmt.Println(">>>>>>>>>>>>>> iffkube test")
 	ctx, cancel := createContext()
 	defer cancel()
 
@@ -114,6 +115,25 @@ func (h *Handler) getCart(c router.Context) error {
 	}
 
 	return utils.SendResponse(c, "Cart Updated Successfully", cart, 200)
+}
+
+func (h *Handler) deleteCartItem(c router.Context) error {
+	ctx, cancel := createContext()
+	defer cancel()
+
+	userId := c.GetDecodedData().ID
+
+	code := c.Params("code")
+	if len(code) == 0 {
+		return errutil.InvalidReqData()
+	}
+
+	err := h.service.DeleteCartItem(ctx, code, userId)
+	if err != nil {
+		return err
+	}
+
+	return utils.SendResponse(c, "Cart Updated Successfully", nil, 200)
 }
 
 func (h *Handler) getCartTotalItem(c router.Context) error {

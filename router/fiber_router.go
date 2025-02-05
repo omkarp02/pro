@@ -67,6 +67,12 @@ func (r *FiberRouter) Put(path string, handler func(ctx Context) error) {
 	})
 }
 
+func (r *FiberRouter) Delete(path string, handler func(ctx Context) error) {
+	r.router.Delete(path, func(c *fiber.Ctx) error {
+		return handler(&FiberContext{c})
+	})
+}
+
 func (r *FiberRouter) Patch(path string, handler func(ctx Context) error) {
 	r.router.Patch(path, func(c *fiber.Ctx) error {
 		return handler(&FiberContext{c})

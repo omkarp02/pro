@@ -171,6 +171,11 @@ func (s *Service) GetCartItemForOffline(ctx context.Context, cartDetails GetCart
 	return res, err
 }
 
+func (s *Service) DeleteCartItem(ctx context.Context, productCode string, userId string) error {
+
+	return s.repo.DeleteCartItem(ctx, userId, productCode)
+}
+
 func (s *Service) GetTotalItems(ctx context.Context, userId string) (int, error) {
 
 	project := []string{}

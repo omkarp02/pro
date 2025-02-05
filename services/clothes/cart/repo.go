@@ -141,6 +141,31 @@ func (s *Repo) UpdateCartItem(ctx context.Context, userId string, cartId string,
 	return nil
 }
 
+func (s *Repo) DeleteCartItem(ctx context.Context, userId string, productCode string) error {
+	userObjectId, err := bson.ObjectIDFromHex(userId)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{
+		"userId":            userObjectId,
+		"items.productcode": productCode,
+	}
+
+	update := bson.M{"$pull": bson.M{"items": bson.M{"productcode": "asdf"}}}
+
+	result, err := s.getColl().UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	if result.ModifiedCount != 0 {
+		return errutil.InternalServerError("Something went wrong! Try again")
+	}
+
+	return err
+}
+
 func (s *Repo) FindById(ctx context.Context, userId string, project []string, inclusive bool) (Cart, error) {
 
 	var cartDetails Cart
