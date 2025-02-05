@@ -77,7 +77,7 @@ func (s *Service) CreateProduct(ctx context.Context, productDetails TCreateProdu
 			BatchId:     productDetails.BatchId,
 		}
 
-		productDetailModal.Variations = append(productDetailModal.Variations, Variation{Size: constant.BASE_SIZE, Price: productDetails.ProductList.Price, Discount: productDetails.ProductList.Discount})
+		productDetailModal.Variations = append(productDetailModal.Variations, Variation{Size: constant.BASE_SIZE, Price: productDetails.ProductList.Price, Discount: productDetails.ProductList.Discount, Stock: productDetails.ProductList.Stock})
 
 		productDetailId, err := s.productDetailRepo.Create(ctx, productDetailModal, creatorId)
 		if err != nil {
@@ -124,6 +124,14 @@ func (s *Service) CreateProduct(ctx context.Context, productDetails TCreateProdu
 	})
 
 	return err
+}
+
+func (s *Service) GetVariations(ctx context.Context, productCode string) ([]Variation, error) {
+
+	project := []string{"variations"}
+
+	res, err := s.productDetailRepo.FindByCode(ctx, productCode, project, true)
+	return res.Variations, err
 }
 
 func (s *Service) GetProductDetails(ctx context.Context, id string) (ProductDetail, error) {

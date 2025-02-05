@@ -8,6 +8,7 @@ import (
 	"github.com/omkarp02/pro/router"
 	"github.com/omkarp02/pro/services/middleware"
 	"github.com/omkarp02/pro/utils"
+	"github.com/omkarp02/pro/utils/errutil"
 	"github.com/omkarp02/pro/utils/validation"
 )
 
@@ -20,6 +21,7 @@ type ProductService interface {
 	CreateProductBatch(ctx context.Context, createPayload TCreateProductBatch, userId string) (string, error)
 	FindProductBatch(ctx context.Context, filterPayload FilterProductBatchListModel) ([]ProductBatch, error)
 	GetProductBatchDetails(ctx context.Context, code string) (ProductBatch, error)
+	GetVariations(ctx context.Context, productCode string) ([]Variation, error)
 }
 
 type Handler struct {
@@ -40,6 +42,7 @@ func (h *Handler) RegisterRoutes(router router.Router, link string) {
 	routeGrp.Get("/list", h.getFilteredProductList)
 	routeGrp.Get("/details/:productId", h.getProductDetails)
 	routeGrp.Get("/batch/:batchId", h.getProductBatchDetails)
+	routeGrp.Get("/variations/:code", h.getVariation)
 
 	routeGrp.Use(middleware.VerifyToken(h.cfg))
 	routeGrp.Use(middleware.IsOwner())
@@ -125,6 +128,23 @@ func (h *Handler) findProductBatch(c router.Context) error {
 	}
 
 	data, err := h.service.FindProductBatch(ctx, payload)
+	if err != nil {
+		return err
+	}
+
+	return utils.SendResponse(c, "Data Fetched Successfully", data, 200)
+}
+
+func (h *Handler) getVariation(c router.Context) error {
+	ctx, cancel := createContext()
+	defer cancel()
+
+	code := c.Params("code")
+	if len(code) == 0 {
+		return errutil.InvalidReqData()
+	}
+
+	data, err := h.service.GetVariations(ctx, code)
 	if err != nil {
 		return err
 	}

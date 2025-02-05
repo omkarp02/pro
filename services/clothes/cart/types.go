@@ -11,16 +11,27 @@ type TCartItem struct {
 	Quantity    int    `json:"quantity,omitempty"  validate:"required"`
 }
 
+type IGetCartOffline struct {
+	ProductCode []string `query:"productCode,omitempty"  validate:"required"`
+	Size        []string `query:"size,omitempty"  validate:"required"`
+}
+
+type GetCartOfflineModal struct {
+	ProductCode []string
+	Size        []string
+}
+
 type IUpdateQuantityOfItem struct {
-	Quantity int    `json:"quantity,omitempty"  validate:"required"`
+	Quantity int    `json:"quantity,omitempty"  validate:"required_without=Size"`
+	Size     string `json:"size,omitempty"  validate:"required_without=Quantity"`
 	CartId   string `json:"cartId,omitempty"  validate:"required"`
 }
 
 type IFindOneResProductItems struct {
-	ID         string              `json:"id,omitempty"`
-	Name       string              `json:"name,omitempty" bson:"name,omitempty"`
-	PreviewImg string              `json:"previewImg,omitempty" bson:"previewImg,omitempty"`
-	Variations []product.Variation `json:"variations,omitempty" bson:"variations,omitempty"`
+	ID         string            `json:"id,omitempty"`
+	Name       string            `json:"name,omitempty" bson:"name,omitempty"`
+	PreviewImg string            `json:"previewImg,omitempty" bson:"previewImg,omitempty"`
+	Variations product.Variation `json:"variations,omitempty" bson:"variations,omitempty"`
 }
 
 type IFindOneResCartItem struct {
@@ -32,11 +43,11 @@ type IFindOneResCartItem struct {
 }
 
 type IFindOneRes struct {
-	ID         string                `json:"_id,omitempty"`
-	Items      []IFindOneResCartItem `json:"items,omitempty"`
-	TotalItems int                   `bson:"totalItems,omitempty" json:"totalItems,omitempty"`
-	TotalPrice float64               `bson:"totalPrice,omitempty" json:"totalPrice,omitempty"`
-	Timestamps store.Timestamps      `bson:",inline" json:"timestamp"`
+	ID    string                `json:"_id,omitempty"`
+	Items []IFindOneResCartItem `json:"items,omitempty"`
+	// TotalItems int                   `bson:"totalItems,omitempty" json:"totalItems,omitempty"`
+	// TotalPrice float64               `bson:"totalPrice,omitempty" json:"totalPrice,omitempty"`
+	Timestamps store.Timestamps `bson:",inline" json:"timestamp"`
 }
 
 type TAddToCart struct {

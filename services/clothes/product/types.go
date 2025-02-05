@@ -156,6 +156,10 @@ type TFilterProductBatchList struct {
 	Limit int `query:"limit,omitempty" validate:"required"`
 }
 
+type TGetVariation struct {
+	Code string `json:"code,omitempty" validate:"required"`
+}
+
 type FilterProductBatchListModel struct {
 	CreatorId string
 	Page      int `json:"page,omitempty"`

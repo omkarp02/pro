@@ -94,11 +94,13 @@ func (h *Handler) GetUserProfile(c router.Context) error {
 	defer cancel()
 
 	decodedUserId := c.GetDecodedData().ID
-
+	fmt.Println(">>>>>>>>>> reached here 2")
 	data, err := h.service.GetUserProfile(ctx, decodedUserId)
 	if err != nil {
 		return err
 	}
+
+	fmt.Println(">>>>>>>>>> reached here 3")
 
 	return utils.SendResponse(c, "Address Fetched Successfully", data, 200)
 }

@@ -47,6 +47,7 @@ type ProductTemplate struct {
 type Variation struct {
 	Size     string  `json:"size,omitempty" bson:"size,omitempty" validate:"required"`
 	Price    float64 `json:"price,omitempty" bson:"price,omitempty" validate:"required"`
+	Stock    int     `json:"stock,omitempty" bson:"stock,omitempty" validate:"required"`
 	Discount int     `json:"discount,omitempty" bson:"discount,omitempty" validate:"required,min=0,max=100"`
 }
 

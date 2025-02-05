@@ -79,6 +79,8 @@ func (s *Service) CreateUserProfile(ctx context.Context, payload userprofile.TCr
 			return "", err
 		}
 
+		fmt.Println(useraccountDetails.UserProfile, "<<<<<<<<<<<<<<<<")
+
 		if useraccountDetails.UserProfile.IsZero() {
 			_, err = s.useraccountRepo.UpdateUserProfileById(ctx, useraccountId, id)
 			if err != nil {
@@ -163,6 +165,8 @@ func (s *Service) GetUserProfile(ctx context.Context, useraccountId string) (use
 	if err != nil {
 		return user, err
 	}
+
+	fmt.Println(">>>>>>>>>> reached here 1")
 
 	return s.userprofileRepo.FindById(ctx, useraccountDetails.UserProfile.Hex(), []string{}, false)
 }

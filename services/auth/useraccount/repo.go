@@ -243,7 +243,7 @@ func (s *Repo) createUserAccountModalFromData(userAccountData CreateUserAccountM
 	if len(userAccountData.UserProfile) != 0 {
 		userProfileObjectId, err := bson.ObjectIDFromHex(userAccountData.UserProfile)
 
-		newUserAccount.UserProfile = &userProfileObjectId
+		newUserAccount.UserProfile = userProfileObjectId
 
 		if err != nil {
 			panic(err)

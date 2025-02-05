@@ -2,6 +2,7 @@ package cart
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/omkarp02/pro/services/clothes/product"
 	"github.com/omkarp02/pro/utils"
@@ -21,70 +22,96 @@ func NewService(repo *Repo, productRepo *product.ProductDetailRepo) *Service {
 
 func (s *Service) AddToCard(ctx context.Context, userId string, cartDetails TAddToCart) error {
 
-	var productCodes []string
-	var sizes []string
+	// var productCodes []string
+	// var sizes []string
 
-	for _, item := range cartDetails.Items {
-		productCodes = append(productCodes, item.ProductCode)
-		sizes = append(sizes, item.Size)
-	}
+	// for _, item := range cartDetails.Items {
+	// 	productCodes = append(productCodes, item.ProductCode)
+	// 	sizes = append(sizes, item.Size)
+	// }
 
-	sizes = utils.RemoveDuplicateStringFromSlice(sizes)
-	productCodes = utils.RemoveDuplicateStringFromSlice(productCodes)
-	project := []string{"code"}
+	// sizes = utils.RemoveDuplicateStringFromSlice(sizes)
+	// productCodes = utils.RemoveDuplicateStringFromSlice(productCodes)
+	// project := []string{"code"}
 
-	productDetailList, err := s.productRepo.GetProductsPriceBySizes(ctx, productCodes, sizes, project, true)
+	// productDetailList, err := s.productRepo.GetProductsPriceBySizes(ctx, productCodes, sizes, project, true)
 
-	if err != nil {
-		return err
-	}
+	// if err != nil {
+	// 	return err
+	// }
 
-	curCartTotalPrice := 0.0
-	curCartTotalItems := 0
+	// curCartTotalPrice := 0.0
+	// curCartTotalItems := 0
 
-	for _, item := range cartDetails.Items {
-		for _, product := range productDetailList {
-			if item.ProductCode == product.Code {
-				for _, variation := range product.Variations {
-					if item.Size == variation.Size {
-						curCartTotalPrice += float64(item.Quantity) * variation.Price
-					}
-				}
-			}
+	// for _, item := range cartDetails.Items {
+	// 	for _, product := range productDetailList {
+	// 		if item.ProductCode == product.Code {
+	// 			for _, variation := range product.Variations {
+	// 				if item.Size == variation.Size {
+	// 					curCartTotalPrice += float64(item.Quantity) * variation.Price
+	// 				}
+	// 			}
+	// 		}
 
-		}
-		curCartTotalItems += item.Quantity
-	}
+	// 	}
+	// 	curCartTotalItems += item.Quantity
+	// }
 
 	newCartData := CreateCartModel{
-		UserId:            userId,
-		Items:             cartDetails.Items,
-		CurCartTotalItems: curCartTotalItems,
-		CurTotalPrice:     curCartTotalPrice,
+		UserId: userId,
+		Items:  cartDetails.Items,
+		// CurCartTotalItems: curCartTotalItems,
+		// CurTotalPrice:     curCartTotalPrice,
 	}
 
-	err = s.repo.Create(ctx, newCartData)
+	err := s.repo.Create(ctx, newCartData)
 	return err
 
 }
 
 func (s *Service) UpdateQuantityOfItem(ctx context.Context, userId string, payload IUpdateQuantityOfItem) error {
+	field := "quantity"
+	var value interface{} = payload.Quantity
+	if len(payload.Size) > 0 {
+		field = "size"
+		value = payload.Size
+	}
 
-	return s.repo.UpdateCartItemQuantity(ctx, userId, payload.CartId, payload.Quantity)
+	return s.repo.UpdateCartItem(ctx, userId, payload.CartId, field, value)
 }
 
 func (s *Service) FindOne(ctx context.Context, userId string) (IFindOneRes, error) {
 
 	var res IFindOneRes
-	var productCodes []string
-	var sizes []string
 
 	cartDetails, err := s.repo.FindById(ctx, userId, []string{}, false)
 	if err != nil {
 		return res, err
 	}
 
-	for _, item := range cartDetails.Items {
+	items, err := s.PopulateProductDetailsInCartItem(ctx, cartDetails.Items)
+	if err != nil {
+		return res, err
+	}
+
+	res = IFindOneRes{
+		ID:    cartDetails.ID.Hex(),
+		Items: items,
+		// TotalItems: cartDetails.TotalItems,
+		// TotalPrice: cartDetails.TotalPrice,
+		Timestamps: cartDetails.Timestamps,
+	}
+
+	return res, nil
+
+}
+
+func (s *Service) PopulateProductDetailsInCartItem(ctx context.Context, cartItems []CartItem) ([]IFindOneResCartItem, error) {
+	var items []IFindOneResCartItem
+
+	var productCodes []string
+	var sizes []string
+	for _, item := range cartItems {
 		productCodes = append(productCodes, item.ProductCode)
 		sizes = append(sizes, item.Size)
 	}
@@ -96,38 +123,69 @@ func (s *Service) FindOne(ctx context.Context, userId string) (IFindOneRes, erro
 	productDetailList, err := s.productRepo.GetProductsPriceBySizes(ctx, productCodes, sizes, project, true)
 
 	if err != nil {
-		return res, err
+		return items, err
 	}
 
-	var items []IFindOneResCartItem
-
-	for _, cartItem := range cartDetails.Items {
-		for _, product := range productDetailList {
-			if product.Code == cartItem.ProductCode {
+	for _, cartItem := range cartItems {
+		for _, _product := range productDetailList {
+			if _product.Code == cartItem.ProductCode {
+				var variation product.Variation
+				for _, varItem := range _product.Variations {
+					if varItem.Size == cartItem.Size {
+						variation = varItem
+						break
+					}
+				}
 				items = append(items, IFindOneResCartItem{
 					CartId:      cartItem.CartId,
 					ProductCode: cartItem.ProductCode,
 					Size:        cartItem.Size,
 					Quantity:    cartItem.Quantity,
 					Product: IFindOneResProductItems{
-						ID:         product.ID.Hex(),
-						Name:       product.Name,
-						PreviewImg: product.ImgLink[0],
-						Variations: product.Variations,
+						ID:         _product.ID.Hex(),
+						Name:       _product.Name,
+						PreviewImg: _product.ImgLink[0],
+						Variations: variation,
 					},
 				})
+				break
 			}
 		}
 	}
 
-	res = IFindOneRes{
-		ID:         cartDetails.ID.Hex(),
-		Items:      items,
-		TotalItems: cartDetails.TotalItems,
-		TotalPrice: cartDetails.TotalPrice,
-		Timestamps: cartDetails.Timestamps,
+	return items, nil
+}
+
+func (s *Service) GetCartItemForOffline(ctx context.Context, cartDetails GetCartOfflineModal) ([]IFindOneResCartItem, error) {
+	length := len(cartDetails.ProductCode)
+	cartItems := make([]CartItem, length)
+
+	for i := 0; i < length; i++ {
+		cartItems[i] = CartItem{
+			ProductCode: cartDetails.ProductCode[i],
+			Size:        cartDetails.Size[i],
+		}
 	}
 
-	return res, nil
+	res, err := s.PopulateProductDetailsInCartItem(ctx, cartItems)
+	return res, err
+}
+
+func (s *Service) GetTotalItems(ctx context.Context, userId string) (int, error) {
+
+	project := []string{}
+
+	res, err := s.repo.FindById(ctx, userId, project, false)
+	if err != nil {
+		return 0, err
+	}
+	totalItem := 0
+
+	fmt.Println(res, "<<<<<<<<<<<<<<<<<<<<<")
+
+	for _, item := range res.Items {
+		totalItem += item.Quantity
+	}
+	return totalItem, nil
 
 }

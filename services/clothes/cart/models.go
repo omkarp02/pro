@@ -13,10 +13,10 @@ type CartItem struct {
 }
 
 type Cart struct {
-	ID         bson.ObjectID    `json:"_id,omitempty" bson:"_id,omitempty"`
-	UserId     bson.ObjectID    `bson:"userId,omitempty" json:"userId,omitempty"`
-	Items      []CartItem       `bson:"items,omitempty" json:"items,omitempty"`
-	TotalItems int              `bson:"totalItems,omitempty" json:"totalItems,omitempty"`
-	TotalPrice float64          `bson:"totalPrice,omitempty" json:"totalPrice,omitempty"`
+	ID     bson.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	UserId bson.ObjectID `bson:"userId,omitempty" json:"userId,omitempty"`
+	Items  []CartItem    `bson:"items,omitempty" json:"items,omitempty"`
+	// TotalItems int              `bson:"totalItems,omitempty" json:"totalItems,omitempty"`
+	// TotalPrice float64          `bson:"totalPrice,omitempty" json:"totalPrice,omitempty"`
 	Timestamps store.Timestamps `bson:"timestamp,inline" json:"timestamp"`
 }

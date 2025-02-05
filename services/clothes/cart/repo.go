@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/omkarp02/pro/db"
+	"github.com/omkarp02/pro/services/utils/store"
 	"github.com/omkarp02/pro/utils"
 	"github.com/omkarp02/pro/utils/errutil"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -50,8 +51,6 @@ func (s *Repo) createIndexes() error {
 func (s *Repo) Create(ctx context.Context, payload CreateCartModel) error {
 	collection := s.getColl()
 
-	fmt.Println(">>>>>>>>>>>>>>>>>")
-
 	userObjectId, err := bson.ObjectIDFromHex(payload.UserId)
 	if err != nil {
 		return err
@@ -90,10 +89,10 @@ func (s *Repo) Create(ctx context.Context, payload CreateCartModel) error {
 				"$each": cartItems,
 			},
 		},
-		"$inc": bson.M{
-			"totalItems": payload.CurCartTotalItems,
-			"totalPrice": payload.CurTotalPrice,
-		},
+		// "$inc": bson.M{
+		// 	"totalItems": payload.CurCartTotalItems,
+		// 	"totalPrice": payload.CurTotalPrice,
+		// },
 	}
 
 	opts := options.Update().SetUpsert(true)
@@ -109,7 +108,9 @@ func (s *Repo) Create(ctx context.Context, payload CreateCartModel) error {
 	return nil
 }
 
-func (s *Repo) UpdateCartItemQuantity(ctx context.Context, userId string, cartId string, quantity int) error {
+type CartItemFieldToUpdate string
+
+func (s *Repo) UpdateCartItem(ctx context.Context, userId string, cartId string, field string, value interface{}) error {
 
 	userObjectId, err := bson.ObjectIDFromHex(userId)
 	if err != nil {
@@ -121,9 +122,11 @@ func (s *Repo) UpdateCartItemQuantity(ctx context.Context, userId string, cartId
 		"items.cartId": cartId,
 	}
 
+	fieldToUpdate := "items.$." + field
+
 	update := bson.M{
 		"$set": bson.M{
-			"items.$.quantity": quantity,
+			fieldToUpdate: value,
 		},
 	}
 	result, err := s.getColl().UpdateOne(ctx, filter, update)
@@ -138,7 +141,7 @@ func (s *Repo) UpdateCartItemQuantity(ctx context.Context, userId string, cartId
 	return nil
 }
 
-func (s *Repo) FindById(ctx context.Context, userId string, project []string, exclusive bool) (Cart, error) {
+func (s *Repo) FindById(ctx context.Context, userId string, project []string, inclusive bool) (Cart, error) {
 
 	var cartDetails Cart
 
@@ -150,15 +153,8 @@ func (s *Repo) FindById(ctx context.Context, userId string, project []string, ex
 	filter := bson.M{"userId": objectId}
 	findOneOptions := options.FindOne()
 
-	if len(project) != 0 {
-		projection := bson.M{}
-		for _, field := range project {
-			if exclusive {
-				projection[field] = 0
-			} else {
-				projection[field] = 1
-			}
-		}
+	if len(project) > 0 {
+		projection := store.GenerateProjection(project, inclusive)
 		findOneOptions.SetProjection(projection)
 	}
 
