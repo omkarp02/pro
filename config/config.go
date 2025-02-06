@@ -93,6 +93,7 @@ type AuthRoute struct {
 	User        string `yaml:"user" env:"user" env-required:"true"`
 	Owner       string `yaml:"owner" env:"owner" env-required:"true"`
 	Bussiness   string `yaml:"bussiness" env:"bussiness" env-required:"true"`
+	Address     string `yaml:"address" env:"address" env-required:"true"`
 }
 
 type AuthStore struct {
@@ -100,6 +101,7 @@ type AuthStore struct {
 	UserProfile string `yaml:"user_profile" env:"user_profile" env-required:"true"`
 	Owner       string `yaml:"owner" env:"owner" env-required:"true"`
 	Bussiness   string `yaml:"bussiness" env:"bussiness" env-required:"true"`
+	Address     string `yaml:"address" env:"address" env-required:"true"`
 }
 
 type ReviewRoute struct {

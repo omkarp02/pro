@@ -2,7 +2,6 @@ package cart
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/omkarp02/pro/services/clothes/product"
 	"github.com/omkarp02/pro/utils"
@@ -59,7 +58,7 @@ func (s *Service) AddToCard(ctx context.Context, userId string, cartDetails TAdd
 
 	newCartData := CreateCartModel{
 		UserId: userId,
-		Items:  cartDetails.Items,
+		Item:   cartDetails.Item,
 		// CurCartTotalItems: curCartTotalItems,
 		// CurTotalPrice:     curCartTotalPrice,
 	}
@@ -107,7 +106,12 @@ func (s *Service) FindOne(ctx context.Context, userId string) (IFindOneRes, erro
 }
 
 func (s *Service) PopulateProductDetailsInCartItem(ctx context.Context, cartItems []CartItem) ([]IFindOneResCartItem, error) {
+
 	var items []IFindOneResCartItem
+
+	if len(cartItems) == 0 {
+		return items, nil
+	}
 
 	var productCodes []string
 	var sizes []string
@@ -164,6 +168,7 @@ func (s *Service) GetCartItemForOffline(ctx context.Context, cartDetails GetCart
 		cartItems[i] = CartItem{
 			ProductCode: cartDetails.ProductCode[i],
 			Size:        cartDetails.Size[i],
+			CartId:      cartDetails.CartId[i],
 		}
 	}
 
@@ -171,9 +176,9 @@ func (s *Service) GetCartItemForOffline(ctx context.Context, cartDetails GetCart
 	return res, err
 }
 
-func (s *Service) DeleteCartItem(ctx context.Context, productCode string, userId string) error {
+func (s *Service) DeleteCartItem(ctx context.Context, cartId string, userId string) error {
 
-	return s.repo.DeleteCartItem(ctx, userId, productCode)
+	return s.repo.DeleteCartItem(ctx, userId, cartId)
 }
 
 func (s *Service) GetTotalItems(ctx context.Context, userId string) (int, error) {
@@ -185,8 +190,6 @@ func (s *Service) GetTotalItems(ctx context.Context, userId string) (int, error)
 		return 0, err
 	}
 	totalItem := 0
-
-	fmt.Println(res, "<<<<<<<<<<<<<<<<<<<<<")
 
 	for _, item := range res.Items {
 		totalItem += item.Quantity

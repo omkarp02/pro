@@ -41,12 +41,14 @@ app:
       user_profile: "user_profile"
       owner: "owner"
       bussiness: "bussiness"
+      address: "address"
     routes:
       user_account: "auth"
       user_profile: "user-profile"
       user: "user"
       owner: "owner"
       bussiness: "bussiness"
+      address: "address"
     client:
       redirect_url: "http://localhost:3000/auth-success"
 auth_config_provider:

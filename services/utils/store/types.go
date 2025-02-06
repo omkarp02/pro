@@ -1,6 +1,7 @@
 package store
 
 type AddressModel struct {
+	Name              string `bson:"name,omitempty"`
 	Address           string `json:"address,omitempty"`
 	City              string `json:"city,omitempty"`
 	State             string `json:"state,omitempty"`
@@ -11,6 +12,7 @@ type AddressModel struct {
 }
 
 type TAddress struct {
+	Name              string `bson:"name,omitempty" validate:"required"`
 	Address           string `json:"address,omitempty"  validate:"required"`
 	City              string `json:"city,omitempty"  validate:"required"`
 	State             string `json:"state,omitempty"  validate:"required"`

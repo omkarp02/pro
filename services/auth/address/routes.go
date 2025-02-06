@@ -8,6 +8,7 @@ import (
 	"github.com/omkarp02/pro/config"
 	"github.com/omkarp02/pro/router"
 	"github.com/omkarp02/pro/services/middleware"
+	"github.com/omkarp02/pro/services/utils/store"
 	"github.com/omkarp02/pro/utils"
 	"github.com/omkarp02/pro/utils/validation"
 )
@@ -15,6 +16,8 @@ import (
 type AddressService interface {
 	Create(ctx context.Context, userId string, createPayload TCreateAddress) (string, error)
 	GetAddressByUserId(ctx context.Context, userId string) ([]Address, error)
+	UpdateAddress(ctx context.Context, payload UpdateAddressModel) error
+	DeleteAddress(ctx context.Context, addressId string, userId string) error
 }
 
 type Handler struct {
@@ -33,7 +36,9 @@ func (h *Handler) RegisterRoutes(router router.Router, link string) {
 	routeGrp.Use(middleware.VerifyToken(h.cfg))
 
 	routeGrp.Post("/", h.create)
-	routeGrp.Get("/get-by-userid", h.GetByUserId)
+	routeGrp.Delete("/:id", h.deleteUserAddress)
+	routeGrp.Put("/", h.UpdateUserAddress)
+	routeGrp.Get("/", h.getByUserId)
 }
 
 func (h *Handler) create(c router.Context) error {
@@ -56,7 +61,7 @@ func (h *Handler) create(c router.Context) error {
 	return utils.SendResponse(c, "Address Created Successfully", fiber.Map{"id": id}, 201)
 }
 
-func (h *Handler) GetByUserId(c router.Context) error {
+func (h *Handler) getByUserId(c router.Context) error {
 	ctx, cancel := createContext()
 	defer cancel()
 
@@ -68,6 +73,51 @@ func (h *Handler) GetByUserId(c router.Context) error {
 	}
 
 	return utils.SendResponse(c, "Address Fetched Successfully", data, 200)
+}
+
+func (h *Handler) deleteUserAddress(c router.Context) error {
+	ctx, cancel := createContext()
+	defer cancel()
+
+	addressId, err := h.validator.ValidateParam(c, "id")
+	if err != nil {
+		return err
+	}
+
+	decodedUserId := c.GetDecodedData().ID
+
+	err = h.service.DeleteAddress(ctx, addressId, decodedUserId)
+	if err != nil {
+		return err
+	}
+
+	return utils.SendResponse(c, "Address Fetched Successfully", nil, 200)
+}
+
+func (h *Handler) UpdateUserAddress(c router.Context) error {
+	ctx, cancel := createContext()
+	defer cancel()
+
+	var payload TUpdateAddress
+	decodedUserId := c.GetDecodedData().ID
+
+	if err := h.validator.ValidateBody(c, &payload); err != nil {
+		return err
+	}
+
+	model := UpdateAddressModel{
+		Id:        payload.Id,
+		Address:   store.AddressModel(payload.Address),
+		IsPrimary: payload.IsPrimary,
+		UserID:    decodedUserId,
+	}
+
+	err := h.service.UpdateAddress(ctx, model)
+	if err != nil {
+		return err
+	}
+
+	return utils.SendResponse(c, "Address Fetched Successfully", nil, 200)
 }
 
 func createContext() (context.Context, context.CancelFunc) {

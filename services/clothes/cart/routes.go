@@ -41,7 +41,7 @@ func (h *Handler) RegisterRoutes(router router.Router, link string) {
 	routeGrp.Post("/add", h.addToCard)
 	routeGrp.Patch("/item", h.updateCartItemQuantity)
 	routeGrp.Get("/", h.getCart)
-	routeGrp.Delete("/item/:code", h.deleteCartItem)
+	routeGrp.Delete("/item/:cartId", h.deleteCartItem)
 	routeGrp.Get("/item/total", h.getCartTotalItem)
 }
 
@@ -123,7 +123,7 @@ func (h *Handler) deleteCartItem(c router.Context) error {
 
 	userId := c.GetDecodedData().ID
 
-	code := c.Params("code")
+	code := c.Params("cartId")
 	if len(code) == 0 {
 		return errutil.InvalidReqData()
 	}

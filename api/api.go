@@ -5,6 +5,7 @@ import (
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/router"
 	"github.com/omkarp02/pro/services/assessment/review"
+	"github.com/omkarp02/pro/services/auth/address"
 	bussiness "github.com/omkarp02/pro/services/auth/business"
 	"github.com/omkarp02/pro/services/auth/owner"
 	"github.com/omkarp02/pro/services/auth/user"
@@ -61,6 +62,7 @@ func setUpAuthApp(curDb *db.Database, cfg *config.Config, validator *validation.
 	user.Intialize(curDb, cfg, validator, api)
 	owner.Intialize(curDb, cfg, validator, api)
 	bussiness.Intialize(curDb, cfg, validator, api)
+	address.Intialize(curDb, cfg, validator, api)
 }
 
 func setUpMasterApp(curDb *db.Database, cfg *config.Config, validator *validation.Validator, api router.Router) {

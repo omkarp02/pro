@@ -24,6 +24,7 @@ type Pagination struct {
 }
 
 type Address struct {
+	Name              string `bson:"name,omitempty"`
 	Address           string `bson:"address,omitempty"`
 	City              string `bson:"city,omitempty"`
 	State             string `bson:"state,omitempty"`

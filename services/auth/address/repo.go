@@ -71,6 +71,61 @@ func (s *Repo) Create(ctx context.Context, createPayload CreateAddressModel) (st
 	return "", errutil.ErrDatabase
 }
 
+func (s *Repo) UpdateById(ctx context.Context, updatePayload UpdateAddressModel) error {
+
+	objectIds, err := store.SliceOfHexToObjectID(updatePayload.UserID, updatePayload.Id)
+
+	if err != nil {
+		return err
+	}
+
+	userId := objectIds[0]
+	addressId := objectIds[1]
+
+	newAddress := Address{
+		IsPrimary: updatePayload.IsPrimary,
+	}
+
+	newAddress.Timestamps.UpdatedAt = store.GetCurrentTimestamps().UpdatedAt
+
+	query := bson.M{"userId": userId, "_id": addressId}
+	update := bson.M{"$set": newAddress}
+
+	result, err := s.getColl().UpdateOne(ctx, query, update)
+	if err != nil {
+		return err
+	}
+
+	if result.ModifiedCount == 0 {
+		return errutil.InternalServerError()
+	}
+
+	return nil
+}
+
+func (s *Repo) Delete(ctx context.Context, addressId string, userId string) error {
+	objectIds, err := store.SliceOfHexToObjectID(addressId, userId)
+	if err != nil {
+		return err
+	}
+
+	userObjectId := objectIds[0]
+	addressObjectId := objectIds[1]
+
+	query := bson.M{"userId": userObjectId, "_id": addressObjectId}
+
+	res, err := s.getColl().DeleteOne(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	if res.DeletedCount == 0 {
+		errutil.InternalServerError()
+	}
+
+	return err
+}
+
 func (s *Repo) GetAddressByUserId(ctx context.Context, userId string) ([]Address, error) {
 
 	var addressList []Address

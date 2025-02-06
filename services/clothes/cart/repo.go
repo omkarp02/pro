@@ -56,26 +56,21 @@ func (s *Repo) Create(ctx context.Context, payload CreateCartModel) error {
 		return err
 	}
 
-	var cartItems []CartItem
-	productCodes := []string{}
+	productCode := payload.Item.ProductCode
+	size := payload.Item.Size
 
-	totalItems := 0
-
-	for _, item := range payload.Items {
-		totalItems += item.Quantity
-		cartItem := CartItem{
-			CartId:      "C-" + strconv.Itoa(utils.GenerateRandomNumber(5)),
-			ProductCode: item.ProductCode,
-			Size:        item.Size,
-			Quantity:    item.Quantity,
-		}
-
-		cartItems = append(cartItems, cartItem)
-		productCodes = append(productCodes, cartItem.ProductCode)
+	cartItem := CartItem{
+		CartId:      "C-" + strconv.Itoa(utils.GenerateRandomNumber(5)),
+		ProductCode: productCode,
+		Size:        size,
+		Quantity:    payload.Item.Quantity,
 	}
 
-	filter := bson.M{"userId": userObjectId, "items.productCode": bson.M{"$nin": productCodes}}
-	// filter := bson.M{"userId": userObjectId}
+	filter := bson.M{"userId": userObjectId,
+		"$or": []bson.M{
+			{"items.productCode": bson.M{"$ne": productCode}},
+			{"items.size": bson.M{"$ne": size}},
+		}}
 	update := bson.M{
 		"$setOnInsert": bson.M{
 			"userId":    userObjectId,
@@ -85,9 +80,7 @@ func (s *Repo) Create(ctx context.Context, payload CreateCartModel) error {
 			"updatedAt": time.Now(),
 		},
 		"$push": bson.M{
-			"items": bson.M{
-				"$each": cartItems,
-			},
+			"items": cartItem,
 		},
 		// "$inc": bson.M{
 		// 	"totalItems": payload.CurCartTotalItems,
@@ -141,25 +134,27 @@ func (s *Repo) UpdateCartItem(ctx context.Context, userId string, cartId string,
 	return nil
 }
 
-func (s *Repo) DeleteCartItem(ctx context.Context, userId string, productCode string) error {
+func (s *Repo) DeleteCartItem(ctx context.Context, userId string, cartId string) error {
 	userObjectId, err := bson.ObjectIDFromHex(userId)
 	if err != nil {
 		return err
 	}
 
 	filter := bson.M{
-		"userId":            userObjectId,
-		"items.productcode": productCode,
+		"userId":       userObjectId,
+		"items.cartId": cartId,
 	}
 
-	update := bson.M{"$pull": bson.M{"items": bson.M{"productcode": "asdf"}}}
+	update := bson.M{"$pull": bson.M{"items": bson.M{"cartId": cartId}}}
 
 	result, err := s.getColl().UpdateOne(ctx, filter, update)
 	if err != nil {
 		return err
 	}
 
-	if result.ModifiedCount != 0 {
+	fmt.Println(result)
+
+	if result.ModifiedCount == 0 {
 		return errutil.InternalServerError("Something went wrong! Try again")
 	}
 

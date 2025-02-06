@@ -21,7 +21,7 @@ func (s *Service) Create(ctx context.Context, userId string, createPayload TCrea
 	addressModal := CreateAddressModel{
 		Address:   store.AddressModel(createPayload.Address),
 		IsPrimary: createPayload.IsPrimary,
-		Type:      createPayload.Type,
+		Type:      TYPE_HOME,
 		UserID:    userId,
 	}
 
@@ -30,4 +30,12 @@ func (s *Service) Create(ctx context.Context, userId string, createPayload TCrea
 
 func (s *Service) GetAddressByUserId(ctx context.Context, userId string) ([]Address, error) {
 	return s.repo.GetAddressByUserId(ctx, userId)
+}
+
+func (s *Service) UpdateAddress(ctx context.Context, payload UpdateAddressModel) error {
+	return s.repo.UpdateById(ctx, payload)
+}
+
+func (s *Service) DeleteAddress(ctx context.Context, addressId string, userId string) error {
+	return s.repo.Delete(ctx, addressId, userId)
 }

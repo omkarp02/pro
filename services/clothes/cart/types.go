@@ -14,11 +14,13 @@ type TCartItem struct {
 type IGetCartOffline struct {
 	ProductCode []string `query:"productCode,omitempty"  validate:"required"`
 	Size        []string `query:"size,omitempty"  validate:"required"`
+	CartId      []string `query:"cartId,omitempty"  validate:"required"`
 }
 
 type GetCartOfflineModal struct {
 	ProductCode []string
 	Size        []string
+	CartId      []string
 }
 
 type IUpdateQuantityOfItem struct {
@@ -51,12 +53,12 @@ type IFindOneRes struct {
 }
 
 type TAddToCart struct {
-	Items []TCartItem `json:"item,omitempty"  validate:"required,dive"`
+	Item TCartItem `json:"item,omitempty"  validate:"required"`
 }
 
 type CreateCartModel struct {
-	UserId            string      `json:"userId,omitempty"` // User owning the cart
-	Items             []TCartItem `json:"items,omitempty"`  // List of items in the cart
-	CurTotalPrice     float64
-	CurCartTotalItems int
+	UserId string    `json:"userId,omitempty"` // User owning the cart
+	Item   TCartItem `json:"items,omitempty"`  // List of items in the cart
+	// CurTotalPrice     float64
+	// CurCartTotalItems int
 }

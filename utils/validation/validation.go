@@ -46,6 +46,15 @@ func (v *Validator) ValidateBody(c router.Context, objType interface{}) error {
 	return nil
 }
 
+func (v *Validator) ValidateParam(c router.Context, key string) (string, error) {
+	param := c.Params(key)
+	if len(param) == 0 {
+		return "", errutil.InvalidReqData()
+	}
+
+	return param, nil
+}
+
 func (v *Validator) ValidateParams(c router.Context, objType interface{}) error {
 
 	t := reflect.TypeOf(objType)
