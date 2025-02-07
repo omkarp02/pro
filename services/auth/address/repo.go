@@ -2,6 +2,7 @@ package address
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/services/utils/store"
@@ -53,6 +54,7 @@ func (s *Repo) Create(ctx context.Context, createPayload CreateAddressModel) (st
 		IsPrimary:  createPayload.IsPrimary,
 		Type:       createPayload.Type,
 		UserID:     userObjectId,
+		Address:    store.Address(createPayload.Address),
 		Timestamps: store.GetCurrentTimestamps(),
 	}
 
@@ -137,6 +139,7 @@ func (s *Repo) GetAddressByUserId(ctx context.Context, userId string) ([]Address
 
 	filter := bson.M{"userId": userObjectId}
 
+	fmt.Println(filter)
 	cursor, err := s.getColl().Find(ctx, filter)
 	if err != nil {
 		return addressList, nil
@@ -145,6 +148,51 @@ func (s *Repo) GetAddressByUserId(ctx context.Context, userId string) ([]Address
 	if err := cursor.All(context.TODO(), &addressList); err != nil {
 		return nil, err
 	}
-
 	return addressList, nil
+}
+
+func (s *Repo) HandleAddressIsPrimary(ctx context.Context, userId string, primaryAddressId string) error {
+
+	objectIds, err := store.SliceOfHexToObjectID(userId, primaryAddressId)
+	if err != nil {
+		return err
+	}
+
+	userObjectId := objectIds[0]
+	addressObjectId := objectIds[1]
+
+	query := bson.M{"userId": userObjectId, "_id": bson.M{"$ne": addressObjectId}}
+	update := bson.M{"isPrimary": false}
+
+	result, err := s.getColl().UpdateMany(ctx, query, update)
+	if err != nil {
+		return err
+	}
+	if result.ModifiedCount == 0 {
+		return errutil.InternalServerError()
+	}
+
+	return nil
+
+}
+
+func (s *Repo) UpdateAddressIsPrimary(ctx context.Context, userId string) error {
+	userIdObjectId, err := bson.ObjectIDFromHex(userId)
+	if err != nil {
+		return err
+	}
+
+	query := bson.M{"userId": userIdObjectId}
+	update := bson.M{"$set": bson.M{"isPrimary": false}}
+
+	result, err := s.getColl().UpdateMany(ctx, query, update)
+	if err != nil {
+		return err
+	}
+	if result.ModifiedCount == 0 {
+		return errutil.InternalServerError()
+	}
+
+	return nil
+
 }

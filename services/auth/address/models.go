@@ -6,11 +6,11 @@ import (
 )
 
 type Address struct {
-	ID         bson.ObjectID    `bson:"_id,omitempty"`
-	Address    store.Address    `bson:",inline"`
-	IsPrimary  bool             `bson:"isPrimary,omitempty"`
-	Type       ADDRESS_TYPE     `bson:"type,omitempty"`
-	UserID     bson.ObjectID    `bson:"userId,omitempty"`
+	ID         bson.ObjectID    `bson:"_id,omitempty" json:"id,omitempty"`
+	Address    store.Address    `bson:",inline" json:"address,inline"`
+	IsPrimary  bool             `bson:"isPrimary" json:"isPrimary"`
+	Type       ADDRESS_TYPE     `bson:"type,omitempty" json:"type,omitempty"`
+	UserID     bson.ObjectID    `bson:"userId,omitempty" json:"userId,omitempty"`
 	Timestamps store.Timestamps `json:"timestamp,omitempty" bson:",inline"`
 }
 

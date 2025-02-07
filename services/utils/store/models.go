@@ -24,12 +24,12 @@ type Pagination struct {
 }
 
 type Address struct {
-	Name              string `bson:"name,omitempty"`
-	Address           string `bson:"address,omitempty"`
-	City              string `bson:"city,omitempty"`
-	State             string `bson:"state,omitempty"`
-	Country           string `bson:"country,omitempty"`
-	PinCode           int    `bson:"pincode,omitempty"`
-	MobileNo          string `bson:"mobileNo,omitempty"`
-	AlternateMobileNo string `bson:"alternateMobileNo,omitempty"`
+	Name              string `json:"name,omitempty" bson:"name,omitempty"`
+	Address           string `json:"address,omitempty" bson:"address,omitempty"`
+	City              string `json:"city,omitempty" bson:"city,omitempty"`
+	State             string `json:"state,omitempty" bson:"state,omitempty"`
+	Country           string `json:"country,omitempty" bson:"country,omitempty"`
+	PinCode           int    `json:"pincode,omitempty" bson:"pincode,omitempty"`
+	MobileNo          string `json:"mobileNo,omitempty" bson:"mobileNo,omitempty"`
+	AlternateMobileNo string `json:"alternateMobileNo,omitempty" bson:"alternateMobileNo,omitempty"`
 }
