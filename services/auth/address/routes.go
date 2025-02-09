@@ -2,6 +2,7 @@ package address
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -18,6 +19,9 @@ type AddressService interface {
 	GetAddressByUserId(ctx context.Context, userId string) ([]Address, error)
 	UpdateAddress(ctx context.Context, payload UpdateAddressModel) error
 	DeleteAddress(ctx context.Context, addressId string, userId string) error
+	DeleteAddressByIds(ctx context.Context, addressIds []string, userId string) error
+	FindById(ctx context.Context, id string, userId string) (Address, error)
+	FindPrimaryAddress(ctx context.Context, userId string) (Address, error)
 }
 
 type Handler struct {
@@ -37,7 +41,11 @@ func (h *Handler) RegisterRoutes(router router.Router, link string) {
 
 	routeGrp.Post("/", h.create)
 	routeGrp.Delete("/:id", h.deleteUserAddress)
+	routeGrp.Get("/is-primary", h.getPrimaryAddress)
+	routeGrp.Get("/:id", h.getAddress)
+	routeGrp.Post("/delete/many", h.deleteUserAddressByUserIds)
 	routeGrp.Put("/", h.UpdateUserAddress)
+	routeGrp.Patch("/is-primary", h.ChangeAddressIsPrimary)
 	routeGrp.Get("/", h.getByUserId)
 }
 
@@ -75,6 +83,40 @@ func (h *Handler) getByUserId(c router.Context) error {
 	return utils.SendResponse(c, "Address Fetched Successfully", data, 200)
 }
 
+func (h *Handler) getAddress(c router.Context) error {
+	ctx, cancel := createContext()
+	defer cancel()
+
+	addressId, err := h.validator.ValidateParam(c, "id")
+	if err != nil {
+		return err
+	}
+
+	decodedUserId := c.GetDecodedData().ID
+
+	data, err := h.service.FindById(ctx, addressId, decodedUserId)
+	if err != nil {
+		return err
+	}
+
+	return utils.SendResponse(c, "Address Fetched Successfully", data, 200)
+}
+
+func (h *Handler) getPrimaryAddress(c router.Context) error {
+	ctx, cancel := createContext()
+	defer cancel()
+	fmt.Println(">>>>>>>>>> here rezched")
+
+	decodedUserId := c.GetDecodedData().ID
+
+	data, err := h.service.FindPrimaryAddress(ctx, decodedUserId)
+	if err != nil {
+		return err
+	}
+
+	return utils.SendResponse(c, "Address Fetched Successfully", data, 200)
+}
+
 func (h *Handler) deleteUserAddress(c router.Context) error {
 	ctx, cancel := createContext()
 	defer cancel()
@@ -91,7 +133,25 @@ func (h *Handler) deleteUserAddress(c router.Context) error {
 		return err
 	}
 
-	return utils.SendResponse(c, "Address Fetched Successfully", nil, 200)
+	return utils.SendResponse(c, "Address Deleted Successfully", nil, 200)
+}
+
+func (h *Handler) deleteUserAddressByUserIds(c router.Context) error {
+	ctx, cancel := createContext()
+	defer cancel()
+
+	var payload TDeleteAddressByIds
+
+	err := h.validator.ValidateBody(c, &payload)
+	if err != nil {
+		return err
+	}
+
+	decodedUserId := c.GetDecodedData().ID
+
+	err = h.service.DeleteAddressByIds(ctx, payload.Ids, decodedUserId)
+
+	return utils.SendResponse(c, "Address Deleted Successfully", nil, 200)
 }
 
 func (h *Handler) UpdateUserAddress(c router.Context) error {
@@ -117,7 +177,32 @@ func (h *Handler) UpdateUserAddress(c router.Context) error {
 		return err
 	}
 
-	return utils.SendResponse(c, "Address Fetched Successfully", nil, 200)
+	return utils.SendResponse(c, "Address Updated Successfully", nil, 200)
+}
+
+func (h *Handler) ChangeAddressIsPrimary(c router.Context) error {
+	ctx, cancel := createContext()
+	defer cancel()
+
+	var payload TUpdateAddressIsPrimary
+	decodedUserId := c.GetDecodedData().ID
+
+	if err := h.validator.ValidateBody(c, &payload); err != nil {
+		return err
+	}
+
+	model := UpdateAddressModel{
+		Id:        payload.Id,
+		IsPrimary: payload.IsPrimary,
+		UserID:    decodedUserId,
+	}
+
+	err := h.service.UpdateAddress(ctx, model)
+	if err != nil {
+		return err
+	}
+
+	return utils.SendResponse(c, "Address Updated Successfully", nil, 200)
 }
 
 func createContext() (context.Context, context.CancelFunc) {

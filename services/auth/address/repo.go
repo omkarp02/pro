@@ -2,6 +2,7 @@ package address
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/omkarp02/pro/db"
@@ -9,6 +10,7 @@ import (
 	"github.com/omkarp02/pro/utils/errutil"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type Repo struct {
@@ -41,6 +43,64 @@ func (s *Repo) createIndexes() error {
 
 func (s *Repo) getColl() *mongo.Collection {
 	return s.DB.Database(s.DBName).Collection(s.collName)
+}
+
+func (s *Repo) FindById(ctx context.Context, id string, userId string, project []string, inclusive bool) (Address, error) {
+
+	var model Address
+
+	objectIds, err := store.SliceOfHexToObjectID(userId, id)
+
+	userObjectId := objectIds[0]
+	addressObjectId := objectIds[1]
+
+	filter := bson.M{"_id": addressObjectId, "userId": userObjectId}
+	findOneOptions := options.FindOne()
+
+	if len(project) != 0 {
+		projection := store.GenerateProjection(project, inclusive)
+		findOneOptions.SetProjection(projection)
+	}
+
+	err = s.getColl().FindOne(ctx, filter, findOneOptions).Decode(&model)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return model, errutil.NotFound("Product")
+		}
+		return model, err
+	}
+
+	return model, nil
+
+}
+
+func (s *Repo) FindPrimaryAddress(ctx context.Context, userId string, project []string, inclusive bool) (Address, error) {
+
+	var model Address
+
+	userObjectId, err := bson.ObjectIDFromHex(userId)
+	if err != nil {
+		return model, err
+	}
+
+	filter := bson.M{"userId": userObjectId, "isPrimary": true}
+	findOneOptions := options.FindOne()
+
+	if len(project) != 0 {
+		projection := store.GenerateProjection(project, inclusive)
+		findOneOptions.SetProjection(projection)
+	}
+
+	err = s.getColl().FindOne(ctx, filter, findOneOptions).Decode(&model)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return model, errutil.NotFound("Product")
+		}
+		return model, err
+	}
+
+	return model, nil
+
 }
 
 func (s *Repo) Create(ctx context.Context, createPayload CreateAddressModel) (string, error) {
@@ -85,6 +145,7 @@ func (s *Repo) UpdateById(ctx context.Context, updatePayload UpdateAddressModel)
 	addressId := objectIds[1]
 
 	newAddress := Address{
+		Address:   store.Address(updatePayload.Address),
 		IsPrimary: updatePayload.IsPrimary,
 	}
 
@@ -111,8 +172,8 @@ func (s *Repo) Delete(ctx context.Context, addressId string, userId string) erro
 		return err
 	}
 
-	userObjectId := objectIds[0]
-	addressObjectId := objectIds[1]
+	userObjectId := objectIds[1]
+	addressObjectId := objectIds[0]
 
 	query := bson.M{"userId": userObjectId, "_id": addressObjectId}
 
@@ -121,11 +182,44 @@ func (s *Repo) Delete(ctx context.Context, addressId string, userId string) erro
 		return err
 	}
 
+	fmt.Println(res, "<<<<<<<<<")
+
 	if res.DeletedCount == 0 {
 		errutil.InternalServerError()
 	}
 
 	return err
+}
+func (s *Repo) DeleteByIds(ctx context.Context, addressIds []string, userId string) error {
+	// Convert all address IDs to ObjectIDs
+	addressObjectIds, err := store.SliceOfHexToObjectID(addressIds...)
+	if err != nil {
+		return err
+	}
+
+	// Convert the user ID to ObjectID
+	userObjectId, err := bson.ObjectIDFromHex(userId)
+	if err != nil {
+		return err
+	}
+
+	// Create a query to match the user and the addresses
+	query := bson.M{
+		"userId": userObjectId,
+		"_id":    bson.M{"$in": addressObjectIds},
+	}
+
+	// Delete all matching addresses
+	res, err := s.getColl().DeleteMany(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	if res.DeletedCount == 0 {
+		return errutil.InternalServerError()
+	}
+
+	return nil
 }
 
 func (s *Repo) GetAddressByUserId(ctx context.Context, userId string) ([]Address, error) {
@@ -189,7 +283,8 @@ func (s *Repo) UpdateAddressIsPrimary(ctx context.Context, userId string) error 
 	if err != nil {
 		return err
 	}
-	if result.ModifiedCount == 0 {
+
+	if !result.Acknowledged {
 		return errutil.InternalServerError()
 	}
 

@@ -73,6 +73,8 @@ type Specifications struct {
 	MainTrend       string `json:"mainTrend,omitempty" bson:"mainTrend,omitempty"`
 	NumberOfItems   int    `json:"numberOfItems,omitempty" bson:"numberOfItems,omitempty"`
 	PackageContains string `json:"packageContains,omitempty" bson:"packageContains,omitempty"`
+	WaistBand       string `json:"waistBand,omitempty" bson:"waistBand,omitempty"`
+	WaistRise       string `json:"waistRise,omitempty" bson:"waistRise,omitempty"`
 }
 
 type BatchProductDetails struct {

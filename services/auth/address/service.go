@@ -2,7 +2,6 @@ package address
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/services/utils/store"
@@ -29,16 +28,17 @@ func (s *Service) Create(ctx context.Context, userId string, createPayload TCrea
 		UserID:    userId,
 	}
 
-	fmt.Println(addressModal, "<<<<<<<<")
-
 	result, err := s.txn.RunInTxn(ctx, func(sessCtx context.Context) (interface{}, error) {
+		if createPayload.IsPrimary {
+			err := s.repo.UpdateAddressIsPrimary(sessCtx, userId)
+			if err != nil {
+				return "", err
+			}
+		}
+
 		result, err := s.repo.Create(sessCtx, addressModal)
 		if err != nil {
 			return "", err
-		}
-
-		if createPayload.IsPrimary {
-			err = s.repo.UpdateAddressIsPrimary(sessCtx, userId)
 		}
 
 		return result, err
@@ -61,6 +61,10 @@ func (s *Service) GetAddressByUserId(ctx context.Context, userId string) ([]Addr
 func (s *Service) UpdateAddress(ctx context.Context, payload UpdateAddressModel) error {
 
 	respChan := make(chan error)
+	n := 2
+	if !payload.IsPrimary {
+		n = 1
+	}
 
 	go func() {
 		respChan <- s.repo.UpdateById(ctx, payload)
@@ -73,7 +77,7 @@ func (s *Service) UpdateAddress(ctx context.Context, payload UpdateAddressModel)
 	}
 
 	var err error
-	for i := 0; i < 2; i++ {
+	for i := 0; i < n; i++ {
 		err = <-respChan
 	}
 	return err
@@ -81,4 +85,19 @@ func (s *Service) UpdateAddress(ctx context.Context, payload UpdateAddressModel)
 
 func (s *Service) DeleteAddress(ctx context.Context, addressId string, userId string) error {
 	return s.repo.Delete(ctx, addressId, userId)
+}
+func (s *Service) DeleteAddressByIds(ctx context.Context, addressIds []string, userId string) error {
+	return s.repo.DeleteByIds(ctx, addressIds, userId)
+}
+
+func (s *Service) FindById(ctx context.Context, id string, userId string) (Address, error) {
+	project := []string{}
+
+	return s.repo.FindById(ctx, id, userId, project, false)
+}
+
+func (s *Service) FindPrimaryAddress(ctx context.Context, userId string) (Address, error) {
+	project := []string{}
+
+	return s.repo.FindPrimaryAddress(ctx, userId, project, false)
 }
