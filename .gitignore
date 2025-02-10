@@ -45,6 +45,8 @@ coverage.out
 # Debug files
 debug/
 
+/node-script/node_modules
+
 
 #env
 *.env

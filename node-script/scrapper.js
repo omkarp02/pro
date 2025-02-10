@@ -4,7 +4,7 @@ const { isErrnoException } = require("puppeteer");
 const _ = require("lodash");
 
 const uri =
-  "mongodb+srv://opwebdev:Omkar^100@omkar.iuqcpfi.mongodb.net/test_db"; // Replace with your MongoDB connection string
+  "mongodb://localhost:27017/test_db"; // Replace with your MongoDB connection string
 const client = new MongoClient(uri);
 
 const productDetailBody = {

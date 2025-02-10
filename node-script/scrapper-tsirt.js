@@ -3,8 +3,7 @@ const { MongoClient, ObjectId } = require("mongodb");
 const { isErrnoException } = require("puppeteer");
 const _ = require("lodash");
 
-const uri =
-  "mongodb+srv://opwebdev:Omkar^100@omkar.iuqcpfi.mongodb.net/test_db"; // Replace with your MongoDB connection string
+const uri = "mongodb://localhost:27017/test_db"; // Replace with your MongoDB connection string
 const client = new MongoClient(uri);
 
 const productDetailBody = {
@@ -76,7 +75,7 @@ const productBatchBody = {
 
 const sizes = ["S", "M", "L", "XL", "XXL", "XXXL"];
 const collection = ["latest", "best-sellers", "trending"];
-const category = new Object("67a8b6106b836b42a9caa881")
+const category = new Object("67a8b6106b836b42a9caa881");
 
 async function start(websiteUrl) {
   await client.connect();
@@ -86,15 +85,45 @@ async function start(websiteUrl) {
   const page = await browser.newPage();
 
   try {
-    const mainUrl = websiteUrl; // Replace with your website URL
+    const mainUrl = websiteUrl;
     await page.goto(mainUrl, { waitUntil: "networkidle2" });
 
-    // Get all anchor tags with class "product_link"
-    const productLinks = await page.$$eval("a.product_link", (anchors) =>
-      anchors.map((anchor) => anchor.href)
-    );
+    let productLinks = new Set();
 
-    let imageUrls = [];
+    let previousHeight = 0;
+    let maxScrollAttempts = 20; // Maximum attempts to scroll and fetch new content
+    let scrollAttempts = 0;
+
+    while (scrollAttempts < maxScrollAttempts) {
+      // Scroll down
+      const currentHeight = await page.evaluate(() => {
+        window.scrollBy(0, window.innerHeight);
+        return document.body.scrollHeight;
+      });
+
+      // Wait for content to load
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Get all product links
+      const newLinks = await page.$$eval("a.product_link", (anchors) =>
+        anchors.map((anchor) => anchor.href)
+      );
+
+      newLinks.forEach((link) => productLinks.add(link));
+
+      // Check if we've reached the end
+      if (previousHeight === currentHeight) {
+        scrollAttempts++;
+      } else {
+        scrollAttempts = 0; // Reset attempts if new content is found
+      }
+      previousHeight = currentHeight;
+
+      console.log(`Fetched ${productLinks.size} links so far...`);
+    }
+
+    console.log(`Total product links fetched: ${productLinks.size}`);
+
 
     for (const link of productLinks) {
       await page.goto(link, { waitUntil: "networkidle2" });
@@ -119,11 +148,10 @@ async function start(websiteUrl) {
         return { images, colors, name };
       });
 
-    
       await formatDataAndSaveInDb(database, productData);
     }
 
-    console.log("process has been ended")
+    console.log("process has been ended");
   } catch (error) {
     console.error("Error:", error);
   } finally {
@@ -180,7 +208,7 @@ async function formatDataAndSaveInDb(database, productData) {
       productBatchData.code = batchId;
       productBatchData.name = item.batchName;
       const res = await productBatchCollection.insertOne(productBatchData);
-      prevBatchName = item.batchName
+      prevBatchName = item.batchName;
       productBatchObjectId = res.insertedId;
     }
 
@@ -226,7 +254,7 @@ async function formatDataAndSaveInDb(database, productData) {
 
     await productListCollection.insertOne(productListData);
 
-    console.log(productBatchObjectId.toString())
+    console.log(productBatchObjectId.toString());
 
     await productBatchCollection.updateOne(
       { _id: new ObjectId(productBatchObjectId) }, // Match the document by _id
@@ -262,6 +290,7 @@ function getRandomNumberOfLength(length) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-const websiteUrlToScrape = "https://nobero.com/collections/pick-printed-t-shirts";
+const websiteUrlToScrape =
+  "https://nobero.com/collections/pick-printed-t-shirts";
 
 start(websiteUrlToScrape);
