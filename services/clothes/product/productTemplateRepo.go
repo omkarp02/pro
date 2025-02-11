@@ -51,7 +51,7 @@ func (s *ProductTemplateRepo) Create(ctx context.Context, paylaod ProductTemplat
 			Stock:      productList.Stock,
 			Discount:   productList.Discount,
 			Detail:     objectIds[0],
-			Category:   objectIds[1],
+			Category:   productList.Category,
 			BatchId:    productList.BatchId,
 			Gender:     productList.Gender,
 			Collection: productList.Collection,

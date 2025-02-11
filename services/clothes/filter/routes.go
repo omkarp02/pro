@@ -18,6 +18,7 @@ type FilterService interface {
 	CreateFilter(ctx context.Context, createFilter CreateFilterModal) (string, error)
 	FindFitlerType(ctx context.Context, filterPayload FilterTypeListModel) ([]FilterType, error)
 	FindFitler(ctx context.Context, filterPayload FilterListModel) ([]Filter, error)
+	FindFitlerForUser(ctx context.Context, filterPayload FilterListModel) ([]FilterListForUserRes, error)
 }
 
 type Handler struct {
@@ -58,6 +59,7 @@ func (h *Handler) createFilter(c router.Context) error {
 		Type:     filterDetails.Type,
 		Category: filterDetails.Category,
 		Status:   constant.STATUS_ACTIVE,
+		Slug:     filterDetails.Slug,
 	})
 	if err != nil {
 		return err
@@ -113,7 +115,7 @@ func (h *Handler) findFitler(c router.Context) error {
 	if err := h.validator.ValidateParams(c, &filterData); err != nil {
 		return err
 	}
-	data, err := h.service.FindFitler(ctx, FilterListModel(filterData))
+	data, err := h.service.FindFitlerForUser(ctx, FilterListModel(filterData))
 	if err != nil {
 		return err
 	}

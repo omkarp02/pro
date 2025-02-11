@@ -63,7 +63,7 @@ func (s *ProductListRepo) getColl() *mongo.Collection {
 
 func (s *ProductListRepo) Create(ctx context.Context, createProductListModel CreateProductListModel, creatorId string) (string, error) {
 
-	ids, err := store.SliceOfHexToObjectID(createProductListModel.Detail, createProductListModel.Category)
+	ids, err := store.SliceOfHexToObjectID(createProductListModel.Detail)
 	if err != nil {
 		return "", err
 	}
@@ -85,7 +85,7 @@ func (s *ProductListRepo) Create(ctx context.Context, createProductListModel Cre
 		Stock:       createProductListModel.Stock,
 		Discount:    createProductListModel.Discount,
 		AuditFields: &auditFields,
-		Category:    ids[1],
+		Category:    createProductListModel.Category,
 		BatchId:     createProductListModel.BatchId,
 		Gender:      createProductListModel.Gender,
 		Collection:  createProductListModel.Collection,
@@ -108,6 +108,104 @@ func (s *ProductListRepo) Create(ctx context.Context, createProductListModel Cre
 
 }
 
+func (s *ProductListRepo) FindByFilterBackup(ctx context.Context, filterProductListModel FilterProductListModel, project []string, inclusive bool) ([]ProductList, int, error) {
+
+	var productList []ProductList
+
+	query := bson.M{}
+
+	sizes := filterProductListModel.Sizes
+	name := filterProductListModel.Name
+	color := filterProductListModel.Color
+	maxPrice := filterProductListModel.MaxPrice
+	minPrice := filterProductListModel.MinPrice
+	collection := filterProductListModel.Collection
+	category := filterProductListModel.Category
+	page := filterProductListModel.Page
+	limit := filterProductListModel.Limit
+	getCountFlag := filterProductListModel.Count
+
+	if len(sizes) != 0 {
+		query["sizes"] = bson.M{"$in": sizes}
+	}
+	if len(color) != 0 {
+		query["color"] = color
+	}
+	if len(name) != 0 {
+		query["name"] = bson.M{"$regex": name, "$options": "i"}
+	}
+	if len(collection) != 0 {
+		query["collection"] = collection
+	}
+	if len(category) != 0 {
+		query["category"] = category
+	}
+	if maxPrice != 0 && minPrice != 0 {
+		query["price"] = bson.M{"$gte": minPrice, "$lte": maxPrice}
+	} else if maxPrice != 0 {
+		query["price"] = bson.M{"$lte": maxPrice}
+	} else if minPrice != 0 {
+		query["price"] = bson.M{"$gte": minPrice}
+	}
+
+	fmt.Println(query)
+
+	findOptions := options.Find().SetSkip(int64(limit * (page - 1))).SetLimit(int64(limit))
+
+	if len(project) > 0 {
+		projection := store.GenerateProjection(project, inclusive)
+		findOptions.SetProjection(projection)
+	}
+
+	respChan := make(chan bool)
+	countChan := make(chan int64)
+	errChan := make(chan error, 2)
+
+	go func() {
+		defer close(respChan)
+		cursor, err := s.getColl().Find(ctx, query, findOptions)
+		if err != nil {
+			respChan <- false
+			errChan <- err
+			return
+		}
+		if err := cursor.All(context.TODO(), &productList); err != nil {
+			respChan <- false
+			errChan <- err
+			return
+		}
+
+		errChan <- nil
+		respChan <- true
+	}()
+
+	go func() {
+		var count int64
+		var err error
+		if getCountFlag {
+			count, err = s.getColl().CountDocuments(ctx, query)
+			if err != nil {
+				countChan <- 0
+				errChan <- err
+				return
+			}
+		}
+
+		errChan <- nil
+		countChan <- count
+	}()
+
+	count := <-countChan
+	err := <-errChan
+	if err != nil {
+		return productList, 0, err
+	}
+	err = <-errChan
+	<-respChan
+
+	return productList, int(count), err
+}
+
 func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListModel FilterProductListModel, project []string, inclusive bool) ([]ProductList, error) {
 
 	var productList []ProductList
@@ -120,6 +218,7 @@ func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListMod
 	maxPrice := filterProductListModel.MaxPrice
 	minPrice := filterProductListModel.MinPrice
 	collection := filterProductListModel.Collection
+	category := filterProductListModel.Category
 	page := filterProductListModel.Page
 	limit := filterProductListModel.Limit
 
@@ -134,6 +233,9 @@ func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListMod
 	}
 	if len(collection) != 0 {
 		query["collection"] = collection
+	}
+	if len(category) != 0 {
+		query["category"] = category
 	}
 	if maxPrice != 0 && minPrice != 0 {
 		query["price"] = bson.M{"$gte": minPrice, "$lte": maxPrice}
@@ -154,13 +256,10 @@ func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListMod
 
 	cursor, err := s.getColl().Find(ctx, query, findOptions)
 	if err != nil {
-		return nil, err
+		return productList, err
 	}
-	if err := cursor.All(context.TODO(), &productList); err != nil {
-		return nil, err
-	}
-
-	return productList, nil
+	err = cursor.All(context.TODO(), &productList)
+	return productList, err
 }
 
 func (s *ProductListRepo) AddProductsToCollection(ctx context.Context, addProductToCollectionModel AddProductToCollectionModel) error {

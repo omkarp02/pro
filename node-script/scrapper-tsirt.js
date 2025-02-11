@@ -3,7 +3,8 @@ const { MongoClient, ObjectId } = require("mongodb");
 const { isErrnoException } = require("puppeteer");
 const _ = require("lodash");
 
-const uri = "mongodb://localhost:27017/test_db"; // Replace with your MongoDB connection string
+const uri =
+  "mongodb+srv://opwebdev:Omkar^100@omkar.iuqcpfi.mongodb.net/test_db"; // Replace with your MongoDB connection string
 const client = new MongoClient(uri);
 
 const productDetailBody = {
@@ -93,8 +94,9 @@ async function start(websiteUrl) {
     let previousHeight = 0;
     let maxScrollAttempts = 20; // Maximum attempts to scroll and fetch new content
     let scrollAttempts = 0;
+    let breakk = true
 
-    while (scrollAttempts < maxScrollAttempts) {
+    while ((scrollAttempts < maxScrollAttempts) && breakk) {
       // Scroll down
       const currentHeight = await page.evaluate(() => {
         window.scrollBy(0, window.innerHeight);
@@ -118,12 +120,12 @@ async function start(websiteUrl) {
         scrollAttempts = 0; // Reset attempts if new content is found
       }
       previousHeight = currentHeight;
+      // breakk = false
 
       console.log(`Fetched ${productLinks.size} links so far...`);
     }
 
     console.log(`Total product links fetched: ${productLinks.size}`);
-
 
     for (const link of productLinks) {
       await page.goto(link, { waitUntil: "networkidle2" });
@@ -164,53 +166,48 @@ async function formatDataAndSaveInDb(database, productData) {
   const productDetailsCollection = database.collection("product_detail");
   const productBatchCollection = database.collection("product_batch");
 
-  let imgs = [];
   let finalData = [];
-  let prevLength = 0;
   let name = productData.name;
   let colors = productData.colors;
+  let count = 0;
 
-  let prevBatchName = "";
-  let productBatchObjectId = "";
-  let batchId = "";
+
+  const obj = {};
 
   for (let item of productData.images) {
-    let itemLength = item.length;
-    if (prevLength === itemLength) {
-      imgs.push(item);
+    const myURL = new URL(item);
+    const query = myURL.searchParams.get("v");
+    if (obj[query]) {
+      obj[query].imgs.push(item);
     } else {
-      if (imgs.length >= 3) {
-        const color = colors[finalData.length];
-        finalData.push({
-          imgs: imgs,
-          name: `${name} ${color}`,
-          batchName: name,
-          color: color,
-        });
-      }
-      imgs = [item];
+      obj[query] = {
+        imgs: [item],
+        name: `${name} ${colors[count]}`,
+        batchName: name,
+        color: colors[count],
+      };
+      count++
     }
-    prevLength = itemLength;
   }
 
-  return;
+  for (let key in obj) {
+    finalData.push(obj[key]);
+  }
+
+  const productBatchData = _.cloneDeep(productBatchBody);
+  const batchId = getRandomNumberOfLength(5).toString();
+  productBatchData.code = batchId;
+  productBatchData.name = name;
+  const res = await productBatchCollection.insertOne(productBatchData);
+  const productBatchObjectId = res.insertedId;
 
   for (let item of finalData) {
     const productDetailData = _.cloneDeep(productDetailBody);
     const productListData = _.cloneDeep(productListBody);
-    const productBatchData = _.cloneDeep(productBatchBody);
 
     const productcode = getRandomNumberOfLength(6).toString();
     const slug = sentenceToSlug(item.name);
 
-    if (prevBatchName !== item.batchName) {
-      batchId = getRandomNumberOfLength(5).toString();
-      productBatchData.code = batchId;
-      productBatchData.name = item.batchName;
-      const res = await productBatchCollection.insertOne(productBatchData);
-      prevBatchName = item.batchName;
-      productBatchObjectId = res.insertedId;
-    }
 
     productDetailData.batchId = batchId;
     productDetailData.code = productcode;
@@ -257,7 +254,7 @@ async function formatDataAndSaveInDb(database, productData) {
     console.log(productBatchObjectId.toString());
 
     await productBatchCollection.updateOne(
-      { _id: new ObjectId(productBatchObjectId) }, // Match the document by _id
+      { _id: productBatchObjectId }, // Match the document by _id
       {
         $push: {
           batchProductDetails: {
@@ -294,3 +291,50 @@ const websiteUrlToScrape =
   "https://nobero.com/collections/pick-printed-t-shirts";
 
 start(websiteUrlToScrape);
+
+const productData = {
+  images: [
+    "https://nobero.com/cdn/shop/files/5_86dd2609-2ecd-4ba1-8485-e82c47d7496b.jpg?v=1735322751",
+    "https://nobero.com/cdn/shop/files/WhatsAppImage2024-07-29at7.13.12PM_1_cd5fcdc8-de0b-4788-99da-4553f3e41049.jpg?v=1736680332",
+    "https://nobero.com/cdn/shop/files/WhatsAppImage2024-07-29at7.13.12PM_df1865e1-e237-44ca-ae9a-801142235b08.jpg?v=1735322751",
+    "https://nobero.com/cdn/shop/files/WhatsAppImage2024-08-05at1.45.51PM_1_fdbac966-157c-48c2-b5be-2bbd2d7e1a3b.jpg?v=1736680361",
+    "https://nobero.com/cdn/shop/files/2-2_1027c3dd-0ddb-4d02-af4f-763a947bd9f7.jpg?v=1736680361",
+    "https://nobero.com/cdn/shop/files/10_100da693-3493-42b4-ac03-efce292eec0d.jpg?v=1736680361",
+    "https://nobero.com/cdn/shop/files/1_b3544e25-d2b1-4be7-aa24-b1563d2c8d76.jpg?v=1736680361",
+    "https://nobero.com/cdn/shop/files/2_47f0e462-0bd0-4b8e-ac5e-6345ebf6262b.jpg?v=1736680361",
+    "https://nobero.com/cdn/shop/files/15_22d23a67-583c-44e5-a4db-371f78375c10.jpg?v=1736680361",
+    "https://nobero.com/cdn/shop/files/2-11_09157623-8438-4e26-9ac8-6cb9880f956e.jpg?v=1736680332",
+    "https://nobero.com/cdn/shop/files/2-8_ebb94411-8f0e-4961-9a24-77b0ce95460e.jpg?v=1736680332",
+    "https://nobero.com/cdn/shop/files/3_1a6bc7ae-510f-4b33-9662-8375d347b16f.jpg?v=1735322751",
+    "https://nobero.com/cdn/shop/files/5_86dd2609-2ecd-4ba1-8485-e82c47d7496b.jpg?v=1735322751",
+    "https://nobero.com/cdn/shop/files/WhatsAppImage2024-07-29at7.13.12PM_1_cd5fcdc8-de0b-4788-99da-4553f3e41049.jpg?v=1736680332",
+  ],
+  colors: [
+    "Authentic/ And/ Never Say No",
+    "Wandersoul/ Take a Break/ Be Free",
+    "Authentic/ Wandersoul/ Sunset",
+    "Wabi Sabi/ Sunset/ Wild",
+    "Black/ Olive Green/ Wine Red",
+    "Black/ White/ Marine",
+    "Olive Green/ Powder Blue/ Wine Red",
+    "Wine Red/ Grey Melange/ Sand",
+    "Restart/ Balance V3/ Mountains",
+    "Authentic/ Chase/ Discover",
+    "White/ Marine/ Wine Red",
+    "Olive Green/ Wine Red/ White",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL",
+    "XXXL",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL",
+    "XXXL",
+  ],
+  name: "The Classic - 3 Pack",
+};
+

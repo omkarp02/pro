@@ -18,7 +18,7 @@ type ProductList struct {
 	Discount    int                `json:"discount,omitempty" bson:"discount,omitempty"`
 	Slug        string             `json:"slug,omitempty" bson:"slug,omitempty"`
 	Detail      bson.ObjectID      `json:"detail,omitempty" bson:"detail,omitempty"`
-	Category    bson.ObjectID      `json:"category,omitempty" bson:"category,omitempty"`
+	Category    string             `json:"category,omitempty" bson:"category,omitempty"`
 	BatchId     string             `json:"batchId,omitempty" bson:"batchId,omitempty"`
 	Gender      string             `json:"gender,omitempty" bson:"gender,omitempty"`
 	Collection  []string           `json:"collection,omitempty" bson:"collection,omitempty"`

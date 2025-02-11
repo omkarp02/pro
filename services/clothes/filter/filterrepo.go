@@ -35,16 +35,13 @@ func (s *FilterRepo) Create(ctx context.Context, createFilterModal CreateFilterM
 	if err != nil {
 		return "", err
 	}
-	categoryId, err := bson.ObjectIDFromHex(createFilterModal.Category)
-	if err != nil {
-		return "", err
-	}
 
 	filter := Filter{
 		Name:       createFilterModal.Name,
 		Type:       typeId,
 		Status:     createFilterModal.Status,
-		Category:   categoryId,
+		Slug:       createFilterModal.Slug,
+		Category:   createFilterModal.Category,
 		Timestamps: store.GetCurrentTimestamps(),
 	}
 
@@ -76,11 +73,7 @@ func (s *FilterRepo) FindByFilter(ctx context.Context, filterListModel FilterLis
 	filterType := filterListModel.Type
 
 	if len(category) != 0 {
-		categoryObjectId, err := bson.ObjectIDFromHex(category)
-		if err != nil {
-			return list, err
-		}
-		query["category"] = categoryObjectId
+		query["category"] = category
 	}
 	if len(filterType) != 0 {
 		typeObjectId, err := bson.ObjectIDFromHex(filterType)

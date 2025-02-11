@@ -61,7 +61,11 @@ func (s *FilterTypeRepo) FindByFilter(ctx context.Context, filterListModel Filte
 	page := filterListModel.Page
 	limit := filterListModel.Limit
 
-	findOptions := options.Find().SetSkip(int64(limit * (page - 1))).SetLimit(int64(limit))
+	findOptions := options.Find()
+
+	if page > 0 {
+		findOptions.SetSkip(int64(limit * (page - 1))).SetLimit(int64(limit))
+	}
 
 	if len(project) > 0 {
 		projection := store.GenerateProjection(project, inclusive)

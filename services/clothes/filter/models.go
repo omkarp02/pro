@@ -9,8 +9,9 @@ type Filter struct {
 	ID         bson.ObjectID    `json:"id,omitempty" bson:"_id,omitempty"`
 	Type       bson.ObjectID    `json:"type,omitempty" bson:"type,omitempty"`
 	Name       string           `json:"name,omitempty" bson:"name,omitempty"`
+	Slug       string           `json:"slug,omitempty" bson:"slug,omitempty"`
 	Status     string           `json:"status,omitempty" bson:"status,omitempty"`
-	Category   bson.ObjectID    `json:"category,omitempty" bson:"category,omitempty"`
+	Category   string           `json:"category,omitempty" bson:"category,omitempty"`
 	Timestamps store.Timestamps `json:"timestamp,omitempty" bson:",inline"`
 }
 

@@ -52,6 +52,8 @@ type TFilterProductList struct {
 	MinPrice   float64  `query:"min_price,omitempty"`
 	MaxPrice   float64  `query:"max_price,omitempty"`
 	Collection string   `query:"collection,omitempty"`
+	Category   string   `query:"category,omitempty"`
+	Count      bool     `query:"count,omitempty"`
 	Name       string   `query:"name,omitempty"`
 	Page       int      `query:"page,omitempty" validate:"required"`
 	Limit      int      `query:"limit,omitempty" validate:"required"`
@@ -63,6 +65,8 @@ type FilterProductListModel struct {
 	MinPrice   float64  `json:"min_price,omitempty"`
 	MaxPrice   float64  `json:"max_price,omitempty"`
 	Collection string   `json:"collection,omitempty"`
+	Category   string   `json:"category,omitempty"`
+	Count      bool     `json:"count,omitempty"`
 	Name       string   `json:"name,omitempty"`
 	Page       int      `json:"page,omitempty"`
 	Limit      int      `json:"limit,omitempty"`
