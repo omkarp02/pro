@@ -17,8 +17,8 @@ type TFilterTypeList struct {
 }
 
 type TFilterList struct {
-	Page     int    `query:"page,omitempty" validate:"required"`
-	Limit    int    `query:"limit,omitempty" validate:"required"`
+	Page     int    `query:"page,omitempty"`
+	Limit    int    `query:"limit,omitempty"`
 	Category string `query:"category,omitempty"`
 	Type     string `query:"type,omitempty"`
 }

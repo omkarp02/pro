@@ -2,7 +2,6 @@ package filter
 
 import (
 	"context"
-	"fmt"
 )
 
 type Service struct {
@@ -40,8 +39,6 @@ func (s *Service) FindFitlerForUser(ctx context.Context, filterPayload FilterLis
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(filterList, "<<<<<<<<<<<<<<<<<")
 
 	filterTypeList, err := s.filterTypeRepo.FindByFilter(ctx, FilterTypeListModel{}, project, false)
 	if err != nil {

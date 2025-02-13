@@ -28,6 +28,12 @@ type TCreateProductDetail struct {
 	ImgLink     []string    `json:"imgLink,omitempty"  validate:"required"`
 }
 
+type ProductFitlerRes struct {
+	Color      string   `bson:"color,omitempty"`
+	Sizes      []string `bson:"size,omitempty"`
+	TotalStock int      `bson:"totalStock,omitempty"`
+}
+
 type ProductTemplateModel struct {
 	Slug          string                   `json:"slug,omitempty"  validate:"required"`
 	BatchId       string                   `json:"batchId,omitempty"  validate:"required"`
@@ -48,23 +54,23 @@ type TGetProductDetails struct {
 
 type TFilterProductList struct {
 	Sizes      []string `query:"sizes,omitempty"`
-	Color      string   `query:"color,omitempty"`
+	Color      []string `query:"colors,omitempty"`
 	MinPrice   float64  `query:"min_price,omitempty"`
 	MaxPrice   float64  `query:"max_price,omitempty"`
-	Collection string   `query:"collection,omitempty"`
+	Collection []string `query:"collections,omitempty"`
 	Category   string   `query:"category,omitempty"`
 	Count      bool     `query:"count,omitempty"`
 	Name       string   `query:"name,omitempty"`
-	Page       int      `query:"page,omitempty" validate:"required"`
-	Limit      int      `query:"limit,omitempty" validate:"required"`
+	Page       int      `query:"page,omitempty" `
+	Limit      int      `query:"limit,omitempty"`
 }
 
 type FilterProductListModel struct {
 	Sizes      []string `json:"sizes,omitempty"`
-	Color      string   `json:"color,omitempty"`
+	Color      []string `json:"colors,omitempty"`
 	MinPrice   float64  `json:"min_price,omitempty"`
 	MaxPrice   float64  `json:"max_price,omitempty"`
-	Collection string   `json:"collection,omitempty"`
+	Collection []string `json:"collections,omitempty"`
 	Category   string   `json:"category,omitempty"`
 	Count      bool     `json:"count,omitempty"`
 	Name       string   `json:"name,omitempty"`

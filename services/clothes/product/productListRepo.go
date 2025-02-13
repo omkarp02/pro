@@ -210,42 +210,10 @@ func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListMod
 
 	var productList []ProductList
 
-	query := bson.M{}
-
-	sizes := filterProductListModel.Sizes
-	name := filterProductListModel.Name
-	color := filterProductListModel.Color
-	maxPrice := filterProductListModel.MaxPrice
-	minPrice := filterProductListModel.MinPrice
-	collection := filterProductListModel.Collection
-	category := filterProductListModel.Category
-	page := filterProductListModel.Page
 	limit := filterProductListModel.Limit
+	page := filterProductListModel.Page
 
-	if len(sizes) != 0 {
-		query["sizes"] = bson.M{"$in": sizes}
-	}
-	if len(color) != 0 {
-		query["color"] = color
-	}
-	if len(name) != 0 {
-		query["name"] = bson.M{"$regex": name, "$options": "i"}
-	}
-	if len(collection) != 0 {
-		query["collection"] = collection
-	}
-	if len(category) != 0 {
-		query["category"] = category
-	}
-	if maxPrice != 0 && minPrice != 0 {
-		query["price"] = bson.M{"$gte": minPrice, "$lte": maxPrice}
-	} else if maxPrice != 0 {
-		query["price"] = bson.M{"$lte": maxPrice}
-	} else if minPrice != 0 {
-		query["price"] = bson.M{"$gte": minPrice}
-	}
-
-	fmt.Println(query)
+	query := s.GetFitlerQuery(filterProductListModel)
 
 	findOptions := options.Find().SetSkip(int64(limit * (page - 1))).SetLimit(int64(limit))
 
@@ -259,7 +227,82 @@ func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListMod
 		return productList, err
 	}
 	err = cursor.All(context.TODO(), &productList)
+
 	return productList, err
+}
+
+func (s *ProductListRepo) GetFitler(ctx context.Context, filterProductListModel FilterProductListModel, project []string, inclusive bool) ([]ProductFitlerRes, error) {
+	var result []ProductFitlerRes
+
+	query := s.GetFitlerQuery(filterProductListModel)
+
+	pipeline := bson.A{
+		bson.M{"$match": query}, // Filter products by name
+		bson.M{"$group": bson.M{
+			"_id": bson.M{
+				"size":  "$sizes", // Group by sizes
+				"color": "$color", // Group by color
+			},
+			"totalStock": bson.M{
+				"$sum": "$stock", // Sum stock for each combination of size and color
+			},
+		}},
+		bson.M{"$project": bson.M{
+			"_id":        0,
+			"size":       "$_id.size",
+			"color":      "$_id.color",
+			"totalStock": 1,
+		}},
+	}
+	cur, err := s.getColl().Aggregate(ctx, pipeline)
+	if err != nil {
+		return result, err
+	}
+	defer cur.Close(ctx)
+
+	if err := cur.All(ctx, &result); err != nil {
+		return result, err
+	}
+
+	return result, err
+}
+
+func (s *ProductListRepo) GetFitlerQuery(filterProductListModel FilterProductListModel) bson.M {
+	query := bson.M{}
+
+	sizes := filterProductListModel.Sizes
+	name := filterProductListModel.Name
+	color := filterProductListModel.Color
+	maxPrice := filterProductListModel.MaxPrice
+	minPrice := filterProductListModel.MinPrice
+	collection := filterProductListModel.Collection
+	category := filterProductListModel.Category
+
+	if len(sizes) != 0 {
+		query["sizes"] = bson.M{"$in": sizes}
+	}
+	if len(color) != 0 {
+		query["color"] = bson.M{"$in": color}
+	}
+	if len(name) != 0 {
+		query["name"] = bson.M{"$regex": name, "$options": "i"}
+	}
+	if len(collection) != 0 {
+		query["collection"] = bson.M{"$in": collection}
+	}
+	if len(category) != 0 {
+		query["category"] = category
+	}
+	if maxPrice != 0 && minPrice != 0 {
+		query["price"] = bson.M{"$gte": minPrice, "$lte": maxPrice}
+	} else if maxPrice != 0 {
+		query["price"] = bson.M{"$lte": maxPrice}
+	} else if minPrice != 0 {
+		query["price"] = bson.M{"$gte": minPrice}
+	}
+
+	return query
+
 }
 
 func (s *ProductListRepo) AddProductsToCollection(ctx context.Context, addProductToCollectionModel AddProductToCollectionModel) error {

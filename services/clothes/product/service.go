@@ -54,6 +54,27 @@ func (s *Service) FilterProductList(ctx context.Context, filterProductList TFilt
 	return filteredProductList, nil
 }
 
+func (s *Service) GetProductFilter(ctx context.Context, filterProductList TFilterProductList) (any, error) {
+	res, err := s.productListRepo.GetFitler(ctx, FilterProductListModel(filterProductList), []string{"name", "price", "discount", "imgLink", "_id", "detail", "batchId", "slug", "code"}, true)
+
+	if err != nil {
+		return nil, err
+	}
+
+	finalResult := map[string]map[string]int{"color": map[string]int{}, "size": map[string]int{}}
+
+	for _, item := range res {
+		finalResult["color"][item.Color] += item.TotalStock
+
+		for _, size := range item.Sizes {
+			finalResult["size"][size] += item.TotalStock
+		}
+	}
+
+	return finalResult, nil
+
+}
+
 func (s *Service) AddProductsToCollection(ctx context.Context, productData TAddProductToCollection) error {
 	return s.productListRepo.AddProductsToCollection(ctx, AddProductToCollectionModel(productData))
 }

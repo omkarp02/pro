@@ -1,7 +1,7 @@
 const { MongoClient } = require('mongodb');
 
-const sourceURI = 'mongodb://localhost:27017/sourceDB';      // Change to your source DB URI
-const destinationURI = 'mongodb://localhost:27017/destinationDB';  // Change to your destination DB URI
+const sourceURI = 'mongodb+srv://opwebdev:Omkar^100@omkar.iuqcpfi.mongodb.net/test_db';      // Change to your source DB URI
+const destinationURI = 'mongodb://localhost:27017/test_db';  // Change to your destination DB URI
 
 async function copyCollections() {
   const sourceClient = new MongoClient(sourceURI);

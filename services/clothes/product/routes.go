@@ -22,6 +22,7 @@ type ProductService interface {
 	FindProductBatch(ctx context.Context, filterPayload FilterProductBatchListModel) ([]ProductBatch, error)
 	GetProductBatchDetails(ctx context.Context, code string) (ProductBatch, error)
 	GetVariations(ctx context.Context, productCode string) ([]Variation, error)
+	GetProductFilter(ctx context.Context, filterProductList TFilterProductList) (any, error)
 }
 
 type Handler struct {
@@ -43,6 +44,7 @@ func (h *Handler) RegisterRoutes(router router.Router, link string) {
 	routeGrp.Get("/details/:productId", h.getProductDetails)
 	routeGrp.Get("/batch/:batchId", h.getProductBatchDetails)
 	routeGrp.Get("/variations/:code", h.getVariation)
+	routeGrp.Get("/filter", h.getProductFitler)
 
 	routeGrp.Use(middleware.VerifyToken(h.cfg))
 	routeGrp.Use(middleware.IsOwner())
@@ -63,6 +65,23 @@ func (h *Handler) getFilteredProductList(c router.Context) error {
 	}
 
 	data, err := h.service.FilterProductList(ctx, filterData)
+	if err != nil {
+		return err
+	}
+
+	return utils.SendResponse(c, "Product List Created Successfully", data, 200)
+}
+
+func (h *Handler) getProductFitler(c router.Context) error {
+	ctx, cancel := createContext()
+	defer cancel()
+	var filterData TFilterProductList
+
+	if err := h.validator.ValidateParams(c, &filterData); err != nil {
+		return err
+	}
+
+	data, err := h.service.GetProductFilter(ctx, filterData)
 	if err != nil {
 		return err
 	}
