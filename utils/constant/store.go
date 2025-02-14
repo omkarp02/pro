@@ -20,3 +20,13 @@ const (
 	STATUS_INACTIVE = "inActive"
 	STATUS_ARCHIVE  = "archive"
 )
+
+const (
+	SORTBY_NEW        = "new"
+	SORTBY_HIGH       = "high"
+	SORTBY_LOW        = "low"
+	SORTBY_POPULARITY = "popularity"
+	SORTBY_DISCOUNT   = "discount"
+	SORTBY_RATING     = "rating"
+	SORTBY_RELEVANCE  = "relevance"
+)

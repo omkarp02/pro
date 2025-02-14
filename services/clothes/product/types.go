@@ -61,6 +61,8 @@ type TFilterProductList struct {
 	Category   string   `query:"category,omitempty"`
 	Count      bool     `query:"count,omitempty"`
 	Name       string   `query:"name,omitempty"`
+	SortBy     string   `query:"sort_by,omitempty" validate:"omitempty,oneof=new high low popularity discount rating relevance"`
+	Gender     string   `json:"gender,omitempty"`
 	Page       int      `query:"page,omitempty" `
 	Limit      int      `query:"limit,omitempty"`
 }
@@ -74,6 +76,8 @@ type FilterProductListModel struct {
 	Category   string   `json:"category,omitempty"`
 	Count      bool     `json:"count,omitempty"`
 	Name       string   `json:"name,omitempty"`
+	SortBy     string   `json:"sort_by,omitempty"`
+	Gender     string   `json:"gender,omitempty"`
 	Page       int      `json:"page,omitempty"`
 	Limit      int      `json:"limit,omitempty"`
 }

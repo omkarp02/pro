@@ -6,6 +6,7 @@ import (
 
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/services/utils/store"
+	"github.com/omkarp02/pro/utils/constant"
 	"github.com/omkarp02/pro/utils/errutil"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -212,14 +213,26 @@ func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListMod
 
 	limit := filterProductListModel.Limit
 	page := filterProductListModel.Page
+	sortBy := filterProductListModel.SortBy
 
 	query := s.GetFitlerQuery(filterProductListModel)
 
-	findOptions := options.Find().SetSkip(int64(limit * (page - 1))).SetLimit(int64(limit))
+	findOptions := options.Find().SetSkip(int64(limit * (page - 1))).SetLimit(int64(limit)).SetSort(bson.D{{Key: "price", Value: -1}})
+
+	fmt.Println(sortBy, "<<<<")
+	if len(sortBy) > 0 {
+		fmt.Println(s.getSortBy(sortBy), "<<<<<<<<<< here")
+
+		findOptions.SetSort(s.getSortBy(sortBy))
+	}
 
 	if len(project) > 0 {
 		projection := store.GenerateProjection(project, inclusive)
 		findOptions.SetProjection(projection)
+	}
+
+	if len(sortBy) != 0 {
+
 	}
 
 	cursor, err := s.getColl().Find(ctx, query, findOptions)
@@ -229,6 +242,25 @@ func (s *ProductListRepo) FindByFilter(ctx context.Context, filterProductListMod
 	err = cursor.All(context.TODO(), &productList)
 
 	return productList, err
+}
+
+func (s *ProductListRepo) getSortBy(sortBy string) bson.D {
+	sort := bson.D{}
+	switch sortBy {
+	case constant.SORTBY_HIGH:
+		sort = bson.D{{Key: "price", Value: -1}}
+	case constant.SORTBY_LOW:
+		sort = bson.D{{Key: "price", Value: 1}}
+	case constant.SORTBY_NEW:
+		sort = bson.D{{Key: "updatedAt", Value: -1}}
+	case constant.SORTBY_DISCOUNT:
+		sort = bson.D{{Key: "discount", Value: -1}}
+	case constant.SORTBY_POPULARITY:
+	case constant.SORTBY_RATING:
+	default:
+	}
+
+	return sort
 }
 
 func (s *ProductListRepo) GetFitler(ctx context.Context, filterProductListModel FilterProductListModel, project []string, inclusive bool) ([]ProductFitlerRes, error) {
@@ -277,12 +309,16 @@ func (s *ProductListRepo) GetFitlerQuery(filterProductListModel FilterProductLis
 	minPrice := filterProductListModel.MinPrice
 	collection := filterProductListModel.Collection
 	category := filterProductListModel.Category
+	gender := filterProductListModel.Gender
 
 	if len(sizes) != 0 {
 		query["sizes"] = bson.M{"$in": sizes}
 	}
 	if len(color) != 0 {
 		query["color"] = bson.M{"$in": color}
+	}
+	if len(gender) != 0 {
+		query["gender"] = gender
 	}
 	if len(name) != 0 {
 		query["name"] = bson.M{"$regex": name, "$options": "i"}
@@ -293,6 +329,7 @@ func (s *ProductListRepo) GetFitlerQuery(filterProductListModel FilterProductLis
 	if len(category) != 0 {
 		query["category"] = category
 	}
+
 	if maxPrice != 0 && minPrice != 0 {
 		query["price"] = bson.M{"$gte": minPrice, "$lte": maxPrice}
 	} else if maxPrice != 0 {
