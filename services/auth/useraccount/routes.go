@@ -136,6 +136,8 @@ func (h *Handler) login(c router.Context) error {
 
 	helper.UpdateCookie(c, constant.REFRESH_TOKEN_COOKIE, newRefreshToken, constant.REFRESH_TOKEN_COOKIE_EXPIRY)
 
+	fmt.Println("<<<<<<<<<<<<<<<<<<<< hre is the user logged in sucessuflly")
+
 	return utils.SendResponse(c, "User Logged In Succesfully", fiber.Map{"accessToken": accessToken, "role": userAccount.Role, "userProfileId": userAccount.UserProfile}, 200)
 }
 

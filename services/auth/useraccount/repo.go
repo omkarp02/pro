@@ -124,10 +124,7 @@ func (s *Repo) FindOne(ctx context.Context, field string, value string, project 
 		findOneOptions.SetProjection(projection)
 	}
 
-	fmt.Println(filter, findOneOptions, "<<<<<<<<<<<")
-
 	err := s.getColl().FindOne(ctx, filter, findOneOptions).Decode(&userAccount)
-	fmt.Println(err, userAccount, "<<<<<<<<<<<<<<<< here is the erro")
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return userAccount, errutil.ErrDocumentNotFound
