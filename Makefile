@@ -5,7 +5,7 @@ build:
 	@go build -o bin/pro-backend cmd/api/main.go 
 
 start: build
-	@./bin/pro-backend -config config/local.yaml
+	@./bin/pro-backend
 
 seed: 
 	@go build -o bin/pro-backend cmd/seed/main.go

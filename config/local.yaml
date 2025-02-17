@@ -1,6 +1,6 @@
 env: "dev"
 http_server:
-  address: "localhost:8080"
+  address: "0.0.0.0:8080"
 storage:
   db_name: "test_db"
 app:

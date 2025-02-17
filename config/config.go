@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"reflect"
@@ -159,9 +160,10 @@ func (cfg *Config) GetProviderIdByName(name string) string {
 
 func MustLoad(configPath string) *Config {
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	if _, err := os.Stat(".env"); err == nil {
+		if err := godotenv.Load(); err != nil {
+			log.Println("Error loading .env file, proceeding without it")
+		}
 	}
 
 	if configPath == "" {
@@ -172,6 +174,8 @@ func MustLoad(configPath string) *Config {
 		if configPath == "" {
 			configPath = os.Getenv("CONFIG_PATH")
 		}
+
+		fmt.Println(configPath, "<<<<<<<<<<<<")
 
 		if configPath == "" {
 			log.Fatal("Config path is not set")
