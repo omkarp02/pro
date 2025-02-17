@@ -11,7 +11,7 @@ import (
 func Intialize(curDb *db.Database, cfg *config.Config, validator *validation.Validator, api router.Router) {
 
 	clothesConfig := cfg.App.Clothes
-
+	//asdf
 	CartRepo := NewRepo(curDb, clothesConfig.DBCollection.Cart)
 	ProductDetailRepo := product.NewProductDetailRepo(curDb, clothesConfig.DBCollection.ProductDetail)
 	CartService := NewService(CartRepo, ProductDetailRepo)
