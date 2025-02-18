@@ -7,7 +7,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/encryptcookie"
-	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
 	"github.com/omkarp02/pro/config"
@@ -31,13 +30,8 @@ func NewFiberRouter(cfg *config.Config) *FiberRouter {
 
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     cfg.Cors.AllowOrigins,
-		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
-		AllowHeaders:     "Origin,Content-Type,Accept,Content-Length,Accept-Language,Accept-Encoding,Connection,Access-Control-Allow-Origin",
-		ExposeHeaders:    "Content-Length,Content-Type",
 		AllowCredentials: true,
-		MaxAge:           86400,
 	}))
-	app.Use(healthcheck.New())
 
 	app.Use(encryptcookie.New(encryptcookie.Config{
 		Key: cfg.Secret.CookieEncryptionKey,

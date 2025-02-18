@@ -9,12 +9,12 @@ import (
 
 func UpdateCookie(c router.Context, cookieName string, value string, expiry time.Time) {
 	c.SetCookie(&fiber.Cookie{
-		Name:    cookieName,
-		Value:   value,
-		Expires: expiry,
-		// HTTPOnly: true,
-		// Secure:   true,
-		// SameSite: fiber.CookieSameSiteStrictMode,
+		Name:     cookieName,
+		Value:    value,
+		Expires:  expiry,
+		HTTPOnly: true,
+		Secure:   true,
+		SameSite: fiber.CookieSameSiteStrictMode,
 	})
 }
 
