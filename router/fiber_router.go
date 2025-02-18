@@ -31,7 +31,11 @@ func NewFiberRouter(cfg *config.Config) *FiberRouter {
 
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     cfg.Cors.AllowOrigins,
+		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
+		AllowHeaders:     "Origin,Content-Type,Accept,Content-Length,Accept-Language,Accept-Encoding,Connection,Access-Control-Allow-Origin",
+		ExposeHeaders:    "Content-Length,Content-Type",
 		AllowCredentials: true,
+		MaxAge:           86400,
 	}))
 	app.Use(healthcheck.New())
 
