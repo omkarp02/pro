@@ -68,4 +68,6 @@ func main() {
 	validator := validation.NewValidator()
 
 	useraccount.Intialize(DB, cfg, validator, api)
+
+	api.Listen(cfg.HTTPServer.Addr)
 }
