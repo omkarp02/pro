@@ -3,6 +3,8 @@ package main
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/encryptcookie"
+	"github.com/omkarp02/pro/utils/errutil"
 )
 
 type Response struct {
@@ -12,10 +14,20 @@ type Response struct {
 }
 
 func main() {
-	app := fiber.New()
+
+	fiberConfig := fiber.Config{
+		ErrorHandler:             errutil.ErrorHandler,
+		EnableSplittingOnParsers: true,
+	}
+
+	app := fiber.New(fiberConfig)
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     "https://wyse-shop.vercel.app, http://localhost:3000",
 		AllowCredentials: true,
+	}))
+
+	app.Use(encryptcookie.New(encryptcookie.Config{
+		Key: "fe8d78c1e948d78f4d5ef256e4d08c57",
 	}))
 
 	app.Get("/", func(c *fiber.Ctx) error {
