@@ -75,10 +75,15 @@ func (h *Handler) registerUser(c router.Context) error {
 
 	id, err := h.store.CreateUser(ctx, createUserAccountModal)
 	if errors.Is(err, errutil.ErrDocumentAlreadyExist) {
+		fmt.Println(">>>>>>>>>> already exist")
+
 		return errutil.AlreadyExist("User")
 	} else if err != nil {
+		fmt.Println(">>>>>>>>>> err occured", err)
 		return err
 	}
+
+	fmt.Println(">>>>>>>>>> userre gister succesfully")
 
 	return utils.SendResponse(c, "User registered successfully", fiber.Map{"id": id}, 201)
 }
