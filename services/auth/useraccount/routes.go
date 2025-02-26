@@ -136,12 +136,10 @@ func (h *Handler) login(c router.Context) error {
 	h.store.HandleRefreshTokenForLogin(ctx, userId.Hex(), newRefreshToken, oldRefreshToken)
 
 	if len(oldRefreshToken) != 0 {
-		helper.ClearCookie(c, constant.REFRESH_TOKEN_COOKIE)
+		// helper.ClearCookie(c, constant.REFRESH_TOKEN_COOKIE)
 	}
 
-	helper.UpdateCookie(c, constant.REFRESH_TOKEN_COOKIE, newRefreshToken, constant.REFRESH_TOKEN_COOKIE_EXPIRY)
-
-	fmt.Println("<<<<<<<<<<<<<<<<<<<< hre is the user logged in sucessuflly")
+	// helper.UpdateCookie(c, constant.REFRESH_TOKEN_COOKIE, newRefreshToken, constant.REFRESH_TOKEN_COOKIE_EXPIRY)
 
 	return utils.SendResponse(c, "User Logged In Succesfully", fiber.Map{"accessToken": accessToken, "role": userAccount.Role, "userProfileId": userAccount.UserProfile}, 200)
 }
