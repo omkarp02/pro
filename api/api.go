@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/gofiber/fiber/v2"
 	"github.com/omkarp02/pro/config"
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/router"
@@ -35,9 +36,35 @@ func NewAPIServer(addr string, curDb *db.Database, config *config.Config) *APISe
 	}
 }
 
+type Response struct {
+	Status  int         `json:"status"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
+}
+
 func (s *APIServer) Run() error {
 
 	api := router.NewFiberRouter(s.config)
+
+	api.Get("/", func(ctx router.Context) error {
+		response := Response{
+			Status:  -1,
+			Message: "User registered successfully",
+			Data:    fiber.Map{"id": "sdflgkj"},
+		}
+
+		return ctx.JSON(200, response)
+	})
+
+	api.Post("/", func(ctx router.Context) error {
+		response := Response{
+			Status:  -1,
+			Message: "User registered successfully",
+			Data:    fiber.Map{"id": "sdflgkj"},
+		}
+
+		return ctx.JSON(200, response)
+	})
 
 	validator := validation.NewValidator()
 
