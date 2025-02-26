@@ -92,7 +92,7 @@ func (h *Handler) login(c router.Context) error {
 	ctx, cancel := createContext()
 	defer cancel()
 
-	oldRefreshToken := c.GetCookie(constant.REFRESH_TOKEN_COOKIE)
+	// oldRefreshToken := c.GetCookie(constant.REFRESH_TOKEN_COOKIE)
 	jwtProviderId := h.cfg.AuthConfig.JWT.ProviderId
 	var userCred LoginUserAccountType
 
@@ -128,16 +128,16 @@ func (h *Handler) login(c router.Context) error {
 	accessTokenPayload := helper.CreateAccessTokenPayload(userId.Hex(), jwtProviderId, userAccount.Role)
 	refreshTokenPayload := helper.CreateRefreshTokenPayload(userId.Hex(), jwtProviderId, userAccount.Role)
 
-	accessToken, newRefreshToken, err := utils.GenerateRefreshAndAccessToken(accessTokenPayload, refreshTokenPayload, h.cfg)
+	accessToken, _, err := utils.GenerateRefreshAndAccessToken(accessTokenPayload, refreshTokenPayload, h.cfg)
 	if err != nil {
 		return err
 	}
 
-	h.store.HandleRefreshTokenForLogin(ctx, userId.Hex(), newRefreshToken, oldRefreshToken)
+	// h.store.HandleRefreshTokenForLogin(ctx, userId.Hex(), newRefreshToken, oldRefreshToken)
 
-	if len(oldRefreshToken) != 0 {
-		// helper.ClearCookie(c, constant.REFRESH_TOKEN_COOKIE)
-	}
+	// if len(oldRefreshToken) != 0 {
+	// helper.ClearCookie(c, constant.REFRESH_TOKEN_COOKIE)
+	// }
 
 	// helper.UpdateCookie(c, constant.REFRESH_TOKEN_COOKIE, newRefreshToken, constant.REFRESH_TOKEN_COOKIE_EXPIRY)
 
