@@ -2,9 +2,11 @@ package cart
 
 import (
 	"context"
+	"errors"
 
 	"github.com/omkarp02/pro/services/clothes/product"
 	"github.com/omkarp02/pro/utils"
+	"github.com/omkarp02/pro/utils/errutil"
 )
 
 type Service struct {
@@ -187,6 +189,9 @@ func (s *Service) GetTotalItems(ctx context.Context, userId string) (int, error)
 
 	res, err := s.repo.FindById(ctx, userId, project, false)
 	if err != nil {
+		if errors.Is(err, errutil.ErrDocumentNotFound) {
+			return 0, nil
+		}
 		return 0, err
 	}
 	totalItem := 0

@@ -181,7 +181,7 @@ func (s *Repo) FindById(ctx context.Context, userId string, project []string, in
 	err = s.getColl().FindOne(ctx, filter, findOneOptions).Decode(&cartDetails)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return cartDetails, errutil.NotFound("Product")
+			return cartDetails, errutil.ErrDocumentNotFound
 		}
 		return cartDetails, err
 	}
