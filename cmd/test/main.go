@@ -1,10 +1,16 @@
 package main
 
 import (
+	"context"
+	"log"
+	"time"
+
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/encryptcookie"
-	"github.com/omkarp02/pro/utils/errutil"
+	"github.com/omkarp02/pro/config"
+	"github.com/omkarp02/pro/db"
+	"github.com/omkarp02/pro/router"
+	"github.com/omkarp02/pro/services/auth/useraccount"
+	"github.com/omkarp02/pro/utils/validation"
 )
 
 type Response struct {
@@ -13,36 +19,53 @@ type Response struct {
 	Data    interface{} `json:"data"`
 }
 
+type FiberRouter struct {
+	router fiber.Router
+	app    *fiber.App
+	cfg    *config.Config
+}
+
 func main() {
 
-	fiberConfig := fiber.Config{
-		ErrorHandler:             errutil.ErrorHandler,
-		EnableSplittingOnParsers: true,
+	cfg := config.MustLoad("")
+	config.SetUpLogger()
+
+	DB, err := db.NewDatabase(cfg)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	app := fiber.New(fiberConfig)
-	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "https://wyse-shop.vercel.app, http://localhost:3000",
-		AllowCredentials: true,
-	}))
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
 
-	app.Use(encryptcookie.New(encryptcookie.Config{
-		Key: "fe8d78c1e948d78f4d5ef256e4d08c57",
-	}))
+	defer func() {
+		if err = DB.DB.Disconnect(ctx); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, World!")
-	})
-
-	app.Post("/api/v1", func(c *fiber.Ctx) error {
+	api := router.NewFiberRouter(cfg)
+	api.Get("/", func(ctx router.Context) error {
 		response := Response{
 			Status:  -1,
 			Message: "User registered successfully",
 			Data:    fiber.Map{"id": "sdflgkj"},
 		}
 
-		return c.Status(201).JSON(response)
+		return ctx.JSON(200, response)
 	})
 
-	app.Listen("0.0.0.0:8080")
+	api.Post("/", func(ctx router.Context) error {
+		response := Response{
+			Status:  -1,
+			Message: "User registered successfully",
+			Data:    fiber.Map{"id": "sdflgkj"},
+		}
+
+		return ctx.JSON(200, response)
+	})
+
+	validator := validation.NewValidator()
+
+	useraccount.Intialize(DB, cfg, validator, api)
 }
