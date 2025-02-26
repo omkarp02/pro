@@ -14,6 +14,7 @@ func UpdateCookie(c router.Context, cookieName string, value string, expiry time
 		Expires:  expiry,
 		HTTPOnly: true,
 		Secure:   true,
+		Domain:   ".railway.app",
 		SameSite: fiber.CookieSameSiteNoneMode,
 	})
 }
