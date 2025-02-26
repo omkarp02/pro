@@ -74,10 +74,10 @@ func main() {
 
 	validator := validation.NewValidator()
 
-	setUpClothesApp(DB, cfg, validator, api)
+	// setUpClothesApp(DB, cfg, validator, api)
 	setUpAuthApp(DB, cfg, validator, api)
-	setUpMasterApp(DB, cfg, validator, api)
-	setUpAssessment(DB, cfg, validator, api)
+	// setUpMasterApp(DB, cfg, validator, api)
+	// setUpAssessment(DB, cfg, validator, api)
 
 	api.Listen(cfg.HTTPServer.Addr)
 }
