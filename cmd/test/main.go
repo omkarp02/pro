@@ -10,7 +10,12 @@ import (
 	"github.com/omkarp02/pro/db"
 	"github.com/omkarp02/pro/router"
 	"github.com/omkarp02/pro/services/assessment/review"
+	"github.com/omkarp02/pro/services/auth/address"
+	bussiness "github.com/omkarp02/pro/services/auth/business"
+	"github.com/omkarp02/pro/services/auth/owner"
+	"github.com/omkarp02/pro/services/auth/user"
 	"github.com/omkarp02/pro/services/auth/useraccount"
+	"github.com/omkarp02/pro/services/auth/userprofile"
 	"github.com/omkarp02/pro/services/clothes/cart"
 	"github.com/omkarp02/pro/services/clothes/categories"
 	"github.com/omkarp02/pro/services/clothes/filter"
@@ -70,8 +75,7 @@ func main() {
 	validator := validation.NewValidator()
 
 	// setUpClothesApp(DB, cfg, validator, api)
-	// setUpAuthApp(DB, cfg, validator, api)
-	useraccount.Intialize(DB, cfg, validator, api)
+	setUpAuthApp(DB, cfg, validator, api)
 
 	// setUpMasterApp(DB, cfg, validator, api)
 	// setUpAssessment(DB, cfg, validator, api)
@@ -88,11 +92,11 @@ func setUpClothesApp(curDb *db.Database, cfg *config.Config, validator *validati
 
 func setUpAuthApp(curDb *db.Database, cfg *config.Config, validator *validation.Validator, api router.Router) {
 	useraccount.Intialize(curDb, cfg, validator, api)
-	// userprofile.Intialize(curDb, cfg, validator, api)
-	// user.Intialize(curDb, cfg, validator, api)
-	// owner.Intialize(curDb, cfg, validator, api)
-	// bussiness.Intialize(curDb, cfg, validator, api)
-	// address.Intialize(curDb, cfg, validator, api)
+	userprofile.Intialize(curDb, cfg, validator, api)
+	user.Intialize(curDb, cfg, validator, api)
+	owner.Intialize(curDb, cfg, validator, api)
+	bussiness.Intialize(curDb, cfg, validator, api)
+	address.Intialize(curDb, cfg, validator, api)
 }
 
 func setUpMasterApp(curDb *db.Database, cfg *config.Config, validator *validation.Validator, api router.Router) {
