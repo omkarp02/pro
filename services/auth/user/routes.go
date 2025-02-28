@@ -120,7 +120,7 @@ func (h *Handler) redirectUrlHandler(c router.Context) error {
 	provider := c.Params("provider")
 	providerId := h.cfg.GetProviderIdByName(provider)
 
-	oldRefreshToken := c.GetCookie(constant.REFRESH_TOKEN_COOKIE)
+	// oldRefreshToken := c.Get(constant.REFRESH_TOKEN_HEADER)
 	user, err := goth_fiber.CompleteUserAuth(c.GetContext())
 
 	if err != nil {
@@ -173,15 +173,15 @@ func (h *Handler) redirectUrlHandler(c router.Context) error {
 	}
 
 	fmt.Println(">>>>>>>>>>>> handle refersh token for login")
-	h.service.HandleRefreshTokenForLogin(ctx, curUserId, newRefreshToken, oldRefreshToken)
+	h.service.HandleRefreshTokenForLogin(ctx, curUserId, newRefreshToken, "")
 
-	if len(oldRefreshToken) != 0 {
-		helper.ClearCookie(c, constant.REFRESH_TOKEN_COOKIE)
-	}
+	// if len(oldRefreshToken) != 0 {
+	// 	helper.ClearCookie(c, constant.REFRESH_TOKEN_COOKIE)
+	// }
 
 	helper.UpdateCookie(c, constant.REFRESH_TOKEN_COOKIE, newRefreshToken, constant.REFRESH_TOKEN_COOKIE_EXPIRY)
 
-	return c.Redirect(h.cfg.App.Auth.Client.RedirectUrl+"?token="+newAuthToken, fiber.StatusFound)
+	return c.Redirect(h.cfg.App.Auth.Client.RedirectUrl+"?token="+newAuthToken+"&refreshtoken="+newRefreshToken, fiber.StatusFound)
 }
 
 func (h *Handler) createOwner(c router.Context) error {

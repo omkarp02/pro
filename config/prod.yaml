@@ -1,0 +1,63 @@
+env: "dev"
+http_server:
+  address: "0.0.0.0:8080"
+storage:
+  db_name: "test_db"
+app:
+  clothes:
+    db_collection:
+      product_list: "product_list"
+      product_detail: "product_detail"
+      product_batch: "product_batch"
+      product_template: "product_template"
+      category: "categories"
+      filter: "filter"
+      fitler_type: "filter_type"
+      cart: "cart"
+    routes:
+      product: "product"
+      filter: "filter"
+      category: "category"
+      cart: "cart"
+  master: 
+    db_collection:
+      master: "master"
+      state: "state"
+      city: "city"
+    routes: 
+      master: "master"
+      state: "state"
+      city: "city"
+  assessment:
+    db_collection:
+      review: "review"
+      review_vote: "review_vote"
+    routes: 
+      review: "review"
+      review_vote: "review-vote"
+  auth:
+    db_collection:
+      user_account: "user_account"
+      user_profile: "user_profile"
+      owner: "owner"
+      bussiness: "bussiness"
+      address: "address"
+    routes:
+      user_account: "auth"
+      user_profile: "user-profile"
+      user: "user"
+      owner: "owner"
+      bussiness: "bussiness"
+      address: "address"
+    client:
+      redirect_url: "http://localhost:3000/auth-success"
+auth_config_provider:
+  google:
+    redirect_url: "https://pro-production-caa9.up.railway.app/api/v1/user/sso/google/callback"
+    provider_id: "B80E81BI66XN6MU"
+    provider_name: "google"
+  jwt:
+    provider_id: "4S4UXF650DBR6NR"
+    provider_name: "jwt"
+cors:
+  allow_origin: "http://localhost:3000, https://wyse-shop.vercel.app"

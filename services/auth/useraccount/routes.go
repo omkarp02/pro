@@ -196,7 +196,6 @@ func (h *Handler) handleRefreshToken(c router.Context) error {
 }
 
 func (h *Handler) logout(c router.Context) error {
-	fmt.Println(">>>>>>>>> logout reached")
 	ctx, cancel := createContext()
 	defer cancel()
 
@@ -207,18 +206,15 @@ func (h *Handler) logout(c router.Context) error {
 			return errutil.InternalServerError()
 		}
 	}
-	fmt.Println(">>>>>>>>> 1 reached")
 
 	refreshToken := c.Get(constant.REFRESH_TOKEN_HEADER)
 	if len(refreshToken) == 0 {
 		return errutil.UnAuthorized("UnAuthorized")
 	}
-	fmt.Println(">>>>>>>>> 2 reached")
 
 	if err := h.store.PullUserRefreshToken(ctx, refreshToken); err != nil {
 		return err
 	}
-	fmt.Println(">>>>>>>>> 3 reached")
 
 	return utils.SendResponse(c, "User logged out successfully", fiber.Map{}, 200)
 }
