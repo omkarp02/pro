@@ -15,6 +15,7 @@ func UpdateCookie(c router.Context, cookieName string, value string, expiry time
 		HTTPOnly: true,
 		Secure:   true,
 		SameSite: fiber.CookieSameSiteNoneMode,
+		Domain:   "localhost:3000",
 	})
 }
 

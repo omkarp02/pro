@@ -31,7 +31,7 @@ func NewFiberRouter(cfg *config.Config) *FiberRouter {
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     cfg.Cors.AllowOrigins,
 		AllowMethods:     "GET, POST, PUT, DELETE, PATCH",
-		AllowHeaders:     "Origin, Content-Type, Accept",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 		AllowCredentials: true,
 	}))
 
