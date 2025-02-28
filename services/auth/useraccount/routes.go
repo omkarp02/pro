@@ -141,9 +141,9 @@ func (h *Handler) login(c router.Context) error {
 	// }
 
 	// helper.UpdateCookie(c, constant.REFRESH_TOKEN_COOKIE, newRefreshToken, constant.REFRESH_TOKEN_COOKIE_EXPIRY)
-	fmt.Println(">>>>>>>>>>>> here logged in")
+	fmt.Println(">>>>>>>>>>>> here logged in", accessToken)
 
-	return utils.SendResponse(c, "User Logged In Succesfully", fiber.Map{"accessToken": accessToken, "role": userAccount.Role, "userProfileId": userAccount.UserProfile, "refreshToken": newRefreshToken}, 200)
+	return utils.SendResponse(c, "User Logged In Succesfully", nil, 200)
 }
 
 func (h *Handler) handleRefreshToken(c router.Context) error {
