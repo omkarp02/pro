@@ -5,7 +5,7 @@ import "github.com/omkarp02/pro/services/utils/store"
 type TCreateAddress struct {
 	Address   store.TAddress `json:"address,omitempty"  validate:"required"`
 	Type      ADDRESS_TYPE   `json:"type,omitempty" validate:"required"`
-	IsPrimary bool           `json:"isPrimary,omitempty"  validate:"required"`
+	IsPrimary bool           `json:"isPrimary,omitempty"`
 }
 
 type CreateAddressModel struct {
@@ -19,7 +19,7 @@ type TUpdateAddress struct {
 	Id        string         `json:"id,omitempty"  validate:"required"`
 	Address   store.TAddress `json:"address,omitempty"  validate:"required"`
 	Type      ADDRESS_TYPE   `json:"type,omitempty" validate:"required"`
-	IsPrimary bool           `json:"isPrimary,omitempty"  `
+	IsPrimary bool           `json:"isPrimary,omitempty" `
 }
 
 type TDeleteAddressByIds struct {
