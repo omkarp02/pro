@@ -12,6 +12,7 @@ func UpdateCookie(c router.Context, cookieName string, value string, expiry time
 		Name:     cookieName,
 		Value:    value,
 		Expires:  expiry,
+		Path:     "/",
 		HTTPOnly: true,
 		Secure:   true,
 		SameSite: fiber.CookieSameSiteNoneMode,
