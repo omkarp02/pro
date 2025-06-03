@@ -10,6 +10,8 @@ type AuthProvider struct {
 	ProviderID string `bson:"provider_id" json:"provider_id"` // Unique ID from the provider
 }
 
+//asdf
+
 type UserAccount struct {
 	ID           bson.ObjectID    `json:"_id,omitempty" bson:"_id,omitempty"`
 	UserId       string           `json:"userId,omitempty" bson:"userId,omitempty"`
