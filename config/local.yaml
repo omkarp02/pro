@@ -50,10 +50,10 @@ app:
       bussiness: "bussiness"
       address: "address"
     client:
-      redirect_url: "http://localhost:3000/auth-success"
+      redirect_url: "https://wyse-shop.vercel.app/auth-success"
 auth_config_provider:
   google:
-    redirect_url: "http://localhost:8080/api/v1/user/sso/google/callback"
+    redirect_url: "https://pro-yknu.onrender.com/api/v1/user/sso/google/callback"
     provider_id: "B80E81BI66XN6MU"
     provider_name: "google"
   jwt:
